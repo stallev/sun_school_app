@@ -426,7 +426,7 @@ model Teacher {
   
   // Relations
   user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  grades        Grade[]   @relation("GradeTeachers")
+  grades        Grade[]   @relation("GradeTeachers")  // M:N — может быть пустым массивом; назначение групп делается в /grades-list
   lessons       Lesson[]
   
   @@index([userId])
@@ -525,9 +525,11 @@ model Family {
   fatherFirstName   String?
   fatherLastName    String?
   fatherPhone       String?
+  fatherInitials    String?   // Например: "А.В." (инициалы отца)
   motherFirstName   String?
   motherLastName    String?
   motherPhone       String?
+  motherInitials    String?   // Например: "Е.С." (инициалы матери)
   isActive          Boolean   @default(true)
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
@@ -538,7 +540,7 @@ model Family {
   
   @@index([fatherLastName])
   @@index([motherLastName])
-  @@index([isActive])
+  @@index([fatherLastName, fatherInitials])
 }
 
 // ============================================
