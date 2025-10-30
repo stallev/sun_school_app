@@ -576,19 +576,26 @@ enum AcademicYearStatus {
 // LESSON
 // ============================================
 
+enum LessonStatus {
+  PUBLISHED
+  ARCHIVED
+  REQUESTED_FOR_RESTORE
+}
+
 model Lesson {
-  id              String    @id @default(cuid())
+  id              String        @id @default(cuid())
   academicYearId  String
   gradeId         String
-  lessonNumber    Int       // Sequential within academic year
+  lessonNumber    Int           // Sequential within academic year
   topic           String
   date            DateTime
   teacherId       String
-  isArchived      Boolean   @default(false)  // Soft delete
-  archivedAt      DateTime?  // When archived
-  archivedBy      String?    // Who archived
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  status          LessonStatus  @default(PUBLISHED)
+  description     Json?         // RichText (BlockNote) payload, optional
+  archivedAt      DateTime?
+  archivedBy      String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
   
   // Relations
   academicYear    AcademicYear  @relation(fields: [academicYearId], references: [id], onDelete: Restrict)
@@ -602,8 +609,11 @@ model Lesson {
   @@index([gradeId])
   @@index([teacherId])
   @@index([date])
-  @@index([isArchived])
+  @@index([status])
 }
+
+// Rich text editor recommendation:
+// Use @blocknote/shadcn + @blocknote/core to produce/stores JSON in Lesson.description
 
 // ============================================
 // GOLDEN VERSE
@@ -2788,4 +2798,21 @@ S3_SECRET_KEY="..."
     - Расчёт: для каждого урока проверяется: если `isPresent=true` И `attendedRehearsal=false`, то это пропуск "был, не пришёл"
     - Отображение: помогает учителю выявить нежелание участвовать в спевке при наличии возможности
     - Информационная заметка: объяснить смысл метрики "был, но не пришёл"
+
+**Lesson Statuses:**
+- PUBLISHED — активный урок (виден в основном списке)
+- ARCHIVED — перемещён в архив
+- REQUESTED_FOR_RESTORE — отправлен запрос на восстановление (ожидает решения Admin)
+
+**Routes:**
+- GET /grades/:gradeId/archives                # Архив выбранной группы (секции по учебным годам)
+- GET /admin/lessons-archive                   # Централизованный архив (admin-only)
+- PATCH /lessons/:id/archive                   # Перевести урок в ARCHIVED
+- PATCH /lessons/:id/request-restore           # Пометить как REQUESTED_FOR_RESTORE
+- PATCH /lessons/:id/publish                   # Вернуть в PUBLISHED
+
+**UI Rules (Archives):**
+- Страница архива группы: путь содержит gradeId, контент разбит на секции учебных годов
+- Для REQUESTED_FOR_RESTORE показывать информер и скрывать редактирование до решения
+- Admin-страница: отдельная секция "Запросы на восстановление" с действиями Одобрить/Отклонить
 
