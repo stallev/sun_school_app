@@ -548,24 +548,27 @@ model Family {
 
 model AcademicYear {
   id            String    @id @default(cuid())
-  gradeId       String
-  year          String    // e.g., "2024-2025"
+  year          String    @unique // e.g., "2024-2025"
   startDate     DateTime
   endDate       DateTime
+  status        AcademicYearStatus @default(ACTIVE)
   isActive      Boolean   @default(true)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   
   // Relations
-  grade         Grade     @relation(fields: [gradeId], references: [id], onDelete: Cascade)
   lessons       Lesson[]
   pupilPoints   PupilPoints[]
   pupilAchievements PupilAchievement[]
   
-  @@unique([gradeId, year])
-  @@index([gradeId])
   @@index([year])
+  @@index([status])
   @@index([isActive])
+}
+
+enum AcademicYearStatus {
+  ACTIVE
+  FINISHED
 }
 
 // ============================================
@@ -575,6 +578,7 @@ model AcademicYear {
 model Lesson {
   id              String    @id @default(cuid())
   academicYearId  String
+  gradeId         String
   lessonNumber    Int       // Sequential within academic year
   topic           String
   date            DateTime
@@ -586,13 +590,15 @@ model Lesson {
   updatedAt       DateTime  @updatedAt
   
   // Relations
-  academicYear    AcademicYear  @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+  academicYear    AcademicYear  @relation(fields: [academicYearId], references: [id], onDelete: Restrict)
+  grade           Grade         @relation(fields: [gradeId], references: [id])
   teacher         Teacher       @relation(fields: [teacherId], references: [id])
   goldenVerses    GoldenVerse[] @relation("LessonGoldenVerses")
   lessonRecords   LessonRecord[]
   
-  @@unique([academicYearId, lessonNumber])
+  @@unique([academicYearId, gradeId, lessonNumber])
   @@index([academicYearId])
+  @@index([gradeId])
   @@index([teacherId])
   @@index([date])
   @@index([isArchived])
@@ -670,8 +676,8 @@ model PupilPoints {
   currentPoints   Float     @default(0)  // Current academic year
   
   // Progress visualization (домики)
-  bricks          Int       @default(0)  // 1 brick = 10 points
-  floors          Int       @default(0)  // 1 floor = 10 bricks = 100 points
+  bricks          Int       @default(0)  // 1 кирпичик = 1 балл
+  floors          Int       @default(0)  // 10 кирпичиков = 1 этаж
   
   // Streaks
   currentStreak   Int       @default(0)  // Consecutive lessons attended
@@ -853,14 +859,14 @@ function calculateLessonPoints(record: LessonRecord): number {
 - **ИТОГО: 23 балла**
 
 **Визуализация прогресса (домики):**
-- 1 кирпичик = 10 баллов
-- 10 кирпичиков = 1 этаж = 100 баллов
-- 100 кирпичиков = 10 этажей = 1000 баллов = дом построен
+- 1 кирпичик = 1 балл
+- 10 кирпичиков = 1 этаж = 10 баллов
+- 100 кирпичиков = 10 этажей = 100 баллов = дом построен
 
 **Формула конвертации:**
 ```typescript
 function calculateProgress(totalPoints: number) {
-  const bricks = Math.floor(totalPoints / 10);
+  const bricks = Math.floor(totalPoints); // 1 балл = 1 кирпичик
   const floors = Math.floor(bricks / 10);
   const houses = Math.floor(floors / 10);
   
