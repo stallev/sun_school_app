@@ -700,6 +700,19 @@ model PupilPoints {
 // ============================================
 
 enum AchievementType {
+  // Лёгкие достижения (быстрый старт)
+  FIRST_BRICK         // "Первый кирпичик" — набрать 1 балл
+  FIRST_FLOOR         // "Первый этаж" — набрать 10 баллов
+  FIRST_VERSE_PERFECT // "Первый идеальный стих" — любой стих на "2"
+  THREE_VERSES_PERFECT_ONCE // "Три стиха идеально (разово)" — все 3 стиха на "2" в одном уроке
+  GOOD_NOTEBOOK_ONCE  // "Хорошая тетрадь" — тетрадь ≥ 8
+  GOOD_TEST_ONCE      // "Хороший тест" — тест ≥ 8
+  THREE_ATTENDANCES   // "Первые 3 посещения" — посетить 3 урока
+  FIVE_ATTENDANCES    // "Пять посещений" — посетить 5 уроков
+  CHOIR_FIRST_TIME    // "Первая спевка" — впервые отметиться на спевке
+  STREAK_TWO          // "Серия 2 урока" — 2 посещённых урока подряд
+  
+  // Основные достижения
   EXCELLENT_STUDENT   // "Отличник" - 5 уроков подряд с максимальным баллом
   PERFECT_ATTENDANCE  // "Без пропусков" - посетил все уроки месяца
   VERSE_MASTER        // "Знаток стихов" - 10 раз подряд все стихи на "2"
@@ -746,7 +759,23 @@ model PupilAchievement {
   @@index([achievementId])
   @@index([earnedAt])
 }
-```
+
+**Лёгкие достижения (критерии и проверка):**
+
+| Код | Название | Критерий | Источник данных |
+|-----|----------|----------|-----------------|
+| FIRST_BRICK | Первый кирпичик | totalPoints ≥ 1 (any time) | PupilPoints.totalPoints |
+| FIRST_FLOOR | Первый этаж | floors ≥ 1 (10 баллов) | calculateProgress(totalPoints) |
+| FIRST_VERSE_PERFECT | Первый идеальный стих | любой из goldenVerseXScore == 2 | LessonRecord |
+| THREE_VERSES_PERFECT_ONCE | Три стиха идеально (разово) | все три стиха == 2 в одном уроке | LessonRecord |
+| GOOD_NOTEBOOK_ONCE | Хорошая тетрадь | notebookScore ≥ 8 | LessonRecord |
+| GOOD_TEST_ONCE | Хороший тест | testScore ≥ 8 | LessonRecord |
+| THREE_ATTENDANCES | Первые 3 посещения | lessonsAttended ≥ 3 | PupilPoints.lessonsAttended |
+| FIVE_ATTENDANCES | Пять посещений | lessonsAttended ≥ 5 | PupilPoints.lessonsAttended |
+| CHOIR_FIRST_TIME | Первая спевка | attendedRehearsal == true (любое занятие) | LessonRecord |
+| STREAK_TWO | Серия 2 урока | currentStreak ≥ 2 | PupilPoints.currentStreak |
+
+Проверка лёгких достижений выполняется вместе с пересчётом баллов после сохранения `LessonRecord` и при ночной переиндексации (batch job).
 
 ### 4.3 Ключевые индексы для производительности
 
