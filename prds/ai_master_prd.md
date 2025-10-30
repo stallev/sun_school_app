@@ -573,6 +573,9 @@ model Lesson {
   topic           String
   date            DateTime
   teacherId       String
+  isArchived      Boolean   @default(false)  // Soft delete
+  archivedAt      DateTime?  // When archived
+  archivedBy      String?    // Who archived
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
   
@@ -586,6 +589,7 @@ model Lesson {
   @@index([academicYearId])
   @@index([teacherId])
   @@index([date])
+  @@index([isArchived])
 }
 
 // ============================================
@@ -784,10 +788,13 @@ interface GradeState {
 // entities/lesson/model/lessonStore.ts
 interface LessonListState {
   lessons: Lesson[];
+  archivedLessons: Lesson[];
   isLoading: boolean;
   
   fetchLessons: (academicYearId: string) => Promise<void>;
-  deleteLesson: (lessonId: string) => Promise<void>;
+  fetchArchivedLessons: (academicYearId: string) => Promise<void>;
+  archiveLesson: (lessonId: string, reason?: string) => Promise<void>;
+  restoreLesson: (lessonId: string) => Promise<void>;
 }
 ```
 
@@ -1282,6 +1289,17 @@ export const lessonSchema = z.object({
   })).length(3, 'Требуется ровно 3 золотых стиха'),
 });
 
+// Lesson archive validation
+export const archiveLessonSchema = z.object({
+  lessonId: z.string().min(1, 'ID урока обязателен'),
+  reason: z.string().max(500, 'Максимум 500 символов').optional(),
+});
+
+// Lesson restore validation
+export const restoreLessonSchema = z.object({
+  lessonId: z.string().min(1, 'ID урока обязателен'),
+});
+
 // Lesson Record validation
 export const lessonRecordSchema = z.object({
   pupilId: z.string(),
@@ -1702,11 +1720,13 @@ GET    /api/grades/:id/academic-years  # Get years for grade
 // ============================================
 // LESSONS
 // ============================================
-GET    /api/lessons              # List all lessons
+GET    /api/lessons              # List all lessons (active by default)
+GET    /api/lessons?archived=true  # List archived lessons
 GET    /api/lessons/:id          # Get lesson by ID
 POST   /api/lessons              # Create new lesson
 PUT    /api/lessons/:id          # Update lesson
-DELETE /api/lessons/:id          # Delete lesson
+PATCH  /api/lessons/:id/archive  # Archive lesson (soft delete)
+PATCH  /api/lessons/:id/restore  # Restore lesson from archive
 GET    /api/academic-years/:id/lessons  # Get lessons for year
 GET    /api/lessons/:id/records  # Get all records for lesson
 
@@ -1746,9 +1766,16 @@ import { apiClient } from '@/shared/api/client';
 import type { Lesson, CreateLessonDTO, UpdateLessonDTO } from '../model/types';
 
 export const lessonAPI = {
-  // Get all lessons for academic year
-  getByAcademicYear: async (academicYearId: string): Promise<Lesson[]> => {
-    const { data } = await apiClient.get(`/academic-years/${academicYearId}/lessons`);
+  // Get all lessons for academic year (active only by default)
+  getByAcademicYear: async (academicYearId: string, includeArchived = false): Promise<Lesson[]> => {
+    const params = includeArchived ? '?archived=true' : '';
+    const { data } = await apiClient.get(`/academic-years/${academicYearId}/lessons${params}`);
+    return data;
+  },
+  
+  // Get archived lessons for academic year
+  getArchivedByAcademicYear: async (academicYearId: string): Promise<Lesson[]> => {
+    const { data } = await apiClient.get(`/academic-years/${academicYearId}/lessons?archived=true`);
     return data;
   },
   
@@ -1770,9 +1797,14 @@ export const lessonAPI = {
     return data;
   },
   
-  // Delete lesson
-  delete: async (lessonId: string): Promise<void> => {
-    await apiClient.delete(`/lessons/${lessonId}`);
+  // Archive lesson (soft delete)
+  archive: async (lessonId: string, reason?: string): Promise<void> => {
+    await apiClient.patch(`/lessons/${lessonId}/archive`, { reason });
+  },
+  
+  // Restore lesson from archive
+  restore: async (lessonId: string): Promise<void> => {
+    await apiClient.patch(`/lessons/${lessonId}/restore`);
   },
   
   // Get lesson records
@@ -1816,11 +1848,13 @@ export const lessonAPI = {
 - [ ] Grade data page (academic years list)
 - [ ] Year lessons list page
 - [ ] Create/edit lesson pages
+- [ ] Lesson archive functionality (soft delete)
+- [ ] Archived lessons view and restore
 - [ ] Grade settings page
 - [ ] Golden verses management
 - [ ] Golden verses search/autocomplete
 
-**Deliverable:** Complete lesson planning workflow
+**Deliverable:** Complete lesson planning workflow with archive management
 
 ---
 
@@ -1875,6 +1909,9 @@ export const lessonAPI = {
 - [ ] Direct messaging (teacher-parent)
 - [ ] Payment system integration
 - [ ] Church management system integration
+- [ ] Automatic archive cleanup (configurable retention policy)
+- [ ] Bulk archive/restore operations
+- [ ] Archive export for long-term storage
 
 ---
 
