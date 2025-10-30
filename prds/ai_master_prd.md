@@ -447,11 +447,10 @@ model Grade {
   updatedAt     DateTime  @updatedAt
   
   // Relations
-  teachers      Teacher[] @relation("GradeTeachers")
+  teachers      Teacher[] @relation("GradeTeachers")  // M:N — один учитель может преподавать в нескольких группах
   pupils        Pupil[]
   academicYears AcademicYear[]
   settings      GradeSettings?
-  pupilPoints   PupilPoints[]
   
   @@index([name])
   @@index([isActive])
@@ -992,6 +991,80 @@ interface GradeState {
 
 ---
 
+#### /school-process-management — School Year Management (Admin only)
+
+**Purpose:** Manage global academic year status (ACTIVE/FINISHED) for entire school. All grades share the same academic year.
+
+**Components:**
+- Display current active academic year (global, single for whole school)
+- Year start/end dates
+- Status badge: 🟢 ACTIVE / 🟡 FINISHED
+- Two action buttons:
+  - "Finish Current Year" (enabled only if status = ACTIVE)
+  - "Create New Year" (enabled only if current year = FINISHED)
+- Confirmation modals for destructive actions
+- Information panel about consequences of year finalization
+
+**Store:**
+```typescript
+// entities/academic-year/model/academicYearStore.ts
+interface AcademicYearState {
+  currentYear: AcademicYear | null;
+  
+  fetchCurrentYear: () => Promise<void>;
+  finishYear: (yearId: string) => Promise<void>;
+  createNextYear: (yearData: CreateYearDTO) => Promise<void>;
+}
+```
+
+**Access:** Admin, Superadmin
+
+**Business Rules:**
+- Only ONE AcademicYear can have status = ACTIVE globally (for entire school)
+- When finishing a year: ALL grades transition to FINISHED status
+- FINISHED years are read-only for all grades
+- New academic year applies to ALL grades immediately after creation
+- Teachers can only create lessons in grades with ACTIVE year
+
+**API Usage:**
+- GET /api/academic-years/current
+- PATCH /api/academic-years/:id/finish-and-create-next
+- POST /api/academic-years
+
+---
+
+#### /grade-data — Grade Overview
+**Purpose:** Display academic years for selected grade
+
+**Components:**
+- Grade header (name, age range)
+- Global year status indicator (ACTIVE/FINISHED)
+- Academic year cards with lesson count for this grade
+- Link to grade settings
+- Reference to /school-process-management for year management
+
+**Store:**
+```typescript
+// entities/grade/model/gradeStore.ts
+interface GradeState {
+  selectedGrade: Grade | null;
+  academicYears: AcademicYear[];
+  
+  setGrade: (grade: Grade) => void;
+  fetchAcademicYears: (gradeId: string) => Promise<void>;
+}
+```
+
+**UI-Rules:**
+- Display read-only information about academic years for this specific grade
+- Show global year status from AcademicYear.status
+- For FINISHED years: display "read-only" warning on lesson pages
+- No direct actions to change year status (this is done only on /school-process-management)
+
+**Access:** Teacher (own grades), Admin
+
+---
+
 #### /year-lessons-list — Lessons List
 **Purpose:** CRUD operations on lessons for academic year
 
@@ -1102,8 +1175,8 @@ interface CreateLessonState {
   - Pupil name + avatar
   - Attendance (✓/✗)
   - Golden Verse 1-3 scores (0/1/2)
-  - Test score (0-10)
-  - Notebook score (0-10)
+  - **Тест** — баллы за тест (0-10 или "-")
+  - **Тетрадь** — баллы за тетрадь (0-10 или "-")
   - Rehearsal (✓/✗)
   - Edit icon
 - Export button (CSV/PDF)
@@ -2578,4 +2651,139 @@ S3_SECRET_KEY="..."
 *Дата создания: 30 октября 2025*  
 *Версия: 2.0 (Master Specification)*  
 *Статус: Production-Ready*
+
+**Модальное окно проверки ученика:**
+```
+┌──────────────────────────────────────────────────────────────┐
+│ Проверка ДЗ — Попова Виктория                        [✕]     │
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│  👤 Попова Виктория (10 лет)                                 │
+│  Урок #6: Жертвоприношение Авраама                          │
+│                                                              │
+│  ══════════════════════════════════════════                  │
+│                                                              │
+│  ПРИСУТСТВИЕ:                                                │
+│  ┌──────────────────────────────────────┐                   │
+│  │   [✓ Присутствовал]   [ Отсутствовал]│                   │
+│  └──────────────────────────────────────┘                   │
+│                                                              │
+│  ──────────────────────────────────────────                  │
+│                                                              │
+│  📖 ЗОЛОТЫЕ СТИХИ:                                           │
+│                                                              │
+│  Стих 1: Быт. 22:14                                          │
+│  "И нарек Авраам имя месту тому: Иегова-ире..."             │
+│  ┌──────────────────────────────────────────────┐           │
+│  │  Баллы: [ 0 ]  [ 1 ]  [✓2 ]                │           │
+│  │  0 - не знает | 1 - с подсказкой | 2 - назубок│         │
+│  └──────────────────────────────────────────────┘           │
+│  (аналогично для Стиха 2 и Стиха 3)                         │
+│                                                              │
+│  ──────────────────────────────────────────                  │
+│                                                              │
+│  📝 ДОМАШНЕЕ ЗАДАНИЕ:                                         │
+│                                                              │
+│  Баллы за тест (0-10):  [███████████8████████]              │
+│                                                              │
+│  Баллы за тетрадь (0-10): [█████████7█████████]             │
+│                                                              │
+│  ──────────────────────────────────────────                  │
+│                                                              │
+│  🎵 ПОСЕЩЕНИЕ СПЕВКИ:                                         │
+│  ┌──────────────────────────────────────┐                   │
+│  │   [✓ Был(а)]   [ Не был(а)]          │                   │
+│  └──────────────────────────────────────┘                   │
+│                                                              │
+│  ══════════════════════════════════════════                  │
+│                                                              │
+│  [← Предыдущий]  [Отмена]  [Сохранить]  [Следующий →]       │
+│                                                              │
+└──────────────────────────────────────────────────────────────┘
+```
+
+**Модальное окно проверки ученика:**
+```
+┌──────────────────────────────────────────────────────────────┐
+│ Проверка ДЗ — Попова Виктория                        [✕]     │
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│  👤 Попова Виктория (10 лет)                                 │
+│  Урок #6: Жертвоприношение Авраама                          │
+│                                                              │
+│  ══════════════════════════════════════════                  │
+│                                                              │
+│  ПРИСУТСТВИЕ:                                                │
+│  ┌──────────────────────────────────────┐                   │
+│  │   [✓ Присутствовал]   [ Отсутствовал]│                   │
+│  └──────────────────────────────────────┘                   │
+│                                                              │
+│  ──────────────────────────────────────────                  │
+│                                                              │
+│  📖 ЗОЛОТЫЕ СТИХИ:                                           │
+│                                                              │
+│  Стих 1: Быт. 22:14                                          │
+│  "И нарек Авраам имя месту тому: Иегова-ире..."             │
+│  ┌──────────────────────────────────────────────┐           │
+│  │  Баллы: [ 0 ]  [ 1 ]  [✓2 ]                │           │
+│  │  0 - не знает | 1 - с подсказкой | 2 - назубок│         │
+│  └──────────────────────────────────────────────┘           │
+│  (аналогично для Стиха 2 и Стиха 3)                         │
+│                                                              │
+│  ──────────────────────────────────────────                  │
+│                                                              │
+│  📝 ДОМАШНЕЕ ЗАДАНИЕ:                                         │
+│                                                              │
+│  Баллы за тест (0-10):                                        │
+│  ┌──────────────────────────────────┐                       │
+│  │ [███████████8████████]            │                       │
+│  │  0 1 2 3 4 5 6 7 8 9 10          │                       │
+│  └──────────────────────────────────┘                       │
+│                                                              │
+│  Баллы за тетрадь (0-10):                                     │
+│  ┌──────────────────────────────────┐                       │
+│  │ [█████████7█████████]             │                       │
+│  │  0 1 2 3 4 5 6 7 8 9 10          │                       │
+│  └──────────────────────────────────┘                       │
+│                                                              │
+│  ──────────────────────────────────────────                  │
+│                                                              │
+│  🎵 ПОСЕЩЕНИЕ СПЕВКИ:                                         │
+│  ┌──────────────────────────────────────┐                   │
+│  │   [✓ Был(а)]   [ Не был(а)]          │                   │
+│  └──────────────────────────────────────┘                   │
+│                                                              │
+│  ══════════════════════════════════════════                  │
+│                                                              │
+│  [← Предыдущий]  [Отмена]  [Сохранить]  [Следующий →]       │
+│                                                              │
+└──────────────────────────────────────────────────────────────┘
+```
+
+**UI-Rules для слайдеров:**
+- Каждый слайдер (тест, тетрадь) должен содержать:
+  - Визуальный бар с ползунком для выбора значения
+  - Текущее числовое значение рядом с бором
+  - Шкала значений (0, 1, 2, 3... 10) снизу под слайдером для быстрой ориентации пользователя
+
+**Вкладка "Статистика":**
+- Посещаемость по месяцам (процент)
+- Золотые стихи: распределение по оценкам (%)
+- Домашние задания: средние баллы за тест и тетрадь
+- Посещение спевок: общий процент
+
+**Вкладка "Статистика":**
+- Посещаемость по месяцам (процент)
+- Золотые стихи: распределение по оценкам (%)
+- Домашние задания: средние баллы за тест и тетрадь
+- **Посещение спевок (расширенное):**
+  - Всего спевок в период
+  - Посещено (абс. число и %)
+  - **Анализ пропусков:**
+    - Был на уроке, но не пришёл на спевку (абс. число и %)
+    - Не мог прийти (отсутствовал на уроке) (абс. число и %)
+  - **UI-Rules:**
+    - Расчёт: для каждого урока проверяется: если `isPresent=true` И `attendedRehearsal=false`, то это пропуск "был, не пришёл"
+    - Отображение: помогает учителю выявить нежелание участвовать в спевке при наличии возможности
+    - Информационная заметка: объяснить смысл метрики "был, но не пришёл"
 
