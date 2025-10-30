@@ -26,6 +26,7 @@ Sunday School App — веб-приложение для автоматизац�
 - Управление учениками, преподавателями, группами и семьями
 - Отслеживание посещаемости и успеваемости
 - Проверку домашних заданий и запоминания золотых стихов
+- **Систему мотивации с баллами, достижениями и визуализацией прогресса**
 - Прозрачность учебного процесса для всех участников
 
 ### 1.2 Целевые пользователи и роли
@@ -43,7 +44,7 @@ Sunday School App — веб-приложение для автоматизац�
 - ✅ Упрощение процесса проверки домашних заданий
 - ✅ Централизованное хранение данных
 - ✅ Реализация ролевого доступа (Teacher, Admin)
-- ⏸️ Система мотивации (баллы) — следующая итерация
+- ✅ **Система мотивации с баллами, достижениями и игрофикацией**
 
 ---
 
@@ -450,6 +451,7 @@ model Grade {
   pupils        Pupil[]
   academicYears AcademicYear[]
   settings      GradeSettings?
+  pupilPoints   PupilPoints[]
   
   @@index([name])
   @@index([isActive])
@@ -506,6 +508,8 @@ model Pupil {
   family        Family    @relation(fields: [familyId], references: [id])
   grade         Grade     @relation(fields: [gradeId], references: [id])
   lessonRecords LessonRecord[]
+  points        PupilPoints?
+  achievements  PupilAchievement[]
   
   @@index([familyId])
   @@index([gradeId])
@@ -555,6 +559,8 @@ model AcademicYear {
   // Relations
   grade         Grade     @relation(fields: [gradeId], references: [id], onDelete: Cascade)
   lessons       Lesson[]
+  pupilPoints   PupilPoints[]
+  pupilAchievements PupilAchievement[]
   
   @@unique([gradeId, year])
   @@index([gradeId])
@@ -633,6 +639,9 @@ model LessonRecord {
   // Additional
   attendedRehearsal   Boolean   @default(false)  // Посещение спевки
   
+  // Points calculation (auto-calculated)
+  totalPoints         Float     @default(0)  // Auto-calculated based on formula
+  
   // Timestamps
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
@@ -644,6 +653,98 @@ model LessonRecord {
   @@unique([lessonId, pupilId])
   @@index([lessonId])
   @@index([pupilId])
+}
+
+// ============================================
+// POINTS SYSTEM (Motivation v2.0)
+// ============================================
+
+model PupilPoints {
+  id              String    @id @default(cuid())
+  pupilId         String    @unique
+  gradeId         String
+  academicYearId  String
+  
+  // Points tracking
+  totalPoints     Float     @default(0)  // All-time total
+  currentPoints   Float     @default(0)  // Current academic year
+  
+  // Progress visualization (домики)
+  bricks          Int       @default(0)  // 1 brick = 10 points
+  floors          Int       @default(0)  // 1 floor = 10 bricks = 100 points
+  
+  // Streaks
+  currentStreak   Int       @default(0)  // Consecutive lessons attended
+  bestStreak      Int       @default(0)  // Best streak ever
+  
+  // Statistics
+  lessonsAttended Int       @default(0)
+  perfectLessons  Int       @default(0)  // Lessons with max points
+  
+  // Timestamps
+  updatedAt       DateTime  @updatedAt
+  
+  // Relations
+  pupil           Pupil     @relation(fields: [pupilId], references: [id], onDelete: Cascade)
+  grade           Grade     @relation(fields: [gradeId], references: [id])
+  academicYear    AcademicYear @relation(fields: [academicYearId], references: [id])
+  
+  @@index([pupilId])
+  @@index([gradeId])
+  @@index([academicYearId])
+  @@index([currentPoints])
+}
+
+// ============================================
+// ACHIEVEMENTS (Badges)
+// ============================================
+
+enum AchievementType {
+  EXCELLENT_STUDENT   // "Отличник" - 5 уроков подряд с максимальным баллом
+  PERFECT_ATTENDANCE  // "Без пропусков" - посетил все уроки месяца
+  VERSE_MASTER        // "Знаток стихов" - 10 раз подряд все стихи на "2"
+  DILIGENT_STUDENT    // "Прилежный" - средний балл за домашку > 9
+  FIRST_LESSON        // "Первый урок" - посетил первый урок
+  HOUSE_BUILDER       // "Строитель" - построил 1 дом (1000 баллов)
+  CENTURY             // "Столетие" - набрал 100 баллов
+  HALF_YEAR           // "Полгода" - посетил все уроки полугодия
+}
+
+model Achievement {
+  id              String    @id @default(cuid())
+  type            AchievementType @unique
+  name            String    // "Отличник", "Без пропусков" etc.
+  description     String    @db.Text
+  icon            String    // emoji or icon name
+  points          Int       @default(0)  // Bonus points for achievement
+  
+  // Relations
+  pupilAchievements PupilAchievement[]
+  
+  @@index([type])
+}
+
+model PupilAchievement {
+  id              String    @id @default(cuid())
+  pupilId         String
+  achievementId   String
+  
+  // When earned
+  earnedAt        DateTime  @default(now())
+  academicYearId  String
+  
+  // Context (optional)
+  context         String?   @db.Text  // e.g., "За период: сентябрь 2024"
+  
+  // Relations
+  pupil           Pupil     @relation(fields: [pupilId], references: [id], onDelete: Cascade)
+  achievement     Achievement @relation(fields: [achievementId], references: [id])
+  academicYear    AcademicYear @relation(fields: [academicYearId], references: [id])
+  
+  @@unique([pupilId, achievementId, academicYearId])
+  @@index([pupilId])
+  @@index([achievementId])
+  @@index([earnedAt])
 }
 ```
 
@@ -673,7 +774,89 @@ CREATE INDEX idx_pupil_active ON Pupil(isActive);
 -- Family queries
 CREATE INDEX idx_family_father_name ON Family(fatherLastName);
 CREATE INDEX idx_family_mother_name ON Family(motherLastName);
+
+-- Points system queries
+CREATE INDEX idx_pupil_points_current ON PupilPoints(currentPoints);
+CREATE INDEX idx_pupil_points_pupil ON PupilPoints(pupilId);
+CREATE INDEX idx_pupil_achievement_earned ON PupilAchievement(earnedAt);
 ```
+
+### 4.4 Формула расчёта баллов (Points Calculation)
+
+**Автоматический расчёт баллов за урок:**
+
+```typescript
+function calculateLessonPoints(record: LessonRecord): number {
+  let points = 0;
+  
+  // Присутствие: 1 балл
+  if (record.isPresent) {
+    points += 1;
+  }
+  
+  // Золотые стихи: 0/1/2 балла за каждый (максимум 6)
+  points += record.goldenVerse1Score;  // 0, 1, or 2
+  points += record.goldenVerse2Score;  // 0, 1, or 2
+  points += record.goldenVerse3Score;  // 0, 1, or 2
+  
+  // Тест: балл * 1 (максимум 10)
+  points += record.testScore;  // 0-10
+  
+  // Тетрадь: балл * 0.5 (максимум 5)
+  points += record.notebookScore * 0.5;  // 0-10 => 0-5
+  
+  // Спевка: 1 балл
+  if (record.attendedRehearsal) {
+    points += 1;
+  }
+  
+  // Итого: до 23 баллов за урок
+  return points;
+}
+```
+
+**Максимальные баллы за урок:**
+- Присутствие: 1
+- Золотые стихи (3 × 2): 6
+- Тест: 10
+- Тетрадь: 5
+- Спевка: 1
+- **ИТОГО: 23 балла**
+
+**Визуализация прогресса (домики):**
+- 1 кирпичик = 10 баллов
+- 10 кирпичиков = 1 этаж = 100 баллов
+- 100 кирпичиков = 10 этажей = 1000 баллов = дом построен
+
+**Формула конвертации:**
+```typescript
+function calculateProgress(totalPoints: number) {
+  const bricks = Math.floor(totalPoints / 10);
+  const floors = Math.floor(bricks / 10);
+  const houses = Math.floor(floors / 10);
+  
+  return {
+    bricks,
+    floors,
+    houses,
+    currentBricks: bricks % 10,  // Кирпичи текущего этажа
+    currentFloors: floors % 10,  // Этажи текущего дома
+  };
+}
+```
+
+**Критерии достижений:**
+
+| Достижение | Критерий | Иконка |
+|------------|----------|--------|
+| Отличник | 5 уроков подряд с максимальным баллом (23) | 🏆 |
+| Без пропусков | Посетил все уроки месяца | 📅 |
+| Знаток стихов | 10 раз подряд все стихи на "2" | 📖 |
+| Прилежный | Средний балл за домашку > 9 | ⭐ |
+| Первый урок | Посетил первый урок | 🎓 |
+| Столетие | Набрал 100 баллов | 💯 |
+| Строитель | Построил 1 дом (1000 баллов) | 🏠 |
+| Полгода | Посетил все уроки полугодия | 📆 |
 
 ---
 
@@ -991,6 +1174,135 @@ interface HomeworkCheckState {
 - Parent: Own children (read-only, Post-MVP)
 - Teacher: Pupils in own grades (read/write)
 - Admin: All pupils (read/write)
+
+---
+
+#### /grade-leaderboard/:id — Grade Ranking & Motivation
+**Purpose:** Visualize pupil progress and rankings
+
+**Components:**
+- **Leaderboard Table:**
+  - Rank (1, 2, 3... with medals for top 3)
+  - Pupil avatar + name
+  - Current points
+  - House visualization (compact)
+  - Badges earned (icons)
+  
+- **House Visualization (Expanded View):**
+  ```
+  ┌────────────────────────────┐
+  │    🏠 Попова Виктория      │
+  ├────────────────────────────┤
+  │                            │
+  │   ╔═══╗                    │
+  │   ║ ▓ ║  ← Этаж 2 (9/10)   │
+  │   ║ ▓ ║                    │
+  │   ╠═══╣                    │
+  │   ║ ▓ ║  ← Этаж 1 (10/10)  │
+  │   ║ ▓ ║     ✅ завершён    │
+  │   ╚═══╝                    │
+  │                            │
+  │   Кирпичей: 19/100         │
+  │   Этажей: 1/10             │
+  │   Баллы: 190               │
+  └────────────────────────────┘
+  ```
+
+- **Achievement Display:**
+  - Grid of earned badges
+  - Locked/unlocked states
+  - Tooltip with achievement criteria
+  
+- **Statistics Panel:**
+  - Total pupils in grade
+  - Average points
+  - Top performer of the week
+  - Recent achievements feed
+
+**Wireframe (Leaderboard):**
+```
+╔═══════════════════════════════════════════════════════════╗
+║ 🏠 Рейтинг группы: Младшая группа (6-8 лет)              ║
+╠═══════════════════════════════════════════════════════════╣
+║                                                           ║
+║  [Все ученики] [Этот месяц] [Этот год]                   ║
+║                                                           ║
+║  ┌─────────────────────────────────────────────────────┐ ║
+║  │ #  │ Ученик          │ Баллы │ Прогресс │ Достижения│ ║
+║  ├────┼─────────────────┼───────┼──────────┼───────────┤ ║
+║  │ 🥇 │ 👧 Попова В.     │  190  │ 🏠▓▓▓▓▓▓▓▓▓░│ 🏆📖💯 │ ║
+║  ├────┼─────────────────┼───────┼──────────┼───────────┤ ║
+║  │ 🥈 │ 👦 Иванов П.     │  175  │ 🏠▓▓▓▓▓▓▓▓░░│ 📖💯   │ ║
+║  ├────┼─────────────────┼───────┼──────────┼───────────┤ ║
+║  │ 🥉 │ 👧 Сидорова М.   │  163  │ 🏠▓▓▓▓▓▓▓░░░│ 🎓     │ ║
+║  ├────┼─────────────────┼───────┼──────────┼───────────┤ ║
+║  │ 4  │ 👦 Петров С.     │  145  │ 🏠▓▓▓▓▓▓░░░░│ 🎓     │ ║
+║  ├────┼─────────────────┼───────┼──────────┼───────────┤ ║
+║  │ 5  │ 👧 Козлова А.    │  132  │ 🏠▓▓▓▓▓░░░░░│        │ ║
+║  └────┴─────────────────┴───────┴──────────┴───────────┘ ║
+║                                                           ║
+║  📊 Средний балл: 161  |  👑 Лучший месяц: Попова В.     ║
+║                                                           ║
+╚═══════════════════════════════════════════════════════════╝
+```
+
+**Store:**
+```typescript
+// features/leaderboard/model/leaderboardStore.ts
+interface LeaderboardState {
+  rankings: GradeRanking[];
+  isLoading: boolean;
+  filter: 'all' | 'month' | 'year';
+  
+  fetchRankings: (gradeId: string) => Promise<void>;
+  setFilter: (filter: 'all' | 'month' | 'year') => void;
+}
+```
+
+**Access:** Teacher (own grades), Admin (all grades)
+
+---
+
+#### /pupil-achievements/:id — Pupil Achievements Page
+**Purpose:** Display all achievements earned by pupil
+
+**Components:**
+- Achievement grid (earned + locked)
+- Progress bars for partial achievements
+- Recent achievements timeline
+- Share achievements feature (Post-MVP)
+
+**Modal - Achievement Details:**
+```
+┌──────────────────────────────────────────┐
+│ 🏆 Отличник                       [✕]   │
+├──────────────────────────────────────────┤
+│                                          │
+│  Получено: 15 октября 2024               │
+│                                          │
+│  Описание:                               │
+│  5 уроков подряд с максимальным баллом   │
+│  (23 балла за урок)                      │
+│                                          │
+│  Бонус: +10 баллов 🎁                    │
+│                                          │
+│  История получения:                      │
+│  • Урок #5: 23/23 ✓                      │
+│  • Урок #6: 23/23 ✓                      │
+│  • Урок #7: 23/23 ✓                      │
+│  • Урок #8: 23/23 ✓                      │
+│  • Урок #9: 23/23 ✓                      │
+│                                          │
+│                [   Закрыть   ]           │
+│                                          │
+└──────────────────────────────────────────┘
+```
+
+**Access:** 
+- Pupil: Own achievements (read-only, Post-MVP)
+- Parent: Own children (read-only, Post-MVP)
+- Teacher: Pupils in own grades (read-only)
+- Admin: All pupils (read-only)
 
 ---
 
@@ -1751,6 +2063,22 @@ DELETE /api/lesson-records/:id   # Delete record
 POST   /api/lessons/:id/records/batch  # Batch create/update records
 
 // ============================================
+// POINTS SYSTEM
+// ============================================
+GET    /api/points/pupil/:id     # Get pupil points
+GET    /api/points/grade/:id     # Get grade leaderboard
+POST   /api/points/calculate     # Manually recalculate points
+GET    /api/points/grade/:id/ranking  # Get grade ranking with progress
+
+// ============================================
+// ACHIEVEMENTS
+// ============================================
+GET    /api/achievements         # List all achievement types
+GET    /api/achievements/pupil/:id  # Get pupil achievements
+POST   /api/achievements/check   # Check and award achievements (auto)
+GET    /api/achievements/recent  # Recent achievements in grade
+
+// ============================================
 // STATISTICS (Future)
 // ============================================
 GET    /api/statistics/pupil/:id      # Pupil statistics
@@ -1815,6 +2143,119 @@ export const lessonAPI = {
 };
 ```
 
+**Points & Achievements API:**
+
+```typescript
+// entities/points/api/pointsAPI.ts
+import { apiClient } from '@/shared/api/client';
+import type { PupilPoints, GradeRanking, Achievement, PupilAchievement } from '../model/types';
+
+export const pointsAPI = {
+  // Get pupil points
+  getPupilPoints: async (pupilId: string): Promise<PupilPoints> => {
+    const { data } = await apiClient.get(`/points/pupil/${pupilId}`);
+    return data;
+  },
+  
+  // Get grade leaderboard
+  getGradeLeaderboard: async (gradeId: string): Promise<GradeRanking[]> => {
+    const { data } = await apiClient.get(`/points/grade/${gradeId}/ranking`);
+    return data;
+  },
+  
+  // Manually recalculate points (admin only)
+  recalculatePoints: async (): Promise<void> => {
+    await apiClient.post('/points/calculate');
+  },
+};
+
+export const achievementsAPI = {
+  // Get all achievement types
+  getAllAchievements: async (): Promise<Achievement[]> => {
+    const { data } = await apiClient.get('/achievements');
+    return data;
+  },
+  
+  // Get pupil achievements
+  getPupilAchievements: async (pupilId: string): Promise<PupilAchievement[]> => {
+    const { data } = await apiClient.get(`/achievements/pupil/${pupilId}`);
+    return data;
+  },
+  
+  // Get recent achievements in grade
+  getRecentAchievements: async (gradeId: string): Promise<PupilAchievement[]> => {
+    const { data } = await apiClient.get(`/achievements/recent?gradeId=${gradeId}`);
+    return data;
+  },
+};
+```
+
+**Types для Points System:**
+
+```typescript
+// entities/points/model/types.ts
+
+export interface PupilPoints {
+  id: string;
+  pupilId: string;
+  gradeId: string;
+  academicYearId: string;
+  totalPoints: number;
+  currentPoints: number;
+  bricks: number;
+  floors: number;
+  currentStreak: number;
+  bestStreak: number;
+  lessonsAttended: number;
+  perfectLessons: number;
+}
+
+export interface GradeRanking {
+  rank: number;
+  pupil: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    avatar?: string;
+  };
+  points: PupilPoints;
+  progress: {
+    houses: number;
+    currentFloors: number;
+    currentBricks: number;
+    percentage: number;
+  };
+}
+
+export interface Achievement {
+  id: string;
+  type: AchievementType;
+  name: string;
+  description: string;
+  icon: string;
+  points: number;
+}
+
+export interface PupilAchievement {
+  id: string;
+  pupilId: string;
+  achievement: Achievement;
+  earnedAt: Date;
+  context?: string;
+}
+
+export enum AchievementType {
+  EXCELLENT_STUDENT = 'EXCELLENT_STUDENT',
+  PERFECT_ATTENDANCE = 'PERFECT_ATTENDANCE',
+  VERSE_MASTER = 'VERSE_MASTER',
+  DILIGENT_STUDENT = 'DILIGENT_STUDENT',
+  FIRST_LESSON = 'FIRST_LESSON',
+  HOUSE_BUILDER = 'HOUSE_BUILDER',
+  CENTURY = 'CENTURY',
+  HALF_YEAR = 'HALF_YEAR',
+}
+```
+
 ---
 
 ## 8. Development Roadmap
@@ -1865,12 +2306,34 @@ export const lessonAPI = {
 - [ ] Lesson record CRUD operations
 - [ ] Pupil personal data page
 - [ ] Batch record operations
+- [ ] **Points calculation system (auto-calculate on save)**
+- [ ] **Points display in pupil cards**
 
-**Deliverable:** Complete homework checking workflow
+**Deliverable:** Complete homework checking workflow with points tracking
 
 ---
 
-### Phase 5: Polish & Testing (Weeks 9-10)
+### Phase 5: Motivation System & Polish (Weeks 9-10)
+- [ ] **House visualization component (домики)**
+- [ ] **Grade leaderboard/ranking page**
+- [ ] **Achievement system implementation**
+- [ ] **Badge display in pupil profiles**
+- [ ] **Achievement notification toasts**
+- [ ] UI/UX refinements
+- [ ] Error handling improvements
+- [ ] Performance optimization
+  - [ ] Code splitting
+  - [ ] Image optimization
+  - [ ] Query optimization
+- [ ] Security audit
+- [ ] User acceptance testing
+- [ ] Documentation
+
+**Deliverable:** Production-ready MVP with gamification
+
+---
+
+### Phase 6: Testing & Deployment (Week 11)
 - [ ] UI/UX refinements
 - [ ] Error handling improvements
 - [ ] Performance optimization
@@ -1885,10 +2348,9 @@ export const lessonAPI = {
 
 ---
 
-### Phase 6: Future Enhancements (Post-MVP)
+### Phase 7: Future Enhancements (Post-MVP)
 
 **High Priority:**
-- [ ] Points calculation system (motivation v2.0)
 - [ ] Parent role implementation
 - [ ] Pupil role implementation (limited access)
 - [ ] Email notifications
