@@ -86,12 +86,21 @@ src/
 ├── pages/                        # Page-level components
 │   ├── auth/                     # Public
 │   │   └── AuthPage.tsx
-│   ├── grade-data/               # Private
-│   │   └── GradeDataPage.tsx
-│   ├── year-lessons-list/
-│   │   └── YearLessonsListPage.tsx
-│   ├── checking-homework-all/
-│   │   └── CheckingHomeworkPage.tsx
+│   ├── grades/
+│   │   └── [gradeId]/
+│   │       ├── GradeDataPage.tsx
+│   │       ├── GradeSettingsPage.tsx
+│   │       ├── GradeSchedulePage.tsx
+│   │       └── academic-years/
+│   │           └── [yearId]/
+│   │               ├── YearLessonsListPage.tsx
+│   │               └── LessonsArchivePage.tsx
+│   ├── lessons/
+│   │   └── [lessonId]/
+│   │       ├── LessonOverviewPage.tsx
+│   │       ├── EditLessonPage.tsx
+│   │       ├── CompleteTablePage.tsx
+│   │       └── CheckingHomeworkPage.tsx
 │   ├── pupil-personal-data/
 │   │   └── PupilPersonalDataPage.tsx
 │   └── dashboard/                # Dashboard
@@ -121,7 +130,7 @@ src/
 │   │   └── signup/
 │   ├── lesson-management/
 │   │   ├── create-lesson/
-│   │   ├── edit-lesson/
+│   │   ├── lesson-management/
 │   │   └── delete-lesson/
 │   ├── homework-check/
 │   │   └── check-pupil-homework/
@@ -213,23 +222,51 @@ src/
 │   └── /not-found               # 404 page
 │
 ├── 📂 Private Routes (authenticated: teacher, admin)
-│   ├── /grade-data              # Academic years list for grade
-│   ├── /year-lessons-list       # Lessons list for academic year
-│   ├── /grade-data-settings     # Grade assessment settings
+│   ├── /grades/:gradeId         # Academic years list for grade
+│   │   # Breadcrumb: Главная > Группы > [Название группы]
+│   │   # Note: Teacher uses /grades/my → redirects to /grades/:actualGradeId
+│   ├── /grades/:gradeId/settings # Grade assessment settings
+│   │   # Breadcrumb: Главная > Группы > [Группа] > Настройки
+│   ├── /grades/:gradeId/schedule # Grade schedule calendar
+│   │   # Breadcrumb: Главная > Группы > [Группа] > Расписание
+│   ├── /grades/:gradeId/academic-years/:yearId/lessons  # Lessons list for academic year
+│   │   # Breadcrumb: Главная > Группы > [Группа] > [Учебный год]
+│   ├── /grades/:gradeId/academic-years/:yearId/lessons/archive  # Archive lessons
+│   │   # Breadcrumb: Главная > Группы > [Группа] > [Учебный год] > Архив уроков
 │   ├── /new-lesson              # Create new lesson
-│   ├── /edit-lesson/:id         # Edit existing lesson
-│   ├── /lesson-data/:id         # Lesson overview (hub page)
-│   ├── /lesson-data-all/:id     # Complete lesson table
-│   ├── /checking-homework-all/:id # Homework checking interface
+│   │   # Breadcrumb: Главная > Группы > [Группа] > [Учебный год] > Новый урок
+│   ├── /lessons/:lessonId       # Lesson overview (hub page) - index route
+│   │   # Breadcrumb: Главная > Группы > [Группа] > [Учебный год] > Урок #X
+│   ├── /lessons/:lessonId/edit  # Edit existing lesson
+│   │   # Breadcrumb: Главная > Группы > [Группа] > [Учебный год] > Редактировать урок #X
+│   ├── /lessons/:lessonId/complete-table # Complete lesson table
+│   │   # Breadcrumb: Главная > Группы > [Группа] > [Учебный год] > Урок #X > Сводная таблица
+│   ├── /lessons/:lessonId/checking-homework # Homework checking interface
+│   │   # Breadcrumb: Главная > Группы > [Группа] > [Учебный год] > Урок #X > Проверка
 │   ├── /pupil-personal-data/:id # Pupil profile and history
+│   │   # Breadcrumb: Главная > Ученики > [Имя ученика]
+│   ├── /grade-leaderboard/:id   # Grade ranking & motivation
+│   │   # Breadcrumb: Главная > Группы > [Группа] > Рейтинг
+│   ├── /pupil-achievements/:id   # Pupil achievements page
+│   │   # Breadcrumb: Главная > Ученики > [Имя ученика] > Достижения
 │   ├── /golden-verses           # Golden verses list (teacher, admin)
+│   │   # Breadcrumb: Главная > Золотые стихи
 │   └── /golden-verses/statistics # Golden verses statistics (teacher, admin)
+│       # Breadcrumb: Главная > Золотые стихи > Статистика
 │
 └── 📂 Dashboard Routes (admin only)
     ├── /teachers                # Teachers management
+    │   # Breadcrumb: Dashboard > Преподаватели
     ├── /grades-list             # Grades management
+    │   # Breadcrumb: Dashboard > Группы
     ├── /pupils                  # Pupils management
-    └── /families                # Families management
+    │   # Breadcrumb: Dashboard > Ученики
+    ├── /families                # Families management
+    │   # Breadcrumb: Dashboard > Семьи
+    ├── /school-process-management # School year management (global)
+    │   # Breadcrumb: Dashboard > Управление учебным процессом
+    └── /admin/lessons-archive    # Centralized lessons archive (admin only)
+        # Breadcrumb: Dashboard > Архив уроков
 ```
 
 ### 3.2 User Flow
@@ -454,6 +491,7 @@ model Grade {
   pupils        Pupil[]
   academicYears AcademicYear[]
   settings      GradeSettings?
+  scheduleEvents GradeEvent[]  // Calendar events for the grade
   
   @@index([name])
   @@index([isActive])
@@ -485,6 +523,35 @@ model GradeSettings {
   grade               Grade     @relation(fields: [gradeId], references: [id], onDelete: Cascade)
   
   @@index([gradeId])
+}
+
+// ============================================
+// GRADE EVENT (Schedule/Calendar)
+// ============================================
+
+enum GradeEventType {
+  LESSON           // Обычный урок
+  OUTDOOR_EVENT    // Выездное мероприятие
+  LESSON_SKIPPING  // Отмена урока
+}
+
+model GradeEvent {
+  id            String         @id @default(cuid())
+  gradeId       String
+  date          DateTime       // Date of the event (without time, or with time if needed)
+  eventType     GradeEventType
+  title         String?        // Optional title (e.g., "Поездка в музей")
+  description   String?        @db.Text  // Optional detailed description
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  createdBy     String?        // User ID who created the event
+  
+  // Relations
+  grade         Grade          @relation(fields: [gradeId], references: [id], onDelete: Cascade)
+  
+  @@index([gradeId])
+  @@index([date])
+  @@index([eventType])
 }
 
 // ============================================
@@ -1105,13 +1172,16 @@ export const useAuthStore = create<AuthState>((set) => ({
 
 ### 5.2 Private Pages
 
-#### /grade-data — Grade Overview
+#### /grades/:gradeId — Grade Overview
+
+**Breadcrumb:** 🏠 Главная > Группы > [Название группы]
+
 **Purpose:** Display academic years for selected grade
 
 **Components:**
 - Grade header (name, age range)
 - Academic year cards with lesson count
-- Link to grade settings
+- Link to grade settings (/grades/:gradeId/settings)
 - Create new academic year button
 
 **Store:**
@@ -1128,9 +1198,13 @@ interface GradeState {
 
 **Access:** Teacher (own grades), Admin
 
+**Note:** Teacher uses `/grades/my` which automatically redirects to `/grades/:actualGradeId`
+
 ---
 
 #### /school-process-management — School Year Management (Admin only)
+
+**Breadcrumb:** 🏠 Dashboard > Управление учебным процессом
 
 **Purpose:** Manage global academic year status (ACTIVE/FINISHED) for entire school. All grades share the same academic year.
 
@@ -1172,7 +1246,10 @@ interface AcademicYearState {
 
 ---
 
-#### /grade-data — Grade Overview
+#### /grades/:gradeId — Grade Overview
+
+**Breadcrumb:** 🏠 Главная > Группы > [Название группы]
+
 **Purpose:** Display academic years for selected grade
 
 **Components:**
@@ -1204,8 +1281,13 @@ interface GradeState {
 
 ---
 
-#### /year-lessons-list — Lessons List
+#### /grades/:gradeId/academic-years/:yearId/lessons — Lessons List
+
+**Breadcrumb:** 🏠 Главная > Группы > [Название группы] > [Учебный год]
+
 **Purpose:** CRUD operations on lessons for academic year
+
+**Note:** This route requires both `gradeId` and `yearId` to properly identify the context
 
 **Components:**
 - Lessons table (number, date, topic, teacher)
@@ -1223,8 +1305,8 @@ interface LessonListState {
   totalCount: number;
   currentPage: number;
   
-  fetchLessons: (academicYearId: string, page?: number, pageSize?: number) => Promise<void>;
-  fetchArchivedLessons: (academicYearId: string, page?: number, pageSize?: number) => Promise<void>;
+  fetchLessons: (gradeId: string, academicYearId: string, page?: number, pageSize?: number) => Promise<void>;
+  fetchArchivedLessons: (gradeId: string, academicYearId: string, page?: number, pageSize?: number) => Promise<void>;
   archiveLesson: (lessonId: string, reason?: string) => Promise<void>;
   restoreLesson: (lessonId: string) => Promise<void>;
 }
@@ -1234,7 +1316,10 @@ interface LessonListState {
 
 ---
 
-#### /grade-data-settings — Grade Settings
+#### /grades/:gradeId/settings — Grade Settings
+
+**Breadcrumb:** 🏠 Главная > Группы > [Название группы] > Настройки
+
 **Purpose:** Configure assessment parameters visibility
 
 **Components:**
@@ -1258,7 +1343,69 @@ interface GradeSettingsState {
 
 ---
 
+#### /grades/:gradeId/schedule — Grade Schedule Calendar
+
+**Breadcrumb:** 🏠 Главная > Группы > [Название группы] > Расписание
+
+**Purpose:** Calendar view of group schedule with events (lessons, outdoor events, lesson skipping). Teachers and Admins can add/edit/delete events, Parents can view only.
+
+**Components:**
+- Calendar grid (monthly view)
+- Month navigation (previous/next, "Today" button)
+- Event display in calendar cells:
+  - Color coding by event type:
+    - 🔵 Blue — LESSON (regular lesson)
+    - 🟢 Green — OUTDOOR_EVENT (outdoor activity)
+    - 🔴 Red — LESSON_SKIPPING (cancelled lesson)
+  - Small text label with event type (in Russian)
+  - Hover/click tooltip with event details
+- "➕ Add Event" button (Teacher/Admin only)
+- Event creation/editing modal
+- Legend explaining color codes
+
+**Store:**
+```typescript
+// entities/grade/model/gradeScheduleStore.ts
+interface GradeScheduleState {
+  events: GradeEvent[];
+  currentMonth: Date;
+  
+  fetchEvents: (gradeId: string, month?: Date) => Promise<void>;
+  createEvent: (event: CreateGradeEventDTO) => Promise<void>;
+  updateEvent: (eventId: string, updates: UpdateGradeEventDTO) => Promise<void>;
+  deleteEvent: (eventId: string) => Promise<void>;
+  navigateMonth: (direction: 'prev' | 'next' | 'today') => void;
+}
+
+interface CreateGradeEventDTO {
+  gradeId: string;
+  date: Date;
+  eventType: 'LESSON' | 'OUTDOOR_EVENT' | 'LESSON_SKIPPING';
+  title?: string;
+  description?: string;
+}
+
+interface UpdateGradeEventDTO {
+  date?: Date;
+  eventType?: 'LESSON' | 'OUTDOOR_EVENT' | 'LESSON_SKIPPING';
+  title?: string;
+  description?: string;
+}
+```
+
+**Event Types (GradeEventType):**
+- `LESSON` — Regular lesson (🔵 Blue)
+- `OUTDOOR_EVENT` — Outdoor activity/trip (🟢 Green)
+- `LESSON_SKIPPING` — Cancelled lesson (🔴 Red)
+
+**Access:** Teacher (own grades), Admin (all grades), Parent (read-only, for their children's grades)
+
+---
+
 #### /new-lesson — Create Lesson
+
+**Breadcrumb:** 🏠 Главная > Группы > [Название группы] > [Учебный год] > Новый урок
+
 **Purpose:** Create new lesson with golden verses
 
 **Components:**
@@ -1314,8 +1461,10 @@ interface CreateLessonState {
 
 ---
 
-#### /edit-lesson/:id — Edit Lesson
+#### /lessons/:lessonId/edit — Edit Lesson
 **Purpose:** Edit existing lesson with golden verses
+
+**Breadcrumb:** 🏠 Главная > Группы > [Название группы] > [Учебный год] > Редактировать урок #X
 
 **Components:**
 - Same as /new-lesson with pre-filled data
@@ -1327,13 +1476,16 @@ interface CreateLessonState {
 **Logic:**
 - When reference changes: check if new verse exists, auto-populate if yes
 - When text is edited: save updated text to database (update existing verse or create new if reference changed)
-- Validation: exactly 3 verses required
+- Validation: depends on GradeSettings.showGoldenVerses (0 verses if false, exactly 3 if true)
 
 **Access:** Teacher (own grades), Admin
 
 ---
 
 #### /golden-verses — Golden Verses List
+
+**Breadcrumb:** 🏠 Главная > Золотые стихи
+
 **Purpose:** Browse and manage golden verses library
 
 **Components:**
@@ -1377,6 +1529,9 @@ interface GoldenVerseListState {
 ---
 
 #### /golden-verses/statistics — Golden Verses Statistics
+
+**Breadcrumb:** 🏠 Главная > Золотые стихи > Статистика
+
 **Purpose:** View statistics on how pupils learn golden verses
 
 **Components:**
@@ -1440,22 +1595,30 @@ interface GoldenVerseStatisticsState {
 
 ---
 
-#### /lesson-data/:id — Lesson Overview (Hub Page)
-**Purpose:** Central navigation point for lesson
+#### /lessons/:lessonId — Lesson Overview (Hub Page)
+
+**Breadcrumb:** 🏠 Главная > Группы > [Название группы] > [Учебный год] > Урок #X
+
+**Purpose:** Central navigation point for lesson (index route for nested lesson routes)
 
 **Components:**
 - Lesson info card (topic, date, teacher, verses)
 - Progress indicator (records completed)
 - Two main action buttons:
-  - "Open Complete Lesson Table" → /lesson-data-all
-  - "Check Homework" → /checking-homework-all
-- Edit lesson button
+  - "Open Complete Lesson Table" → /lessons/:lessonId/complete-table
+  - "Check Homework" → /lessons/:lessonId/checking-homework
+- Edit lesson button → /lessons/:lessonId/edit
 
 **Access:** Teacher (own grades), Admin
 
+**Note:** This is the index route for the `/lessons/:lessonId` nested route structure. Other lesson-related pages are nested under this path.
+
 ---
 
-#### /lesson-data-all/:id — Complete Lesson Table
+#### /lessons/:lessonId/complete-table — Complete Lesson Table
+
+**Breadcrumb:** 🏠 Главная > Группы > [Название группы] > [Учебный год] > Урок #X > Сводная таблица
+
 **Purpose:** View all pupils' results for lesson
 
 **Components:**
@@ -1486,7 +1649,10 @@ interface LessonRecordsState {
 
 ---
 
-#### /checking-homework-all/:id — Homework Checking Interface
+#### /lessons/:lessonId/checking-homework — Homework Checking Interface
+
+**Breadcrumb:** 🏠 Главная > Группы > [Название группы] > [Учебный год] > Урок #X > Проверка
+
 **Purpose:** Streamlined batch homework entry
 
 **Components:**
@@ -1555,6 +1721,9 @@ interface HomeworkCheckState {
 ---
 
 #### /pupil-personal-data/:id — Pupil Profile
+
+**Breadcrumb:** 🏠 Главная > Ученики > [Имя ученика]
+
 **Purpose:** Complete pupil history and profile
 
 **Components:**
@@ -1574,6 +1743,9 @@ interface HomeworkCheckState {
 ---
 
 #### /grade-leaderboard/:id — Grade Ranking & Motivation
+
+**Breadcrumb:** 🏠 Главная > Группы > [Название группы] > Рейтинг
+
 **Purpose:** Visualize pupil progress and rankings
 
 **Components:**
@@ -1660,6 +1832,9 @@ interface LeaderboardState {
 ---
 
 #### /pupil-achievements/:id — Pupil Achievements Page
+
+**Breadcrumb:** 🏠 Главная > Ученики > [Имя ученика] > Достижения
+
 **Purpose:** Display all achievements earned by pupil
 
 **Components:**
@@ -1705,6 +1880,9 @@ interface LeaderboardState {
 ### 5.3 Dashboard Pages (Admin Only)
 
 #### /teachers — Teachers Management
+
+**Breadcrumb:** 🏠 Dashboard > Преподаватели
+
 **Purpose:** CRUD for teachers
 
 **Components:**
@@ -1726,6 +1904,9 @@ interface LeaderboardState {
 ---
 
 #### /grades-list — Grades Management
+
+**Breadcrumb:** 🏠 Dashboard > Группы
+
 **Purpose:** CRUD for grades
 
 **Components:**
@@ -1747,6 +1928,9 @@ interface LeaderboardState {
 ---
 
 #### /pupils — Pupils Management
+
+**Breadcrumb:** 🏠 Dashboard > Ученики
+
 **Purpose:** CRUD for pupils
 
 **Components:**
@@ -1768,6 +1952,9 @@ interface LeaderboardState {
 ---
 
 #### /families — Families Management
+
+**Breadcrumb:** 🏠 Dashboard > Семьи
+
 **Purpose:** CRUD for families
 
 **Components:**
@@ -1783,6 +1970,22 @@ interface LeaderboardState {
 - Status toggle
 
 **Access:** Admin
+
+---
+
+#### /admin/lessons-archive — Centralized Lessons Archive (Admin Only)
+
+**Breadcrumb:** 🏠 Dashboard > Архив уроков
+
+**Purpose:** Centralized view of archived lessons across all grades and academic years; handling restoration requests
+
+**Components:**
+- Filters: grade, academic year, status (archived/requestedForRestore)
+- Table of archived lessons (all grades)
+- Section for restoration requests: list of lessons with status requestedForRestore with actions (Approve/Reject)
+- Bulk operations: mass archive/restore with checkboxes
+
+**Access:** Admin, Superadmin
 
 ---
 
@@ -1885,14 +2088,44 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
 <Routes>
   <Route path="/auth" element={<AuthPage />} />
   
+  {/* Grade routes */}
   <Route
-    path="/grade-data"
+    path="/grades/my"
     element={
-      <ProtectedRoute allowedRoles={['teacher', 'admin']}>
-        <GradeDataPage />
+      <ProtectedRoute allowedRoles={['teacher']}>
+        <GradeRedirectPage /> {/* Redirects to /grades/:actualGradeId */}
       </ProtectedRoute>
     }
   />
+  <Route
+    path="/grades/:gradeId"
+    element={
+      <ProtectedRoute allowedRoles={['teacher', 'admin']}>
+        <GradeLayout />
+      </ProtectedRoute>
+    }
+  >
+    <Route index element={<GradeDataPage />} />
+    <Route path="settings" element={<GradeSettingsPage />} />
+    <Route path="schedule" element={<GradeSchedulePage />} />
+    <Route path="academic-years/:yearId/lessons" element={<YearLessonsListPage />} />
+    <Route path="academic-years/:yearId/lessons/archive" element={<LessonsArchivePage />} />
+  </Route>
+  
+  {/* Nested routes for lessons */}
+  <Route
+    path="/lessons/:lessonId"
+    element={
+      <ProtectedRoute allowedRoles={['teacher', 'admin']}>
+        <LessonLayout />
+      </ProtectedRoute>
+    }
+  >
+    <Route index element={<LessonOverviewPage />} />
+    <Route path="edit" element={<EditLessonPage />} />
+    <Route path="complete-table" element={<CompleteTablePage />} />
+    <Route path="checking-homework" element={<CheckingHomeworkPage />} />
+  </Route>
   
   <Route
     path="/teachers"
@@ -2474,6 +2707,16 @@ GET    /api/golden-verses/statistics?page=1&bookNumber=43&gradeId=:id  # Filtere
 GET    /api/golden-verses/:id/statistics              # Detailed statistics for specific verse
 GET    /api/golden-verses/:id/usage                   # Usage count and lesson list
 DELETE /api/golden-verses/:id                        # Delete verse (only if not used)
+
+// ============================================
+// GRADE EVENTS (Schedule/Calendar)
+// ============================================
+GET    /api/grades/:gradeId/events                   # List events for grade (optionally filtered by month)
+GET    /api/grades/:gradeId/events?month=2024-10    # Get events for specific month
+GET    /api/grades/:gradeId/events/:id               # Get event by ID
+POST   /api/grades/:gradeId/events                   # Create new event (body: {date, eventType, title?, description?})
+PUT    /api/grades/:gradeId/events/:id               # Update event
+DELETE /api/grades/:gradeId/events/:id               # Delete event
 
 // ============================================
 // LESSON RECORDS
