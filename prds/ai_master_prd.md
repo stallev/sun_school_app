@@ -183,7 +183,8 @@ src/
 │   │   └── modalStore.ts
 │   ├── constants/
 │   │   ├── routes.ts
-│   │   └── roles.ts
+│   │   ├── roles.ts
+│   │   └── bibleBooks.ts  // BIBLE_BOOKS_SHORT_NAMES constant
 │   └── types/
 │       └── index.ts
 │
@@ -220,7 +221,9 @@ src/
 │   ├── /lesson-data/:id         # Lesson overview (hub page)
 │   ├── /lesson-data-all/:id     # Complete lesson table
 │   ├── /checking-homework-all/:id # Homework checking interface
-│   └── /pupil-personal-data/:id # Pupil profile and history
+│   ├── /pupil-personal-data/:id # Pupil profile and history
+│   ├── /golden-verses           # Golden verses list (teacher, admin)
+│   └── /golden-verses/statistics # Golden verses statistics (teacher, admin)
 │
 └── 📂 Dashboard Routes (admin only)
     ├── /teachers                # Teachers management
@@ -601,8 +604,13 @@ model Lesson {
   academicYear    AcademicYear  @relation(fields: [academicYearId], references: [id], onDelete: Restrict)
   grade           Grade         @relation(fields: [gradeId], references: [id])
   teacher         Teacher       @relation(fields: [teacherId], references: [id])
-  goldenVerses    GoldenVerse[] @relation("LessonGoldenVerses")
+  goldenVerses    GoldenVerse[] @relation("LessonGoldenVerses")  // 0-3 verses depending on GradeSettings.showGoldenVerses
   lessonRecords   LessonRecord[]
+  
+  // Business Rule:
+  // - If grade.settings.showGoldenVerses = false: goldenVerses.length must be 0
+  // - If grade.settings.showGoldenVerses = true: goldenVerses.length must be exactly 3
+  // This is enforced at application level (validation), not at DB level
   
   @@unique([academicYearId, gradeId, lessonNumber])
   @@index([academicYearId])
@@ -621,16 +629,36 @@ model Lesson {
 
 model GoldenVerse {
   id            String    @id @default(cuid())
-  reference     String    @unique  // e.g., "Ин. 3:16"
+  reference     Json      @unique  // { bookNumber: Int, chapter: Int, verse: Int }
   text          String    @db.Text // Full verse text
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   
   // Relations
-  lessons       Lesson[]  @relation("LessonGoldenVerses")
+  lessons       Lesson[]  @relation("LessonGoldenVerses")  // M:N - урок может иметь 0-3 стиха в зависимости от группы
+  lessonRecordsAsVerse1  LessonRecord[] @relation("GoldenVerse1")
+  lessonRecordsAsVerse2  LessonRecord[] @relation("GoldenVerse2")
+  lessonRecordsAsVerse3  LessonRecord[] @relation("GoldenVerse3")
   
   @@index([reference])
 }
+
+// IMPORTANT: Golden Verses Usage Rules
+// 1. Groups with showGoldenVerses = false: Lessons have 0 golden verses (not used)
+// 2. Groups with showGoldenVerses = true: Lessons must have exactly 3 golden verses
+// 3. Validation: Check GradeSettings.showGoldenVerses when creating/editing lessons
+// 4. Statistics: Only calculate for groups with showGoldenVerses = true
+
+// Reference structure example:
+// {
+//   "bookNumber": 43,  // John (Ин. = Ин. = 43rd book)
+//   "chapter": 3,
+//   "verse": 16
+// }
+
+// Helper function to format reference:
+// formatReference({ bookNumber: 43, chapter: 3, verse: 16 }) => "Ин. 3:16"
+// Uses BIBLE_BOOKS_SHORT_NAMES constant
 
 // ============================================
 // LESSON RECORD (Attendance & Scores)
@@ -644,10 +672,14 @@ model LessonRecord {
   // Attendance
   isPresent           Boolean   @default(true)
   
-  // Golden Verses (3 verses per lesson)
-  goldenVerse1Score   Int       @default(0)  // 0, 1, or 2 points
-  goldenVerse2Score   Int       @default(0)  // 0, 1, or 2 points
-  goldenVerse3Score   Int       @default(0)  // 0, 1, or 2 points
+  // Golden Verses (optional - only if grade.settings.showGoldenVerses = true)
+  // For groups without golden verses: all goldenVerse*Id = null, all scores = 0
+  goldenVerse1Id      String?   // FK to GoldenVerse (for statistics, null if group doesn't use verses)
+  goldenVerse1Score   Int       @default(0)  // 0, 1, or 2 points (always 0 if group doesn't use verses)
+  goldenVerse2Id      String?   // FK to GoldenVerse (for statistics, null if group doesn't use verses)
+  goldenVerse2Score   Int       @default(0)  // 0, 1, or 2 points (always 0 if group doesn't use verses)
+  goldenVerse3Id      String?   // FK to GoldenVerse (for statistics, null if group doesn't use verses)
+  goldenVerse3Score   Int       @default(0)  // 0, 1, or 2 points (always 0 if group doesn't use verses)
   
   // Homework
   testScore           Int       @default(0)  // 0-10 points
@@ -666,10 +698,16 @@ model LessonRecord {
   // Relations
   lesson              Lesson    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
   pupil               Pupil     @relation(fields: [pupilId], references: [id], onDelete: Cascade)
+  goldenVerse1        GoldenVerse? @relation("GoldenVerse1", fields: [goldenVerse1Id], references: [id], onDelete: SetNull)
+  goldenVerse2        GoldenVerse? @relation("GoldenVerse2", fields: [goldenVerse2Id], references: [id], onDelete: SetNull)
+  goldenVerse3        GoldenVerse? @relation("GoldenVerse3", fields: [goldenVerse3Id], references: [id], onDelete: SetNull)
   
   @@unique([lessonId, pupilId])
   @@index([lessonId])
   @@index([pupilId])
+  @@index([goldenVerse1Id])
+  @@index([goldenVerse2Id])
+  @@index([goldenVerse3Id])
 }
 
 // ============================================
@@ -832,7 +870,7 @@ CREATE INDEX idx_pupil_achievement_earned ON PupilAchievement(earnedAt);
 **Автоматический расчёт баллов за урок:**
 
 ```typescript
-function calculateLessonPoints(record: LessonRecord): number {
+function calculateLessonPoints(record: LessonRecord, gradeSettings: GradeSettings): number {
   let points = 0;
   
   // Присутствие: 1 балл
@@ -841,9 +879,12 @@ function calculateLessonPoints(record: LessonRecord): number {
   }
   
   // Золотые стихи: 0/1/2 балла за каждый (максимум 6)
-  points += record.goldenVerse1Score;  // 0, 1, or 2
-  points += record.goldenVerse2Score;  // 0, 1, or 2
-  points += record.goldenVerse3Score;  // 0, 1, or 2
+  // Note: For groups with showGoldenVerses = false, all scores are 0 (not counted)
+  if (gradeSettings.showGoldenVerses) {
+    points += record.goldenVerse1Score;  // 0, 1, or 2
+    points += record.goldenVerse2Score;  // 0, 1, or 2
+    points += record.goldenVerse3Score;  // 0, 1, or 2
+  }
   
   // Тест: балл * 1 (максимум 10)
   points += record.testScore;  // 0-10
@@ -856,18 +897,19 @@ function calculateLessonPoints(record: LessonRecord): number {
     points += 1;
   }
   
-  // Итого: до 23 баллов за урок
+  // Итого: до 23 баллов за урок (с золотыми стихами) или до 17 (без золотых стихов)
   return points;
 }
 ```
 
 **Максимальные баллы за урок:**
 - Присутствие: 1
-- Золотые стихи (3 × 2): 6
+- Золотые стихи (3 × 2): 6 (только если showGoldenVerses = true)
 - Тест: 10
 - Тетрадь: 5
 - Спевка: 1
-- **ИТОГО: 23 балла**
+- **ИТОГО: 23 балла** (для групп с золотыми стихами)
+- **ИТОГО: 17 баллов** (для групп без золотых стихов)
 
 **Визуализация прогресса (домики):**
 - 1 кирпичик = 1 балл
@@ -903,6 +945,91 @@ function calculateProgress(totalPoints: number) {
 | Столетие | Набрал 100 баллов | 💯 |
 | Строитель | Построил 1 дом (1000 баллов) | 🏠 |
 | Полгода | Посетил все уроки полугодия | 📆 |
+
+### 4.5 Константы и вспомогательные функции
+
+**BIBLE_BOOKS_SHORT_NAMES:**
+```typescript
+// shared/constants/bibleBooks.ts
+
+export const BIBLE_BOOKS_SHORT_NAMES: Record<number, string> = {
+  1: "Быт.",    // Бытие
+  2: "Исх.",    // Исход
+  3: "Лев.",    // Левит
+  4: "Чис.",    // Числа
+  5: "Втор.",   // Второзаконие
+  6: "Ис.Нав.", // Иисус Навин
+  7: "Суд.",    // Судей
+  8: "Руф.",    // Руфь
+  9: "1Цар.",   // 1 Царств
+  10: "2Цар.",  // 2 Царств
+  11: "3Цар.",  // 3 Царств
+  12: "4Цар.",  // 4 Царств
+  13: "1Пар.",  // 1 Паралипоменон
+  14: "2Пар.",  // 2 Паралипоменон
+  15: "Ездр.",  // Ездра
+  16: "Неем.",  // Неемия
+  17: "Есф.",   // Есфирь
+  18: "Иов",    // Иов
+  19: "Пс.",    // Псалтирь
+  20: "Прит.",  // Притчи
+  21: "Еккл.",  // Екклесиаст
+  22: "Песн.",  // Песня Песней
+  23: "Ис.",    // Исаия
+  24: "Иер.",   // Иеремия
+  25: "Плач",   // Плач Иеремии
+  26: "Иез.",   // Иезекииль
+  27: "Дан.",   // Даниил
+  28: "Осии",   // Осия
+  29: "Иоил",   // Иоиль
+  30: "Ам.",    // Амос
+  31: "Авд.",   // Авдий
+  32: "Ион.",   // Иона
+  33: "Мих.",   // Михей
+  34: "Наум",   // Наум
+  35: "Авв.",   // Аввакум
+  36: "Соф.",   // Софония
+  37: "Агг.",   // Аггей
+  38: "Зах.",   // Захария
+  39: "Мал.",   // Малахия
+  40: "Мф.",    // Матфея
+  41: "Мк.",    // Марка
+  42: "Лк.",    // Луки
+  43: "Ин.",    // Иоанна
+  44: "Деян.",  // Деяния
+  45: "Рим.",   // Римлянам
+  46: "1Кор.",  // 1 Коринфянам
+  47: "2Кор.",  // 2 Коринфянам
+  48: "Гал.",   // Галатам
+  49: "Еф.",    // Ефесянам
+  50: "Флп.",   // Филиппийцам
+  51: "Кол.",   // Колоссянам
+  52: "1Фес.",  // 1 Фессалоникийцам
+  53: "2Фес.",  // 2 Фессалоникийцам
+  54: "1Тим.",  // 1 Тимофею
+  55: "2Тим.",  // 2 Тимофею
+  56: "Тит.",   // Титу
+  57: "Флм.",   // Филимону
+  58: "Евр.",   // Евреям
+  59: "Иак.",   // Иакова
+  60: "1Пет.",  // 1 Петра
+  61: "2Пет.",  // 2 Петра
+  62: "1Ин.",   // 1 Иоанна
+  63: "2Ин.",   // 2 Иоанна
+  64: "3Ин.",   // 3 Иоанна
+  65: "Иуд.",   // Иуды
+  66: "Откр.",  // Откровение
+};
+
+// Helper function to format reference
+export function formatVerseReference(reference: { bookNumber: number; chapter: number; verse: number }): string {
+  const bookShortName = BIBLE_BOOKS_SHORT_NAMES[reference.bookNumber];
+  if (!bookShortName) {
+    return `??? ${reference.chapter}:${reference.verse}`;
+  }
+  return `${bookShortName} ${reference.chapter}:${reference.verse}`;
+}
+```
 
 ---
 
@@ -1084,7 +1211,7 @@ interface GradeState {
 - Lessons table (number, date, topic, teacher)
 - Create new lesson button
 - Edit/Delete actions per lesson
-- Pagination
+- Pagination (15 items per page)
 
 **Store:**
 ```typescript
@@ -1093,9 +1220,11 @@ interface LessonListState {
   lessons: Lesson[];
   archivedLessons: Lesson[];
   isLoading: boolean;
+  totalCount: number;
+  currentPage: number;
   
-  fetchLessons: (academicYearId: string) => Promise<void>;
-  fetchArchivedLessons: (academicYearId: string) => Promise<void>;
+  fetchLessons: (academicYearId: string, page?: number, pageSize?: number) => Promise<void>;
+  fetchArchivedLessons: (academicYearId: string, page?: number, pageSize?: number) => Promise<void>;
   archiveLesson: (lessonId: string, reason?: string) => Promise<void>;
   restoreLesson: (lessonId: string) => Promise<void>;
 }
@@ -1137,30 +1266,177 @@ interface GradeSettingsState {
 - Date picker
 - Topic input
 - Teacher selector
-- Golden verses selector (3 required)
+- Golden verses selector (3 required):
+  - For each verse (1-3):
+    - Book selector (dropdown with BIBLE_BOOKS_SHORT_NAMES)
+    - Chapter input (number, 1-150)
+    - Verse input (number, 1-176)
+    - Text input (auto-populated if verse exists, editable)
+    - Search/Select existing verse button
 - Save/Cancel buttons
+
+**Golden Verse Selection Logic:**
+1. User selects book, enters chapter and verse
+2. System checks if verse exists in database by reference (bookNumber, chapter, verse)
+3. If exists: auto-populate text field, disable by default (can enable editing if incorrect)
+4. If not exists: empty text field, required input
+5. User can manually search/select existing verses
 
 **Form Store:**
 ```typescript
 // features/lesson-management/create-lesson/model/createLessonStore.ts
+interface GoldenVerseFormData {
+  bookNumber: number;
+  chapter: number;
+  verse: number;
+  text: string;
+  existingVerseId?: string; // If verse exists in DB
+}
+
 interface CreateLessonState {
   form: {
     lessonNumber: number;
     date: Date | null;
     topic: string;
     teacherId: string;
-    goldenVerses: GoldenVerse[];
+    goldenVerses: GoldenVerseFormData[]; // Exactly 3
   };
   
   updateField: (field: string, value: any) => void;
-  addGoldenVerse: (verse: GoldenVerse) => void;
-  removeGoldenVerse: (verseId: string) => void;
+  updateGoldenVerse: (index: number, verse: Partial<GoldenVerseFormData>) => void;
+  checkVerseExists: (bookNumber: number, chapter: number, verse: number) => Promise<GoldenVerse | null>;
   submitLesson: () => Promise<void>;
   reset: () => void;
 }
 ```
 
 **Access:** Teacher (own grades), Admin
+
+---
+
+#### /edit-lesson/:id — Edit Lesson
+**Purpose:** Edit existing lesson with golden verses
+
+**Components:**
+- Same as /new-lesson with pre-filled data
+- Golden verses selector with existing verses loaded:
+  - Shows current book, chapter, verse for each verse
+  - Allows changing reference (will update text if verse exists)
+  - Allows editing text (will update database verse if changed)
+
+**Logic:**
+- When reference changes: check if new verse exists, auto-populate if yes
+- When text is edited: save updated text to database (update existing verse or create new if reference changed)
+- Validation: exactly 3 verses required
+
+**Access:** Teacher (own grades), Admin
+
+---
+
+#### /golden-verses — Golden Verses List
+**Purpose:** Browse and manage golden verses library
+
+**Components:**
+- Table with columns:
+  - Reference (formatted: "Ин. 3:16")
+  - Text preview (first 50 chars)
+  - Used in lessons count
+  - Created date
+  - Edit button
+- Pagination (15 items per page)
+- Filters:
+  - Search by reference (book, chapter, verse)
+  - Filter by book
+  - Filter by chapter range
+- Actions:
+  - View full verse
+  - Edit verse text
+  - View statistics → /golden-verses/statistics?verseId=:id
+
+**Store:**
+```typescript
+// entities/golden-verse/model/goldenVerseStore.ts
+interface GoldenVerseListState {
+  verses: GoldenVerse[];
+  totalCount: number;
+  currentPage: number;
+  filters: {
+    bookNumber?: number;
+    chapterMin?: number;
+    chapterMax?: number;
+    searchQuery?: string;
+  };
+  
+  fetchVerses: (page: number, filters?: Filters) => Promise<void>;
+  updateVerse: (verseId: string, text: string) => Promise<void>;
+}
+```
+
+**Access:** Teacher, Admin
+
+---
+
+#### /golden-verses/statistics — Golden Verses Statistics
+**Purpose:** View statistics on how pupils learn golden verses
+
+**Components:**
+- Table with columns:
+  - Reference (formatted: "Ин. 3:16")
+  - Total attempts (how many times verse was checked)
+  - Perfect scores (score = 2): count and percentage
+  - Average score (0-2)
+  - Groups where used (list of grade names)
+  - View details button
+- Pagination (15 items per page)
+- Filters:
+  - Filter by book
+  - Filter by date range (lessons date)
+  - Filter by grade
+- Detail view (modal or expandable row):
+  - Score distribution (0/1/2 counts)
+  - Timeline chart (attempts over time)
+  - Performance by grade (comparison)
+
+**Statistics Calculation:**
+- Query LessonRecord where goldenVerse1Id/2Id/3Id = verseId
+- **Important:** Only count records from grades where showGoldenVerses = true
+- Exclude records where grade.settings.showGoldenVerses = false
+- Count total records (excluding absent pupils: isPresent = false)
+- Count perfect scores (score = 2)
+- Calculate average: sum(scores) / count
+- Group by grade, date ranges
+- Filter statistics by grade if needed (only show grades that use golden verses)
+
+**Store:**
+```typescript
+// entities/golden-verse/model/goldenVerseStatisticsStore.ts
+interface VerseStatistics {
+  verseId: string;
+  reference: string;
+  totalAttempts: number;
+  perfectCount: number;
+  perfectPercentage: number;
+  averageScore: number;
+  gradeUsage: { gradeId: string; gradeName: string; count: number }[];
+  scoreDistribution: { score: 0 | 1 | 2; count: number }[];
+}
+
+interface GoldenVerseStatisticsState {
+  statistics: VerseStatistics[];
+  totalCount: number;
+  currentPage: number;
+  filters: {
+    bookNumber?: number;
+    gradeId?: string;
+    dateFrom?: Date;
+    dateTo?: Date;
+  };
+  
+  fetchStatistics: (page: number, filters?: Filters) => Promise<void>;
+}
+```
+
+**Access:** Teacher, Admin
 
 ---
 
@@ -1707,6 +1983,9 @@ export const pupilSchema = z.object({
 });
 
 // Lesson validation
+// Note: Validation depends on GradeSettings.showGoldenVerses
+// - If showGoldenVerses = false: goldenVerses.length must be 0
+// - If showGoldenVerses = true: goldenVerses.length must be exactly 3
 export const lessonSchema = z.object({
   topic: z.string().min(3, 'Минимум 3 символа').max(200, 'Максимум 200 символов'),
   date: z.date()
@@ -1716,9 +1995,24 @@ export const lessonSchema = z.object({
     ),
   teacherId: z.string().min(1, 'Выберите преподавателя'),
   goldenVerses: z.array(z.object({
-    reference: z.string().min(1),
-    text: z.string().min(1),
-  })).length(3, 'Требуется ровно 3 золотых стиха'),
+    reference: z.object({
+      bookNumber: z.number().int().min(1).max(66),
+      chapter: z.number().int().min(1).max(150),
+      verse: z.number().int().min(1).max(176),
+    }),
+    text: z.string().min(1, 'Текст стиха обязателен'),
+    existingVerseId: z.string().optional(),
+  })).refine((verses, ctx) => {
+    // This validation must check GradeSettings.showGoldenVerses at runtime
+    // If showGoldenVerses = false: verses.length === 0
+    // If showGoldenVerses = true: verses.length === 3
+    // This is enforced in the form component, not in schema
+    return true;
+  }),
+}).refine((data, ctx) => {
+  // Runtime validation: check grade settings
+  // This should be done in the form/component that has access to GradeSettings
+  return true;
 });
 
 // Lesson archive validation
@@ -1737,8 +2031,11 @@ export const lessonRecordSchema = z.object({
   pupilId: z.string(),
   lessonId: z.string(),
   isPresent: z.boolean(),
+  goldenVerse1Id: z.string().optional(),
   goldenVerse1Score: z.number().int().min(0).max(2),
+  goldenVerse2Id: z.string().optional(),
   goldenVerse2Score: z.number().int().min(0).max(2),
+  goldenVerse3Id: z.string().optional(),
   goldenVerse3Score: z.number().int().min(0).max(2),
   testScore: z.number().int().min(0).max(10),
   notebookScore: z.number().int().min(0).max(10),
@@ -2165,12 +2462,18 @@ GET    /api/lessons/:id/records  # Get all records for lesson
 // ============================================
 // GOLDEN VERSES
 // ============================================
-GET    /api/golden-verses        # List all verses
-GET    /api/golden-verses/:id    # Get verse by ID
-GET    /api/golden-verses/search?q=<query>  # Search verses
-POST   /api/golden-verses        # Create new verse
-PUT    /api/golden-verses/:id    # Update verse
-DELETE /api/golden-verses/:id    # Delete verse
+GET    /api/golden-verses                              # List verses (paginated, 15 per page)
+GET    /api/golden-verses?page=1&bookNumber=43&chapter=3  # Filtered list with pagination
+GET    /api/golden-verses/:id                          # Get verse by ID
+GET    /api/golden-verses/by-reference                # Get verse by reference (POST body: {bookNumber, chapter, verse})
+POST   /api/golden-verses                             # Create new verse (body: {reference: {bookNumber, chapter, verse}, text})
+PUT    /api/golden-verses/:id                         # Update verse text
+PATCH  /api/golden-verses/:id/text                    # Update only text
+GET    /api/golden-verses/statistics                  # List verse statistics (paginated, 15 per page)
+GET    /api/golden-verses/statistics?page=1&bookNumber=43&gradeId=:id  # Filtered statistics
+GET    /api/golden-verses/:id/statistics              # Detailed statistics for specific verse
+GET    /api/golden-verses/:id/usage                   # Usage count and lesson list
+DELETE /api/golden-verses/:id                        # Delete verse (only if not used)
 
 // ============================================
 // LESSON RECORDS
