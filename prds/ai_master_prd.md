@@ -565,6 +565,7 @@ model Pupil {
   lastName      String
   middleName    String?
   dateOfBirth   DateTime
+  gender        String?   // Пол ученика (e.g., "Мужской", "Женский", "Другой")
   avatar        String?
   familyId      String
   gradeId       String
@@ -1727,7 +1728,7 @@ interface HomeworkCheckState {
 **Purpose:** Complete pupil history and profile
 
 **Components:**
-- Profile card (avatar, name, DOB, age, family, grade)
+- Profile card (avatar, name, DOB, age, gender, family, grade)
 - Tabs: Overview / All Lessons / Trends
 - Lessons history table (all lesson records)
 - Edit record modal (same as homework check)
@@ -1943,6 +1944,7 @@ interface LeaderboardState {
 - Avatar upload
 - First/Last/Middle name
 - Date of birth
+- Gender (optional dropdown: "Мужской", "Женский", "Другой")
 - Family selection (with "Create new family" option)
 - Grade assignment
 - Status toggle
@@ -2210,6 +2212,7 @@ export const pupilSchema = z.object({
       const age = new Date().getFullYear() - date.getFullYear();
       return age >= 3 && age <= 18;
     }, 'Возраст должен быть от 3 до 18 лет'),
+  gender: z.string().max(50).optional(), // Пол ученика (опционально)
   familyId: z.string().min(1, 'Выберите семью'),
   gradeId: z.string().min(1, 'Выберите группу'),
   avatar: z.string().url().optional(),
