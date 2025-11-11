@@ -54,15 +54,15 @@ Sunday School App — веб-приложение для автоматизац�
 
 ```
 Frontend:
-├── Framework: React 19+ с TypeScript
+├── Framework: Next.js 14+ (App Router, React 19) с TypeScript
 ├── UI: Shadcn UI + Tailwind CSS
-├── Routing: React Router v6+
+├── Routing: Next.js App Router (file-based)
 ├── State: Zustand (global) + React Query (server)
-└── Build: Vite
+└── Build: Next.js build pipeline (Turbopack/webpack)
 
 Backend:
 ├── Runtime: Node.js
-├── Framework: Express/Next.js API Routes
+├── Framework: Next.js API Routes (Route Handlers)
 ├── ORM: Prisma
 ├── Database: PostgreSQL
 └── Auth: Auth.js (NextAuth.js)
@@ -2934,7 +2934,7 @@ export enum AchievementType {
 - [x] Database schema implementation (Prisma + PostgreSQL)
 - [x] Basic authentication (Auth.js setup)
 - [x] Core UI components (Shadcn UI integration)
-- [x] Routing structure (React Router)
+- [x] Routing structure (Next.js App Router)
 - [x] FSD folder structure
 - [x] API client setup
 

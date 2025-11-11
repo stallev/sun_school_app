@@ -85,7 +85,7 @@
 ### 3.1 Технологический стек
 
 Все три спецификации используют одинаковый базовый стек:
-- React 19+, TypeScript
+- Next.js 14+ (App Router, React 19), TypeScript
 - Zustand (state management)
 - React Query (server state)
 - Prisma ORM + PostgreSQL
@@ -96,7 +96,7 @@
 
 | Аспект | Claude | GPT | Qwen |
 |--------|--------|-----|------|
-| **Routing** | React Router v6+ | Указан, но без деталей | Не указан явно |
+| **Routing** | Next.js App Router (подробно описан) | Указан, но без деталей | Не указан явно |
 | **Architecture** | FSD + Atomic Design (подробно) | FSD + Atomic (кратко) | FSD + Atomic (подробно) |
 | **Design Patterns** | Подробно описаны | Не описаны | Упомянуты |
 | **Testing** | Отдельный раздел (Phase 5+) | Не упоминается | Не упоминается |

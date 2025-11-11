@@ -23,11 +23,11 @@ Sunday School App - это веб-приложение для управлени
 ## 2. Technical Stack
 
 ### 2.1 Frontend
-- **Framework**: React.js 19+
+- **Framework**: Next.js 14+ (App Router, React 19)
 - **Language**: TypeScript
 - **State Management**: Zustand (global state), React Query (server state)
 - **UI Components**: Shadcn UI
-- **Routing**: React Router v6+
+- **Routing**: Next.js App Router (file-based routing, server + client components)
 
 ### 2.2 Backend & Database
 - **ORM**: Prisma ORM
@@ -2145,7 +2145,7 @@ Key indexes for performance:
 ## 16. Development Phases & Milestones
 
 ### Phase 1: Foundation (Weeks 1-2)
-- [ ] Project setup (React, TypeScript, Prisma, PostgreSQL)
+- [ ] Project setup (Next.js, TypeScript, Prisma, PostgreSQL)
 - [ ] Database schema implementation
 - [ ] Basic authentication (Auth.js setup)
 - [ ] Core UI components (Shadcn UI integration)
@@ -2363,11 +2363,12 @@ NODE_ENV="production"
 
 ## 21. Key Decisions & Rationale
 
-### 21.1 Why React 19?
-- Latest features and performance improvements
-- Modern React patterns (Server Components in future)
-- Strong ecosystem and community support
-- Easy integration with TypeScript
+### 21.1 Why Next.js 14?
+- Современный фреймворк на базе React 19 с поддержкой Server Components
+- Единая среда для SSR, SSG и клиентских компонентов без дополнительной настройки
+- Встроенный App Router и file-based routing вместо ручной конфигурации
+- Глубокая интеграция с TypeScript, React Query и Auth.js (NextAuth.js)
+- Оптимизации производительности (Automatic Image Optimization, Route Segment Caching)
 
 ### 21.2 Why TypeScript?
 - Type safety reduces runtime errors

@@ -307,12 +307,12 @@ model LessonAttendance {
 ## 6. Технические требования
 
 ### Стек
-- **Frontend**: React 19+, TypeScript, Vite
+- **Frontend**: Next.js 14+ (App Router, React 19), TypeScript
 - **UI**: shadcn/ui + Tailwind CSS
 - **State**: Zustand (глобальное состояние), React Query (серверное состояние)
-- **Routing**: Next.js App Router (или React Router v6, если SPA)
+- **Routing**: Next.js App Router (file-based routing)
 - **Auth**: Auth.js (Credentials + Email/Password)
-- **Backend**: Next.js API Routes или отдельный Express/NestJS (в MVP — API Routes)
+- **Backend**: Next.js API Routes (Route Handlers) без отдельного Express
 - **ORM**: Prisma
 - **DB**: PostgreSQL
 - **Архитектура**: Feature-Sliced Design (FSD) + Atomic Design (atoms, molecules, organisms)
