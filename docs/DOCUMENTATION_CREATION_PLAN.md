@@ -290,12 +290,13 @@
 - Loading states
 - Toast notifications
 
-**Фаза 8: Тестирование и deployment (2-3 дня)**
-- Unit tests
-- Integration tests
-- E2E tests (опционально)
+**Фаза 8: Тестирование и deployment (1-2 дня)**
+- Ручное тестирование всех основных user flows
+- Тестирование на различных устройствах и браузерах
 - Deployment на Vercel
 - Production testing
+
+**⚠️ Примечание:** Автоматизированное тестирование (Unit tests, Integration tests, E2E tests) **не планируется в MVP** и будет реализовано на Post-MVP стадии проекта.
 
 **Примерный объем:** 60-80 страниц
 
@@ -405,22 +406,22 @@
 **Содержание:**
 ```bash
 # Database (Supabase PostgreSQL)
-DATABASE_URL="postgresql://postgres.bmummugjnlqsytywogqt:!@jh!2342^%@#@aws-1-eu-west-1.pooler.supabase.com:6543/postgres?pgbouncer=true&statement_cache_size=0"
-DIRECT_URL="postgresql://postgres.bmummugjnlqsytywogqt:!@jh!2342^%@#@aws-1-eu-west-1.pooler.supabase.com:5432/postgres"
+DATABASE_URL="postgresql://user:password@host:6543/database?pgbouncer=true&statement_cache_size=0"
+DIRECT_URL="postgresql://user:password@host:5432/database"
 
 # Auth.js
-AUTH_SECRET="DgfL3Z0oECiNqdUunUVtNtTAchQ7Mz5lH+dzr4KVV0M="
+AUTH_SECRET="your-auth-secret-here"
 NEXTAUTH_URL="http://localhost:3000"
 
 # Supabase Storage
-NEXT_PUBLIC_SUPABASE_URL="https://bmummugjnlqsytywogqt.supabase.co"
-NEXT_PUBLIC_SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtdW1tdWdqbmxxc3l0eXdvZ3F0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI4NTY2MjUsImV4cCI6MjA3ODQzMjYyNX0.jVWsR8LwK-4VsbagWPahe20pHKHJy0my2sY2zqiNmrc"
+NEXT_PUBLIC_SUPABASE_URL="https://your-project.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="your-anon-key-here"
 
-SUPABASE_STORAGE_BUCKET_NAME="sunschoolb"
-SUPABASE_STORAGE_ENDPOINT="https://bmummugjnlqsytywogqt.storage.supabase.co/storage/v1/s3"
+SUPABASE_STORAGE_BUCKET_NAME="your-bucket-name"
+SUPABASE_STORAGE_ENDPOINT="https://your-project.storage.supabase.co/storage/v1/s3"
 SUPABASE_STORAGE_REGION="eu-west-1"
-SUPABASE_STORAGE_ACCESS_KEY_ID="91a3f85a48f9b7e919d48ef408be9199"
-SUPABASE_STORAGE_SECRET_ACCESS_KEY="294d7d35c0c730c8c253fe70afede3baa5990f63d07ab467e3f3ddcdd186abd2"
+SUPABASE_STORAGE_ACCESS_KEY_ID="your-access-key-id"
+SUPABASE_STORAGE_SECRET_ACCESS_KEY="your-secret-access-key"
 
 # Node Environment
 NODE_ENV="development"
@@ -468,12 +469,16 @@ NODE_ENV="development"
 #### 6.1. **TESTING_STRATEGY.md** (Стратегия тестирования)
 **Расположение:** `docs/technical/TESTING_STRATEGY.md`
 
+**⚠️ Статус:** Post-MVP (не планируется в MVP)
+
 **Содержание:**
 - Unit tests (Server Actions, utilities)
 - Integration tests (Database, API)
 - Component tests (React Testing Library)
 - E2E tests (опционально, Playwright)
 - Test coverage requirements
+
+**Примечание:** Этот документ будет создан на Post-MVP стадии, так как автоматизированное тестирование не входит в MVP.
 
 **Примерный объем:** 25-30 страниц
 
