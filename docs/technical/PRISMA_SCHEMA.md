@@ -1,10 +1,16 @@
 # Prisma Schema (Детальное описание схемы Prisma) - Sunday School App
 
-## Версия документа: 1.0
+> ⚠️ **ВАЖНО:** Этот документ сохранен для референса. Проект мигрировал на **AWS Amplify + DynamoDB/AppSync (GraphQL)**.  
+> Для актуальной информации см. `docs/prds/ARCHITECTURE.md` (версия 2.0) и `docs/prds/ERD.md` (версия 2.0).  
+> Данный документ описывает структуру данных, которая теперь реализуется через GraphQL schema в `amplify/backend/api/schema.graphql`.
+
+## Версия документа: 1.0 (Legacy - для референса)
 **Дата создания:** 11 ноября 2025  
+**Последнее обновление:** 11 ноября 2025  
 **Проект:** Sunday School App (Приложение для управления воскресной школой)  
-**Технологии:** Prisma ORM, PostgreSQL 15.x (Supabase)  
-**База данных:** Supabase PostgreSQL с PgBouncer connection pooling
+**Технологии:** Prisma ORM, PostgreSQL 15.x (Supabase) - **УСТАРЕЛО**  
+**База данных:** Supabase PostgreSQL с PgBouncer connection pooling - **УСТАРЕЛО**  
+**Новая архитектура:** AWS DynamoDB + AWS AppSync (GraphQL) + AWS Cognito
 
 ---
 

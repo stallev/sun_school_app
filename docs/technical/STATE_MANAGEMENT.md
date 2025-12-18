@@ -51,10 +51,10 @@ interface GradePageProps {
 
 /**
  * Страница группы - Server Component
- * Получает данные напрямую из БД
+ * Получает данные напрямую через GraphQL API (AppSync)
  */
 export default async function GradePage({ params }: GradePageProps) {
-  // Данные получаются на сервере
+  // Данные получаются на сервере через GraphQL
   const lessons = await getLessonsByGrade(params.gradeId);
   const grade = await getGradeById(params.gradeId);
 
@@ -112,8 +112,9 @@ export const getLessonsByGrade = unstable_cache(
 'use server';
 
 import { revalidatePath, revalidateTag } from 'next/cache';
-import { prisma } from '@/lib/db';
+import { amplifyData } from '@/lib/db/amplify';
 import { z } from 'zod';
+import * as mutations from '@/amplify/data/mutations';
 
 const createLessonSchema = z.object({
   title: z.string().min(1),
@@ -128,16 +129,23 @@ export async function createLesson(data: z.infer<typeof createLessonSchema>) {
   // Валидация
   const validated = createLessonSchema.parse(data);
 
-  // Создание в БД
-  const lesson = await prisma.lesson.create({
-    data: validated,
+  // Создание через GraphQL mutation
+  const { data: result, errors } = await amplifyData.graphql({
+    query: mutations.createLesson,
+    variables: {
+      input: validated,
+    },
   });
+
+  if (errors) {
+    return { success: false, error: errors[0].message };
+  }
 
   // Инвалидация кеша
   revalidatePath(`/grades/${validated.gradeId}`);
   revalidateTag('lessons');
 
-  return { success: true, lesson };
+  return { success: true, lesson: result.createLesson };
 }
 ```
 
@@ -167,10 +175,12 @@ src/actions/
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { prisma } from '@/lib/db';
+import { amplifyData } from '@/lib/db/amplify';
 import { z } from 'zod';
-import { auth } from '@/lib/auth';
+import { getCurrentUser } from '@/lib/auth/amplify-auth';
 import { redirect } from 'next/navigation';
+import * as queries from '@/amplify/data/queries';
+import * as mutations from '@/amplify/data/mutations';
 
 // 1. Zod схема для валидации
 const createLessonSchema = z.object({
@@ -190,43 +200,58 @@ export async function createLesson(
   input: z.infer<typeof createLessonSchema>
 ): Promise<ActionResult<Lesson>> {
   try {
-    // Проверка аутентификации
-    const session = await auth();
-    if (!session?.user) {
+    // Проверка аутентификации через Cognito
+    const user = await getCurrentUser();
+    if (!user) {
       return { success: false, error: 'Не авторизован' };
     }
 
-    // Проверка прав доступа
-    if (session.user.role !== 'TEACHER' && session.user.role !== 'ADMIN') {
+    // Проверка прав доступа (через Cognito Groups)
+    const groups = user.signInUserSession?.accessToken?.payload['cognito:groups'] || [];
+    if (!groups.includes('teachers') && !groups.includes('admins')) {
       return { success: false, error: 'Недостаточно прав' };
     }
 
     // Валидация
     const validated = createLessonSchema.parse(input);
 
-    // Бизнес-логика
-    const activeYear = await prisma.academicYear.findFirst({
-      where: {
-        gradeId: validated.gradeId,
-        status: 'ACTIVE',
+    // Бизнес-логика - получение активного учебного года через GraphQL
+    const { data: yearsData, errors: yearsErrors } = await amplifyData.graphql({
+      query: queries.listAcademicYears,
+      variables: {
+        filter: {
+          gradeId: { eq: validated.gradeId },
+          status: { eq: 'ACTIVE' },
+        },
       },
     });
 
-    if (!activeYear) {
+    if (yearsErrors || !yearsData?.listAcademicYears?.items?.[0]) {
       return { 
         success: false, 
         error: 'Нет активного учебного года для группы' 
       };
     }
 
-    // Создание в БД
-    const lesson = await prisma.lesson.create({
-      data: {
-        ...validated,
-        academicYearId: activeYear.id,
-        createdById: session.user.id,
+    const activeYear = yearsData.listAcademicYears.items[0];
+
+    // Создание через GraphQL mutation
+    const { data: result, errors } = await amplifyData.graphql({
+      query: mutations.createLesson,
+      variables: {
+        input: {
+          ...validated,
+          academicYearId: activeYear.id,
+          createdById: user.userId,
+        },
       },
     });
+
+    if (errors) {
+      return { success: false, error: errors[0].message };
+    }
+
+    const lesson = result.createLesson;
 
     // Инвалидация кеша
     revalidatePath(`/grades/${validated.gradeId}`);
@@ -655,10 +680,10 @@ export const LessonList = ({ gradeId }: { gradeId: string }) => {
 };
 ```
 
-### 6.2. После (Server Components)
+### 6.2. После (Server Components + AWS Amplify Data)
 
 ```typescript
-// ✅ Новый подход с Server Components
+// ✅ Новый подход с Server Components + GraphQL
 import { getLessonsByGrade } from '@/lib/db/queries';
 import { LessonCard } from '@/components/molecules/LessonCard';
 
@@ -667,7 +692,7 @@ export default async function LessonListPage({
 }: { 
   params: { gradeId: string } 
 }) {
-  // Данные получаются на сервере
+  // Данные получаются на сервере через GraphQL (AppSync)
   const lessons = await getLessonsByGrade(params.gradeId);
 
   return (
@@ -871,5 +896,8 @@ state.newField = value; // Мутация!
 ---
 
 **Последнее обновление:** 11 ноября 2025  
-**Автор:** AI Senior Architect & Documentation Engineer
+**Версия документа:** 2.0  
+**Автор:** AI Senior Architect & Documentation Engineer  
+**Изменения в версии 2.0:** Замена Prisma на AWS Amplify Data (GraphQL через AppSync)
+
 

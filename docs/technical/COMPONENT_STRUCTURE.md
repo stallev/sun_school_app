@@ -998,3 +998,4 @@ it('should have no accessibility violations', async () => {
 **Последнее обновление:** 11 ноября 2025  
 **Автор:** AI Senior Architect & Documentation Engineer
 
+

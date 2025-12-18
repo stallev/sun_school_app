@@ -1,9 +1,10 @@
 # План реализации - Sunday School App
 
-## Версия документа: 1.0
+## Версия документа: 2.0
 **Дата создания:** 11 ноября 2025  
+**Последнее обновление:** 11 ноября 2025  
 **Проект:** Sunday School App (Приложение для управления воскресной школой)  
-**Технологии:** Next.js 16, TypeScript, Prisma ORM, Auth.js v5, Zustand, Shadcn UI, BlockNote  
+**Технологии:** Next.js 16, TypeScript, AWS Amplify, AWS Cognito, AWS DynamoDB, AWS S3, Zustand, Shadcn UI, BlockNote  
 **Общая оценка времени:** 30-40 рабочих дней (6-8 недель)
 
 ---
@@ -94,13 +95,15 @@ src/
   - `react@19.2.0`
   - `react-dom@19.2.0`
   - `typescript@^5`
-- [ ] Установка Prisma ORM:
-  - `@prisma/client`
-  - `prisma`
-- [ ] Установка Auth.js v5:
-  - `next-auth@beta`
-  - `bcryptjs`
-  - `@types/bcryptjs`
+- [ ] Установка AWS Amplify:
+  - `aws-amplify`
+  - `@aws-amplify/backend`
+  - `@aws-amplify/backend-cli`
+- [ ] Установка AWS SDK:
+  - `@aws-sdk/client-cognito-identity-provider`
+  - `@aws-sdk/client-dynamodb`
+  - `@aws-sdk/client-s3`
+  - `@aws-sdk/lib-dynamodb`
 - [ ] Установка Shadcn UI:
   - `@radix-ui/*` (компоненты)
   - `tailwindcss@^4`
@@ -160,28 +163,30 @@ npm install @blocknote/core @blocknote/react
 
 **Оценка времени:** 30 минут
 
-#### 2.1.5. Создание `.env.local`
+#### 2.1.5. Настройка AWS и создание `.env.local`
 
 **Задачи:**
-- [ ] Создание `.env.local` на основе `docs/secure_data.md`
-- [ ] Настройка переменных окружения:
-  - `DATABASE_URL` (Supabase connection pooling)
-  - `DIRECT_URL` (Supabase direct connection)
-  - `AUTH_SECRET`
-  - `NEXTAUTH_URL`
-  - Supabase Storage credentials
+- [ ] Установка и настройка AWS CLI: `aws configure`
+- [ ] Инициализация Amplify проекта: `amplify init`
+- [ ] Добавление сервисов:
+  - `amplify add auth` (Cognito)
+  - `amplify add api` (GraphQL API / AppSync)
+  - `amplify add storage` (S3)
+- [ ] Применение изменений: `amplify push`
+- [ ] Создание `.env.local` с автоматически сгенерированными переменными
 - [ ] Создание `.env.example` (без реальных значений)
 - [ ] Проверка, что `.env.local` в `.gitignore`
 
-**Оценка времени:** 30 минут
+**Оценка времени:** 1-2 часа
 
-#### 2.1.6. Настройка Supabase подключения
+#### 2.1.6. Проверка AWS подключения
 
 **Задачи:**
-- [ ] Проверка подключения к Supabase PostgreSQL
-- [ ] Тестирование connection pooling (порт 6543)
-- [ ] Тестирование direct connection (порт 5432)
-- [ ] Настройка Supabase Storage (если нужно)
+- [ ] Проверка подключения к AWS сервисам
+- [ ] Тестирование Cognito User Pool
+- [ ] Тестирование AppSync GraphQL API
+- [ ] Тестирование S3 bucket
+- [ ] Проверка DynamoDB таблиц (создаются автоматически)
 
 **Оценка времени:** 1 час
 
@@ -197,11 +202,14 @@ npm install @blocknote/core @blocknote/react
 
 ### 2.3. Риски и митигация
 
-**Риск:** Проблемы с подключением к Supabase  
-**Митигация:** Проверить credentials в `docs/secure_data.md`, убедиться в правильности URL
+**Риск:** Проблемы с подключением к AWS  
+**Митигация:** Проверить AWS credentials (`aws configure`), убедиться в правильности IAM прав, проверить регион
 
 **Риск:** Конфликты версий зависимостей  
 **Митигация:** Использовать точные версии из package.json, проверить совместимость
+
+**Риск:** Высокие затраты на AWS сервисы  
+**Митигация:** Использовать AWS Free Tier где возможно, настроить billing alerts, мониторить использование
 
 ---
 
@@ -213,18 +221,17 @@ npm install @blocknote/core @blocknote/react
 
 ### 3.1. Задачи
 
-#### 3.1.1. Создание Prisma схемы
+#### 3.1.1. Создание GraphQL Schema
 
 **Задачи:**
-- [ ] Создание `prisma/schema.prisma` на основе ERD.md
-- [ ] Определение всех моделей:
-  - `User` (с ролями: TEACHER, ADMIN, SUPERADMIN, PARENT, PUPIL)
-  - `Account`, `Session`, `VerificationToken` (Auth.js)
+- [ ] Создание `amplify/backend/api/schema.graphql` на основе ERD.md
+- [ ] Определение всех типов GraphQL:
+  - `User` (хранится в Cognito + DynamoDB для дополнительных атрибутов)
   - `Grade` (группы)
   - `AcademicYear` (учебные годы)
   - `Lesson` (уроки)
   - `GoldenVerse` (золотые стихи)
-  - `LessonGoldenVerse` (связь урок-стих)
+  - `LessonGoldenVerse` (связь урок-стих через GSI)
   - `Pupil` (ученики)
   - `Family` (семьи)
   - `FamilyMember` (члены семьи)
@@ -234,71 +241,74 @@ npm install @blocknote/core @blocknote/react
   - `GradeEvent` (события в расписании)
   - `GradeSettings` (настройки оценивания)
   - `UserGrade` (связь преподаватель-группа)
-- [ ] Настройка индексов
-- [ ] Настройка Foreign Keys с каскадными операциями
+- [ ] Настройка `@model` директив для автоматического создания DynamoDB таблиц
+- [ ] Настройка `@auth` директив для авторизации
+- [ ] Настройка Global Secondary Indexes (GSI) для запросов
 - [ ] Определение Enum типов:
-  - `UserRole`
+  - `UserRole` (через Cognito Groups)
   - `AcademicYearStatus`
   - `GradeEventType`
-- [ ] Настройка CUID для всех ID
+- [ ] Настройка ID для всех типов (автоматически через Amplify)
 
 **Оценка времени:** 4-6 часов
 
-#### 3.1.2. Генерация миграций
+#### 3.1.2. Применение GraphQL Schema
 
 **Задачи:**
-- [ ] Создание первой миграции:
+- [ ] Компиляция GraphQL schema:
   ```bash
-  npx prisma migrate dev --name init
+  amplify api gql-compile
   ```
-- [ ] Проверка миграции в Supabase
-- [ ] Создание Prisma Client:
+- [ ] Применение изменений в AWS:
   ```bash
-  npx prisma generate
+  amplify push
   ```
-- [ ] Настройка `src/lib/db/prisma.ts` (singleton pattern)
+- [ ] Проверка создания DynamoDB таблиц в AWS Console
+- [ ] Проверка создания AppSync API в AWS Console
+- [ ] Генерация TypeScript типов:
+  ```bash
+  amplify codegen
+  ```
+- [ ] Настройка `src/lib/db/amplify.ts` (Amplify Data client)
 
 **Оценка времени:** 1-2 часа
 
 #### 3.1.3. Seed скрипты
 
 **Задачи:**
-- [ ] Создание `prisma/seed.ts`
-- [ ] Seed данных:
-  - Тестовые пользователи (Teacher, Admin, Superadmin)
+- [ ] Создание `scripts/seed.ts` или Lambda function для seed данных
+- [ ] Seed данных через GraphQL mutations:
+  - Тестовые пользователи в Cognito (Teacher, Admin, Superadmin)
   - Тестовые группы
   - Тестовые учебные годы
   - Тестовые ученики
   - Тестовые семьи
   - Тестовые золотые стихи
   - Тестовые уроки
-- [ ] Настройка в `package.json`:
-  ```json
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
-  }
-  ```
-- [ ] Запуск seed:
+- [ ] Запуск seed скрипта:
   ```bash
-  npx prisma db seed
+  npm run seed
+  # или через Lambda function
   ```
 
 **Оценка времени:** 3-4 часа
 
-#### 3.1.4. Настройка Auth.js v5
+#### 3.1.4. Настройка AWS Cognito / Amplify Auth
 
 **Задачи:**
-- [ ] Создание `src/lib/auth/auth.config.ts`:
-  - Настройка Credentials provider
-  - Валидация через Zod
-  - Проверка пароля через bcrypt
-  - Callbacks для JWT и session
-- [ ] Создание `src/lib/auth/auth.ts`:
-  - Экспорт `auth`, `signIn`, `signOut`, `handlers`
-- [ ] Создание API route `src/app/api/auth/[...nextauth]/route.ts`:
-  - Экспорт handlers
-- [ ] Настройка типов в `src/types/next-auth.d.ts`:
-  - Расширение типов User и Session
+- [ ] Создание `src/lib/auth/amplify-auth.ts`:
+  - Инициализация Amplify с Cognito конфигурацией
+  - Функции `signIn`, `signOut`, `getCurrentUser`
+  - Обработка сессий и токенов
+- [ ] Создание `src/lib/auth/cognito.ts`:
+  - AWS Cognito SDK клиент для серверных операций
+  - Функции для управления пользователями (если нужно)
+- [ ] Настройка Cognito User Pool через Amplify:
+  - Email как username
+  - Password policy
+  - Email verification
+  - Cognito Groups для ролей (teachers, admins)
+- [ ] Настройка типов для Cognito пользователей
 - [ ] Тестирование аутентификации
 
 **Оценка времени:** 4-6 часов
@@ -333,21 +343,25 @@ npm install @blocknote/core @blocknote/react
 
 ### 3.2. Критерии готовности
 
-- ✅ Prisma схема создана и соответствует ERD.md
-- ✅ Миграции применены к базе данных
+- ✅ GraphQL schema создана и соответствует ERD.md
+- ✅ DynamoDB таблицы созданы через `amplify push`
 - ✅ Seed данные созданы и загружены
-- ✅ Auth.js v5 настроен и работает
+- ✅ AWS Cognito настроен и работает
+- ✅ Amplify Auth интегрирован в приложение
 - ✅ proxy.ts защищает маршруты
 - ✅ Страница входа работает
 - ✅ Можно войти в систему с тестовыми учетными данными
 
 ### 3.3. Риски и митигация
 
-**Риск:** Ошибки в Prisma схеме  
-**Митигация:** Тщательная проверка по ERD.md, тестирование миграций
+**Риск:** Ошибки в GraphQL schema  
+**Митигация:** Тщательная проверка по ERD.md, использование `amplify api gql-compile` для валидации
 
-**Риск:** Проблемы с Auth.js v5 (beta версия)  
-**Митигация:** Следовать официальной документации, проверять breaking changes
+**Риск:** Проблемы с AWS Cognito интеграцией  
+**Митигация:** Следовать официальной документации AWS Amplify, использовать Amplify Auth helpers
+
+**Риск:** Высокие затраты на DynamoDB  
+**Митигация:** Использовать On-Demand billing mode для начала, мониторить использование через CloudWatch
 
 ---
 
@@ -1259,5 +1273,7 @@ npm install @blocknote/core @blocknote/react
 
 **Версия:** 1.0  
 **Последнее обновление:** 11 ноября 2025  
-**Автор:** AI Senior Software Architect & Project Manager
+**Версия документа:** 2.0  
+**Автор:** AI Senior Software Architect & Project Manager  
+**Изменения в версии 2.0:** Миграция с Prisma/Supabase на AWS Amplify/DynamoDB/Cognito
 

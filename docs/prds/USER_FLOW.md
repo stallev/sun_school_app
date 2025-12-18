@@ -1285,3 +1285,4 @@ xl:  1280px /* Desktops */
 **Версия:** 1.0  
 **Автор:** AI Senior Architect & UX Designer
 
+

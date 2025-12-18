@@ -1,10 +1,11 @@
 # Entity Relationship Diagram (ERD) - Sunday School App
 
-## Версия документа: 1.0
+## Версия документа: 2.0
 **Дата создания:** 11 ноября 2025  
+**Последнее обновление:** 11 ноября 2025  
 **Проект:** Sunday School App (Воскресная школа)  
-**Технологии:** PostgreSQL, Prisma ORM, Supabase  
-**База данных:** PostgreSQL 15.x (Supabase)
+**Технологии:** AWS DynamoDB (основной), AWS RDS PostgreSQL (опционально), AWS AppSync (GraphQL)  
+**База данных:** AWS DynamoDB или AWS RDS PostgreSQL
 
 ---
 
@@ -304,9 +305,10 @@ erDiagram
 - Один пользователь может иметь несколько ролей (через разные User записи, если необходимо)
 
 **Примеры использования:**
-- Аутентификация через Auth.js
+- Аутентификация через AWS Cognito
 - Проверка прав доступа в proxy.ts
 - Отображение информации о преподавателе в интерфейсе
+- Хранение в Cognito User Pool + DynamoDB для дополнительных атрибутов
 
 ---
 
@@ -1344,6 +1346,7 @@ enum GradeEventType {
 ---
 
 **Последнее обновление:** 11 ноября 2025  
-**Версия:** 1.0  
-**Автор:** AI Senior Architect & Database Designer
+**Версия:** 2.0  
+**Автор:** AI Senior Architect & Database Designer  
+**Изменения в версии 2.0:** Адаптация под AWS DynamoDB и AWS AppSync (GraphQL)
 

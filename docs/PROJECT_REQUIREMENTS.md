@@ -47,17 +47,20 @@
 
 ### Backend
 - **API Architecture:** Server Actions (не API Routes)
-- **ORM:** Prisma ORM
-- **Database:** PostgreSQL (Supabase)
-- **Authentication:** Auth.js v5 (NextAuth)
-- **Authorization:** JWT tokens, proxy.ts (former middleware.ts)
-- **Storage:** Supabase Storage (для изображений)
+- **Data Layer:** AWS Amplify Data (GraphQL через AppSync)
+- **Database:** AWS DynamoDB (основной) или AWS RDS PostgreSQL (опционально)
+- **Authentication:** AWS Cognito / Amplify Auth
+- **Authorization:** JWT tokens через Cognito, proxy.ts (former middleware.ts)
+- **Storage:** AWS S3 (для изображений и файлов)
+- **CDN:** AWS CloudFront
+- **Infrastructure:** AWS SAM (Serverless Application Model)
 
 ### Development Tools
 - **Package Manager:** npm
 - **Code Quality:** ESLint, Prettier
 - **Version Control:** Git
-- **Deployment:** Vercel (планируется)
+- **Deployment:** AWS Amplify Hosting или AWS SAM
+- **Infrastructure as Code:** AWS SAM Templates, AWS CDK (опционально)
 
 ---
 
@@ -95,8 +98,8 @@ sun_sch/
 │   │   ├── teacher/                # Компоненты для преподавателей
 │   │   └── admin/                  # Компоненты для админ-панели
 │   ├── lib/                        # Библиотеки и утилиты
-│   │   ├── auth/                   # Auth.js конфигурация
-│   │   ├── db/                     # Prisma клиент и queries
+│   │   ├── auth/                   # AWS Cognito / Amplify Auth конфигурация
+│   │   ├── db/                     # Amplify Data клиент и GraphQL queries
 │   │   └── utils/                  # Утилитные функции
 │   ├── types/                      # TypeScript типы
 │   └── proxy.ts                    # Middleware для авторизации
@@ -116,22 +119,24 @@ sun_sch/
 - **React Query** — не используется (Server Components + Server Actions)
 
 ### 5. Аутентификация и авторизация
-- **Auth.js v5** — система аутентификации с JWT токенами
-- **Стратегия:** JWT (без database sessions)
-- **Провайдеры:** Email/Password (OAuth опционально)
-- **Роли:** Teacher, Admin, Superadmin, Parent (Post-MVP), Pupil (Post-MVP)
+- **AWS Cognito** — система аутентификации с JWT токенами
+- **Amplify Auth** — интеграция Cognito в Next.js приложение
+- **Стратегия:** JWT через Cognito User Pools
+- **Провайдеры:** Email/Password (OAuth через Cognito Identity Providers опционально)
+- **Роли:** Teacher, Admin, Superadmin, Parent (Post-MVP), Pupil (Post-MVP) через Cognito Groups
 - **Middleware:** proxy.ts для проверки прав доступа к маршрутам
 
 ### 6. База данных
-- **Provider:** Supabase PostgreSQL
-- **Connection Pooling:** PgBouncer (порт 6543)
-- **Direct Connection:** Для миграций (порт 5432)
-- **ORM:** Prisma
-- **Миграции:** Автоматические через Prisma CLI
+- **Primary Database:** AWS DynamoDB (NoSQL для основной функциональности)
+- **Optional Database:** AWS RDS PostgreSQL (для сложных реляционных запросов, опционально)
+- **API Layer:** AWS AppSync (GraphQL API)
+- **Data Access:** AWS Amplify Data (GraphQL queries/mutations)
+- **Connection Management:** Автоматически через AWS AppSync и Lambda
+- **Миграции:** GraphQL schema изменения через Amplify CLI
 - **Конфигурация:** 
-  - `DATABASE_URL` с `statement_cache_size=0` для PgBouncer
-  - `DIRECT_URL` для миграций
-  - `prisma.$transaction()` только для атомарных операций в пределах одного HTTP-запроса
+  - GraphQL schema в `amplify/backend/api/schema.graphql`
+  - Автоматическая генерация типов через Amplify
+  - Authorization rules в GraphQL schema
 
 ---
 
@@ -166,10 +171,10 @@ sun_sch/
 ## 🔐 Требования к безопасности
 
 ### 1. Аутентификация
-- **Password Hashing:** bcrypt для хеширования паролей
-- **JWT Tokens:** Короткое время жизни (30 дней с обновлением)
-- **Session Management:** Secure cookies, HttpOnly, SameSite
-- **Password Policy:** Минимум 8 символов
+- **Password Hashing:** AWS Cognito автоматически хеширует пароли
+- **JWT Tokens:** Короткое время жизни через Cognito (настраивается, по умолчанию 1 час access token, 30 дней refresh token)
+- **Session Management:** Secure cookies через Amplify Auth, HttpOnly, SameSite
+- **Password Policy:** Настраивается в Cognito User Pool (минимум 8 символов, сложность)
 
 ### 2. Авторизация
 - **Role-Based Access Control (RBAC)** — проверка прав на уровне маршрутов и Server Actions
@@ -357,13 +362,13 @@ xl:  1280px /* Desktops */
 
 ### 1. Структура данных
 
-#### Основные сущности
-1. **User** — пользователи системы (Teacher, Admin, Superadmin, Parent, Pupil)
+#### Основные сущности (DynamoDB Tables или GraphQL Types)
+1. **User** — пользователи системы (Teacher, Admin, Superadmin, Parent, Pupil) - хранится в Cognito + DynamoDB
 2. **Grade** — группы/классы воскресной школы
 3. **AcademicYear** — учебные годы для групп
 4. **Lesson** — уроки с темами и датами
 5. **GoldenVerse** — библиотека золотых стихов
-6. **LessonGoldenVerse** — связь урок-стих (many-to-many)
+6. **LessonGoldenVerse** — связь урок-стих (many-to-many через GSI)
 7. **HomeworkCheck** — записи проверки домашних заданий
 8. **Pupil** — ученики воскресной школы
 9. **Family** — семьи учеников
@@ -372,16 +377,17 @@ xl:  1280px /* Desktops */
 12. **GradeEvent** — события в расписании группы
 13. **GradeSettings** — настройки оценивания для группы
 
-#### Auth.js сущности
-- **Account** — OAuth аккаунты
-- **Session** — сессии пользователей (опционально для JWT)
-- **VerificationToken** — токены верификации
+#### AWS Cognito сущности
+- **User Pool** — пользователи и их атрибуты
+- **User Pool Groups** — роли (teachers, admins, etc.)
+- **Identity Providers** — OAuth провайдеры (опционально)
+- **Tokens** — JWT access и refresh tokens (управляются Cognito)
 
-### 2. Индексирование
-- **Primary Keys:** CUID для всех таблиц
-- **Foreign Keys:** С каскадными операциями где необходимо
-- **Индексы:** На часто запрашиваемых полях (userId, gradeId, lessonId, etc.)
-- **Unique Constraints:** Email, номер ученика, и т.д.
+### 2. Индексирование (DynamoDB)
+- **Primary Keys:** Partition Key (PK) и Sort Key (SK) для всех таблиц
+- **Global Secondary Indexes (GSI):** На часто запрашиваемых полях (userId, gradeId, lessonId, etc.)
+- **Local Secondary Indexes (LSI):** Для сортировки в пределах partition key
+- **Unique Constraints:** Через условные выражения (ConditionExpression) при создании записей
 
 ### 3. Бизнес-правила базы данных
 - **AcademicYear:** Для одной группы может быть только один активный (ACTIVE) учебный год
@@ -389,10 +395,11 @@ xl:  1280px /* Desktops */
 - **Lesson:** При создании урока система автоматически определяет и использует активный академический год для выбранной группы
 - **Lesson:** Если для группы нет активного учебного года, создание урока невозможно
 
-### 4. Миграции
-- **Автоматические миграции** через Prisma CLI
-- **Seed скрипты** для тестовых данных
-- **Version Control** для миграций
+### 4. Миграции и Schema Management
+- **GraphQL Schema изменения** через Amplify CLI: `amplify api gql-compile`
+- **DynamoDB таблицы** создаются автоматически через Amplify
+- **Seed скрипты** для тестовых данных через Lambda функции или CLI скрипты
+- **Version Control** для GraphQL schema в Git
 
 ---
 
@@ -443,23 +450,24 @@ xl:  1280px /* Desktops */
 ## 🚀 Deployment Requirements
 
 ### 1. Платформа
-- **Primary:** Vercel (рекомендуется для Next.js)
-- **Alternative:** Netlify, Railway (опционально)
+- **Primary:** AWS Amplify Hosting (рекомендуется для Next.js + AWS сервисы)
+- **Alternative:** AWS SAM + CloudFront + S3 (для полного контроля)
 
 ### 2. Environment Variables
 - **Development:** `.env.local` (не коммитится)
-- **Production:** Environment variables в Vercel dashboard
-- **Security:** Отдельные credentials для dev и production
+- **Production:** Environment variables в AWS Amplify Console или AWS Systems Manager Parameter Store
+- **Security:** AWS Secrets Manager для чувствительных данных, отдельные credentials для dev и production
 
 ### 3. Database
-- **Provider:** Supabase PostgreSQL
-- **Migrations:** Автоматические через Prisma при deployment
-- **Backups:** Автоматические бэкапы Supabase
+- **Provider:** AWS DynamoDB (основной) или AWS RDS PostgreSQL (опционально)
+- **Migrations:** GraphQL schema изменения через Amplify CLI при deployment
+- **Backups:** Автоматические бэкапы DynamoDB (Point-in-time recovery) или RDS automated backups
 
 ### 4. Storage
-- **Provider:** Supabase Storage
-- **Bucket:** `sunschoolb`
-- **Access:** S3-compatible API
+- **Provider:** AWS S3
+- **Bucket:** `sunday-school-storage` (или настраиваемое имя)
+- **Access:** AWS SDK для S3, CloudFront для CDN
+- **Permissions:** IAM роли и bucket policies для безопасного доступа
 
 ---
 
@@ -548,7 +556,10 @@ xl:  1280px /* Desktops */
 ### Технические требования
 - **Node.js:** v20.x или выше
 - **npm:** v10.x или выше
-- **PostgreSQL:** v15.x (Supabase)
+- **AWS Account:** Активный AWS аккаунт с необходимыми сервисами
+- **AWS CLI:** v2.x или выше (для deployment)
+- **AWS Amplify CLI:** Последняя версия (для Amplify deployment)
+- **AWS SAM CLI:** Последняя версия (для SAM deployment, опционально)
 - **Next.js:** v16.x
 
 ---

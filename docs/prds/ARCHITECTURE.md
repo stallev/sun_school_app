@@ -1,9 +1,10 @@
 # Архитектура проекта - Sunday School App
 
-## Версия документа: 1.0
+## Версия документа: 2.0
 **Дата создания:** 11 ноября 2025  
+**Последнее обновление:** 11 ноября 2025  
 **Проект:** Sunday School App (Приложение для управления воскресной школой)  
-**Технологии:** Next.js 16, TypeScript, Prisma ORM, Auth.js v5, Zustand, Shadcn UI, BlockNote, PostgreSQL (Supabase)
+**Технологии:** Next.js 16, TypeScript, AWS Amplify, AWS SAM, AWS Cognito, AWS DynamoDB/RDS, Zustand, Shadcn UI, BlockNote, AWS S3
 
 ---
 
@@ -46,19 +47,28 @@ graph TB
     end
     
     subgraph "Authentication & Authorization"
-        AuthJS[Auth.js v5]
+        Cognito[AWS Cognito]
+        AmplifyAuth[Amplify Auth]
         JWT[JWT Tokens]
         ProxyAuth[Proxy Authorization]
     end
     
     subgraph "Data Layer"
-        Prisma[Prisma ORM]
-        PostgreSQL[(PostgreSQL - Supabase)]
-        PgBouncer[PgBouncer Connection Pooling]
+        AmplifyData[AWS Amplify Data]
+        DynamoDB[(DynamoDB)]
+        RDS[(RDS PostgreSQL - опционально)]
+        AppSync[AWS AppSync - GraphQL API]
     end
     
     subgraph "Storage"
-        SupabaseStorage[Supabase Storage]
+        S3Storage[AWS S3 Storage]
+        CloudFront[CloudFront CDN]
+    end
+    
+    subgraph "AWS Infrastructure"
+        Lambda[Lambda Functions]
+        SAM[AWS SAM]
+        AmplifyHosting[Amplify Hosting]
     end
     
     subgraph "Business Logic"
@@ -80,13 +90,18 @@ graph TB
     ServerComponents --> ServerActions
     ClientComponents --> Zustand
     ClientComponents --> ServerActions
-    Proxy --> AuthJS
+    Proxy --> Cognito
+    Proxy --> AmplifyAuth
     Proxy --> ProxyAuth
-    ServerActions --> Prisma
-    Prisma --> PgBouncer
-    PgBouncer --> PostgreSQL
-    ServerActions --> SupabaseStorage
-    AuthJS --> JWT
+    ServerActions --> AmplifyData
+    AmplifyData --> AppSync
+    AppSync --> DynamoDB
+    AppSync --> RDS
+    ServerActions --> Lambda
+    Lambda --> DynamoDB
+    ServerActions --> S3Storage
+    Cognito --> JWT
+    AmplifyAuth --> JWT
     ServerActions --> Validation
     ServerActions --> BusinessRules
     ClientComponents --> ShadcnUI
@@ -119,10 +134,16 @@ sun_sch/
 │   ├── user/                       # Пользовательская документация
 │   ├── PROJECT_REQUIREMENTS.md     # Требования к проекту
 │   └── secure_data.md              # Безопасные данные (не коммитится)
-├── prisma/                         # Prisma ORM
-│   ├── migrations/                 # Database migrations
-│   ├── seed.ts                     # Seed data
-│   └── schema.prisma               # Database schema
+├── amplify/                        # AWS Amplify
+│   ├── backend/                    # Amplify backend configuration
+│   │   ├── api/                    # GraphQL API (AppSync)
+│   │   ├── auth/                   # Cognito configuration
+│   │   ├── storage/                # S3 configuration
+│   │   └── function/               # Lambda functions
+│   └── schema.graphql              # GraphQL schema
+├── sam/                            # AWS SAM
+│   ├── template.yaml               # SAM template
+│   └── functions/                  # Lambda functions
 ├── public/                         # Static assets
 │   ├── images/                     # Images
 │   ├── icons/                      # Icons
@@ -238,13 +259,14 @@ sun_sch/
 │   │   ├── use-lesson.ts           # Работа с уроком
 │   │   └── ...
 │   ├── lib/                        # Utility libraries
-│   │   ├── auth/                   # Auth.js конфигурация
-│   │   │   ├── auth.config.ts      # Auth.js configuration
-│   │   │   ├── auth.ts             # Auth.js setup
+│   │   ├── auth/                   # AWS Cognito/Amplify Auth конфигурация
+│   │   │   ├── cognito.ts          # Cognito client
+│   │   │   ├── amplify-auth.ts     # Amplify Auth setup
 │   │   │   └── session.ts          # Session utilities
 │   │   ├── db/                     # Database utilities
-│   │   │   ├── prisma.ts           # Prisma client (singleton)
-│   │   │   └── queries/            # Database queries
+│   │   │   ├── amplify.ts         # Amplify Data client
+│   │   │   ├── dynamodb.ts         # DynamoDB client (если используется)
+│   │   │   └── queries/            # GraphQL queries/mutations
 │   │   │       ├── lessons.ts
 │   │   │       ├── pupils.ts
 │   │   │       ├── grades.ts
@@ -262,7 +284,7 @@ sun_sch/
 │   │   │   ├── calculate.ts        # Расчеты (баллы, рейтинг)
 │   │   │   └── ...
 │   │   └── storage/                # Storage utilities
-│   │       └── supabase.ts         # Supabase storage client
+│   │       └── s3.ts               # AWS S3 client
 │   ├── store/                      # Zustand stores (минимально)
 │   │   ├── ui-store.ts             # UI состояние (модалки, sidebar)
 │   │   └── ...
@@ -504,93 +526,77 @@ export async function createLesson(formData: FormData) {
 - Connection pooling
 
 **Компоненты:**
-- Prisma ORM
-- Database Queries (в `lib/db/queries/`)
-- Caching Strategies (React cache)
+- AWS Amplify Data (GraphQL через AppSync)
+- DynamoDB или RDS PostgreSQL
+- Database Queries (GraphQL queries/mutations в `lib/db/queries/`)
+- Caching Strategies (React cache, CloudFront)
 
-#### 4.3.1. Prisma Client
+#### 4.3.1. AWS Amplify Data Client
 
-**Важно:** Все обращения к базе данных должны использовать единый экземпляр Prisma Client из `@/lib/db/prisma`.
+**Важно:** Все обращения к базе данных должны использовать AWS Amplify Data через GraphQL API (AppSync).
 
-**Файл:** `src/lib/db/prisma.ts`
+**Файл:** `src/lib/db/amplify.ts`
 
 ```typescript
-import { PrismaClient } from '@prisma/client';
+import { generateClient } from 'aws-amplify/data';
+import type { Schema } from '@/amplify/data/resource';
 
-const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined;
-};
-
-export const prisma = globalForPrisma.prisma ?? new PrismaClient({
-  log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+const client = generateClient<Schema>({
+  authMode: 'userPool', // или 'iam' для Lambda
 });
 
-if (process.env.NODE_ENV !== 'production') {
-  globalForPrisma.prisma = prisma;
-}
+export { client as amplifyData };
 ```
 
 **Использование:**
 
 ```typescript
-// ✅ Правильно - используйте единый экземпляр
-import { prisma } from '@/lib/db/prisma';
+// ✅ Правильно - используйте Amplify Data client
+import { amplifyData } from '@/lib/db/amplify';
+import * as queries from '@/lib/db/queries/lessons';
 
-const lessons = await prisma.lesson.findMany({
-  where: { academicYearId: yearId },
-});
+const lessons = await queries.getLessonsByAcademicYear(yearId);
 ```
 
-```typescript
-// ❌ Неправильно - не создавайте новые экземпляры
-import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient(); // НЕ ДЕЛАЙТЕ ТАК!
-```
-
-#### 4.3.2. Database Queries
-
-**Примеры оптимизированных запросов:**
+**GraphQL Queries:**
 
 ```typescript
 // lib/db/queries/lessons.ts
-import { prisma } from '@/lib/db/prisma';
+import { amplifyData } from '@/lib/db/amplify';
+import * as queries from '@/amplify/data/queries';
+
+export async function getLessonsByAcademicYear(academicYearId: string) {
+  const { data, errors } = await amplifyData.graphql({
+    query: queries.listLessons,
+    variables: {
+      filter: { academicYearId: { eq: academicYearId } },
+    },
+  });
+  
+  if (errors) throw new Error(errors[0].message);
+  return data.listLessons.items;
+}
+```
+
+#### 4.3.2. Database Queries (GraphQL)
+
+**Примеры оптимизированных GraphQL запросов:**
+
+```typescript
+// lib/db/queries/lessons.ts
+import { amplifyData } from '@/lib/db/amplify';
 import { cache } from 'react';
+import * as queries from '@/amplify/data/queries';
 
 // React cache для дедупликации запросов
 export const getLessonById = cache(async (lessonId: string) => {
-  return await prisma.lesson.findUnique({
-    where: { id: lessonId },
-    include: {
-      academicYear: {
-        include: {
-          grade: true,
-        },
-      },
-      goldenVerses: {
-        include: {
-          goldenVerse: true,
-        },
-      },
-      homeworkChecks: {
-        include: {
-          pupil: {
-            select: {
-              id: true,
-              name: true,
-              surname: true,
-            },
-          },
-        },
-      },
-      createdBy: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-        },
-      },
-    },
+  const { data, errors } = await amplifyData.graphql({
+    query: queries.getLesson,
+    variables: { id: lessonId },
   });
+  
+  if (errors) throw new Error(errors[0].message);
+  return data.getLesson;
 });
 
 export async function getLessonsByAcademicYear(academicYearId: string) {
@@ -660,124 +666,117 @@ export async function getPupilLeaderboard(gradeId: string, academicYearId: strin
 }
 ```
 
-#### 4.3.3. Connection Pooling
+#### 4.3.3. AWS AppSync и DynamoDB
 
-**Конфигурация Supabase:**
+**Конфигурация AWS Amplify:**
 
-- `DATABASE_URL` - для обычных запросов через PgBouncer (порт 6543)
-- `DIRECT_URL` - для миграций Prisma (порт 5432)
+- GraphQL API через AWS AppSync
+- DynamoDB для NoSQL данных (или RDS PostgreSQL для реляционных данных)
+- Автоматическое масштабирование и connection pooling через AWS
 
 ```typescript
-// prisma/schema.prisma
-datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
-}
+// amplify/backend/api/resource.ts
+import { type ClientSchema, a, defineData } from '@aws-amplify/backend';
+
+const schema = a.schema({
+  Lesson: a
+    .model({
+      title: a.string().required(),
+      academicYearId: a.id().required(),
+      // ...
+    })
+    .authorization((allow) => [
+      allow.owner(),
+      allow.group('teachers'),
+      allow.group('admins'),
+    ]),
+});
 ```
 
 **Важно:** 
-- Используйте `DATABASE_URL` для всех запросов через Prisma Client
-- Используйте `DIRECT_URL` только для миграций (`prisma migrate`)
-- Не используйте транзакции через connection pooling (PgBouncer в transaction mode)
+- Используйте GraphQL queries/mutations через Amplify Data
+- AppSync автоматически управляет соединениями и пулом
+- Используйте DynamoDB для быстрых операций чтения/записи
+- Используйте RDS PostgreSQL для сложных реляционных запросов (опционально)
 
 ---
 
 ## 5. Аутентификация и авторизация
 
-### 5.1. Auth.js v5 Configuration
+### 5.1. AWS Cognito / Amplify Auth Configuration
 
-**Стратегия:** JWT (без database sessions)
+**Стратегия:** AWS Cognito User Pools с JWT токенами
 
 ```typescript
-// lib/auth/auth.config.ts
-import type { NextAuthConfig } from 'next-auth';
-import Credentials from 'next-auth/providers/credentials';
-import { z } from 'zod';
-import bcrypt from 'bcryptjs';
-import { prisma } from '@/lib/db/prisma';
+// lib/auth/amplify-auth.ts
+import { Amplify } from 'aws-amplify';
+import { signIn, signOut, getCurrentUser, fetchAuthSession } from 'aws-amplify/auth';
+import { generateClient } from 'aws-amplify/api';
 
-const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8),
+Amplify.configure({
+  Auth: {
+    Cognito: {
+      userPoolId: process.env.NEXT_PUBLIC_AWS_USER_POOL_ID!,
+      userPoolClientId: process.env.NEXT_PUBLIC_AWS_USER_POOL_CLIENT_ID!,
+      loginWith: {
+        email: true,
+        username: false,
+      },
+    },
+  },
+  API: {
+    GraphQL: {
+      endpoint: process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT!,
+      region: process.env.NEXT_PUBLIC_AWS_REGION!,
+      defaultAuthMode: 'userPool',
+    },
+  },
 });
 
-export default {
-  providers: [
-    Credentials({
-      async authorize(credentials) {
-        const parsed = loginSchema.safeParse(credentials);
-        
-        if (!parsed.success) {
-          return null;
-        }
-        
-        const { email, password } = parsed.data;
-        
-        const user = await prisma.user.findUnique({
-          where: { email },
-        });
-        
-        if (!user || !user.password) {
-          return null;
-        }
-        
-        const isValid = await bcrypt.compare(password, user.password);
-        
-        if (!isValid) {
-          return null;
-        }
-        
-        if (!user.active) {
-          throw new Error('Аккаунт деактивирован');
-        }
-        
-        return {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          image: user.image,
-          role: user.role,
-        };
-      },
-    }),
-  ],
-  callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-        token.role = user.role;
-      }
-      return token;
-    },
-    async session({ session, token }) {
-      if (token) {
-        session.user.id = token.id as string;
-        session.user.role = token.role as UserRole;
-      }
-      return session;
-    },
-  },
-  pages: {
-    signIn: '/login',
-    error: '/login',
-  },
-  session: {
-    strategy: 'jwt',
-    maxAge: 30 * 24 * 60 * 60, // 30 дней
-  },
-} satisfies NextAuthConfig;
+export async function authenticateUser(email: string, password: string) {
+  try {
+    const { isSignedIn, nextStep } = await signIn({ username: email, password });
+    
+    if (isSignedIn) {
+      const user = await getCurrentUser();
+      const session = await fetchAuthSession();
+      
+      return {
+        success: true,
+        user: {
+          id: user.userId,
+          email: user.signInDetails?.loginId,
+          // Дополнительные данные из Cognito attributes
+        },
+        tokens: session.tokens,
+      };
+    }
+    
+    return { success: false, error: 'Неверные учетные данные' };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Ошибка аутентификации' };
+  }
+}
+
+export { signOut, getCurrentUser, fetchAuthSession };
 ```
 
 ```typescript
-// lib/auth/auth.ts
-import NextAuth from 'next-auth';
-import { prisma } from '@/lib/db/prisma';
-import authConfig from './auth.config';
+// lib/auth/cognito.ts
+import { CognitoIdentityProviderClient, AdminGetUserCommand } from '@aws-sdk/client-cognito-identity-provider';
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
-  ...authConfig,
+const cognitoClient = new CognitoIdentityProviderClient({
+  region: process.env.AWS_REGION!,
 });
+
+export async function getUserByEmail(email: string) {
+  const command = new AdminGetUserCommand({
+    UserPoolId: process.env.AWS_USER_POOL_ID!,
+    Username: email,
+  });
+  
+  return await cognitoClient.send(command);
+}
 ```
 
 ### 5.2. Middleware (proxy.ts)
@@ -1405,16 +1404,25 @@ export function sanitizeHtml(html: string): string {
 
 ### 11.4. SQL Injection Prevention
 
-**Использование Prisma ORM предотвращает SQL инъекции:**
+**Использование GraphQL через AWS AppSync предотвращает инъекции:**
 
 ```typescript
-// ✅ Безопасно - Prisma экранирует параметры
-const lesson = await prisma.lesson.findUnique({
-  where: { id: lessonId },
+// ✅ Безопасно - GraphQL автоматически экранирует параметры
+const { data } = await amplifyData.graphql({
+  query: queries.getLesson,
+  variables: { id: lessonId }, // Автоматически экранируется
 });
 
-// ❌ НЕ ДЕЛАЙТЕ ТАК - прямой SQL запрос
-// const result = await prisma.$queryRaw`SELECT * FROM Lesson WHERE id = ${lessonId}`;
+// ✅ Безопасно - DynamoDB SDK экранирует параметры
+const result = await dynamoDBClient.send(
+  new GetItemCommand({
+    TableName: 'Lessons',
+    Key: { id: { S: lessonId } }, // Типизированные параметры
+  })
+);
+
+// ❌ НЕ ДЕЛАЙТЕ ТАК - прямой SQL запрос (если используете RDS)
+// const result = await rdsClient.query(`SELECT * FROM lessons WHERE id = '${lessonId}'`);
 ```
 
 ---
@@ -1487,9 +1495,10 @@ export function pageview(url: string) {
 
 ### 13.2. Database Scaling
 
-- **Connection Pooling**: PgBouncer (Supabase)
-- **Read Replicas**: Для чтения данных (опционально)
-- **Caching**: Redis для кеширования (опционально)
+- **Auto Scaling**: DynamoDB автоматически масштабируется
+- **Read Replicas**: RDS Read Replicas для чтения данных (если используется RDS)
+- **Caching**: ElastiCache (Redis) для кеширования (опционально)
+- **Connection Pooling**: Автоматически через AWS AppSync и Lambda
 
 ### 13.3. Performance Optimization
 
@@ -1500,9 +1509,11 @@ export function pageview(url: string) {
 
 ### 13.4. Monitoring
 
-- **Vercel Analytics**: Мониторинг производительности
-- **Sentry**: Отслеживание ошибок
-- **Uptime Monitoring**: Статус сервиса
+- **CloudWatch**: Мониторинг производительности и логов
+- **X-Ray**: Distributed tracing для Lambda и AppSync
+- **CloudWatch Alarms**: Автоматические алерты
+- **Sentry**: Отслеживание ошибок (опционально)
+- **Route 53 Health Checks**: Мониторинг доступности
 
 ---
 
@@ -1517,38 +1528,55 @@ export function pageview(url: string) {
 # .env.example
 
 # ============================================
-# DATABASE (Supabase PostgreSQL)
+# AWS CONFIGURATION
 # ============================================
 
-# Connect to Supabase via connection pooling (для приложения)
-DATABASE_URL="postgresql://postgres.PROJECT_REF:[YOUR-PASSWORD]@aws-1-eu-west-1.pooler.supabase.com:6543/postgres?pgbouncer=true&statement_cache_size=0"
-
-# Direct connection to the database (для миграций Prisma)
-DIRECT_URL="postgresql://postgres.PROJECT_REF:[YOUR-PASSWORD]@aws-1-eu-west-1.pooler.supabase.com:5432/postgres"
+# AWS Region
+AWS_REGION="us-east-1"
+NEXT_PUBLIC_AWS_REGION="us-east-1"
 
 # ============================================
-# AUTH (Auth.js v5)
+# AWS COGNITO (Authentication)
 # ============================================
 
-# Секретный ключ для JWT
-# Сгенерировать: openssl rand -base64 32
-AUTH_SECRET="your-auth-secret-key-here"
-
-# URL приложения
-NEXTAUTH_URL="http://localhost:3000"
+NEXT_PUBLIC_AWS_USER_POOL_ID="us-east-1_XXXXXXXXX"
+NEXT_PUBLIC_AWS_USER_POOL_CLIENT_ID="your-client-id"
+AWS_COGNITO_USER_POOL_ID="us-east-1_XXXXXXXXX"
 
 # ============================================
-# SUPABASE STORAGE (для изображений)
+# AWS AMPLIFY / APPSYNC (GraphQL API)
 # ============================================
 
-NEXT_PUBLIC_SUPABASE_URL="https://PROJECT_REF.supabase.co"
-NEXT_PUBLIC_SUPABASE_ANON_KEY="your-anon-key"
+NEXT_PUBLIC_GRAPHQL_ENDPOINT="https://xxxxxxxxxx.appsync-api.us-east-1.amazonaws.com/graphql"
+NEXT_PUBLIC_GRAPHQL_API_KEY="your-api-key" # Опционально для public access
 
-SUPABASE_STORAGE_BUCKET_NAME="sunschoolb"
-SUPABASE_STORAGE_ENDPOINT="https://PROJECT_REF.storage.supabase.co/storage/v1/s3"
-SUPABASE_STORAGE_REGION="eu-west-1"
-SUPABASE_STORAGE_ACCESS_KEY_ID="your-access-key"
-SUPABASE_STORAGE_SECRET_ACCESS_KEY="your-secret-key"
+# ============================================
+# AWS S3 (Storage для изображений)
+# ============================================
+
+NEXT_PUBLIC_S3_BUCKET_NAME="sunday-school-storage"
+AWS_S3_BUCKET_NAME="sunday-school-storage"
+AWS_S3_REGION="us-east-1"
+AWS_ACCESS_KEY_ID="your-access-key-id"
+AWS_SECRET_ACCESS_KEY="your-secret-access-key"
+
+# CloudFront Distribution (для CDN)
+NEXT_PUBLIC_CLOUDFRONT_URL="https://dxxxxxxxxxxxxx.cloudfront.net"
+
+# ============================================
+# AWS DYNAMODB (если используется)
+# ============================================
+
+AWS_DYNAMODB_TABLE_PREFIX="sunday-school-"
+
+# ============================================
+# AWS RDS (если используется PostgreSQL)
+# ============================================
+
+# RDS Connection (опционально, если используете RDS вместо DynamoDB)
+DATABASE_URL="postgresql://user:password@rds-endpoint.region.rds.amazonaws.com:5432/sundayschool"
+RDS_ENDPOINT="rds-endpoint.region.rds.amazonaws.com"
+RDS_DATABASE_NAME="sundayschool"
 
 # ============================================
 # NODE ENVIRONMENT
@@ -1558,9 +1586,10 @@ NODE_ENV="development"
 ```
 
 **Примечания:**
-- `DATABASE_URL` используется для обычных запросов через Prisma Client (connection pooling)
-- `DIRECT_URL` используется для миграций Prisma (`prisma migrate`)
-- Supabase Storage использует S3-совместимый API для загрузки изображений
+- AWS Amplify автоматически управляет конфигурацией через `amplify/backend/`
+- GraphQL API через AppSync использует Cognito для авторизации
+- S3 используется для хранения изображений и файлов
+- CloudFront CDN для оптимизации доставки статических ресурсов
 - Все реальные credentials хранятся в `docs/secure_data.md` (не коммитится в Git)
 
 ### 14.2. Build Configuration
@@ -1577,7 +1606,15 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: '**.supabase.co',
+        hostname: '**.cloudfront.net', // CloudFront для S3 изображений
+      },
+      {
+        protocol: 'https',
+        hostname: '**.s3.amazonaws.com', // Прямой доступ к S3
+      },
+      {
+        protocol: 'https',
+        hostname: '**.s3.*.amazonaws.com', // S3 в разных регионах
       },
     ],
   },
@@ -1595,22 +1632,85 @@ const nextConfig: NextConfig = {
 export default nextConfig;
 ```
 
-### 14.3. Deployment на Vercel
+**AWS SAM Template:**
+
+```yaml
+# sam/template.yaml
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Resources:
+  SundaySchoolAPI:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.handler
+      Runtime: nodejs20.x
+      Environment:
+        Variables:
+          GRAPHQL_ENDPOINT: !GetAtt GraphQLAPI.GraphQLUrl
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
+```
+
+### 14.3. Deployment на AWS Amplify / AWS SAM
+
+#### 14.3.1. AWS Amplify Hosting
 
 **Шаги:**
 
-1. Подключить репозиторий к Vercel
-2. Настроить Environment Variables в Vercel Dashboard
+1. Инициализировать Amplify проект: `npx ampx pipeline-deploy --app-id <app-id>`
+2. Настроить Environment Variables в Amplify Console
 3. Настроить Build Command: `npm run build`
 4. Настроить Output Directory: `.next`
-5. Запустить миграции: `npx prisma migrate deploy`
-6. Запустить seed (опционально): `npx prisma db seed`
+5. Подключить Git репозиторий для автоматического деплоя
+
+**Команды:**
+
+```bash
+# Инициализация Amplify
+npx ampx pipeline-deploy --app-id <app-id>
+
+# Или через Amplify CLI
+amplify init
+amplify add hosting
+amplify publish
+```
+
+#### 14.3.2. AWS SAM Deployment
+
+**Шаги:**
+
+1. Собрать SAM приложение: `sam build`
+2. Развернуть через SAM: `sam deploy --guided`
+3. Настроить Environment Variables в Lambda Functions
+4. Настроить API Gateway endpoints
+
+**Команды:**
+
+```bash
+# Сборка SAM приложения
+sam build
+
+# Деплой (первый раз с guided режимом)
+sam deploy --guided
+
+# Последующие деплои
+sam deploy
+
+# Локальное тестирование
+sam local start-api
+```
 
 **Post-deployment:**
 
 - Проверить работу приложения
-- Настроить мониторинг (Sentry, Analytics)
-- Настроить домен (опционально)
+- Настроить CloudWatch для мониторинга
+- Настроить CloudFront для CDN
+- Настроить домен через Route 53 (опционально)
 
 ---
 
@@ -1636,7 +1736,8 @@ export default nextConfig;
 
 ---
 
-**Версия:** 1.0  
+**Версия:** 2.0  
 **Последнее обновление:** 11 ноября 2025  
-**Автор:** AI Senior Software Architect & Documentation Engineer
+**Автор:** AI Senior Software Architect & Documentation Engineer  
+**Изменения в версии 2.0:** Миграция с Prisma/Supabase на AWS Amplify/SAM/DynamoDB/Cognito
 
