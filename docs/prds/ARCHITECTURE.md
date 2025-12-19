@@ -1,10 +1,107 @@
 # Архитектура проекта - Sunday School App
 
-## Версия документа: 2.0
+## Версия документа: 2.1
 **Дата создания:** 11 ноября 2025  
 **Последнее обновление:** 11 ноября 2025  
 **Проект:** Sunday School App (Приложение для управления воскресной школой)  
-**Технологии:** Next.js 16, TypeScript, AWS Amplify, AWS SAM, AWS Cognito, AWS DynamoDB/RDS, Zustand, Shadcn UI, BlockNote, AWS S3
+**Технологии:** Next.js 16, TypeScript, AWS Amplify, AWS SAM, AWS Cognito, AWS DynamoDB, Zustand, Shadcn UI, BlockNote, AWS S3
+
+---
+
+## 0. Обзор архитектуры
+
+### 0.1. Архитектурные роли
+
+| Компонент | Ответственность | Инструмент |
+|----------|------------------|------------|
+| **Фронтенд** | UI, `server actions`, взаимодействие с пользователем | **Next.js 16 (App Router)** |
+| **Backend Infrastructure** | Lambda, API Gateway, DynamoDB, S3 — через IaC | **AWS SAM** |
+| **Auth + Data + Hosting** | Cognito, AppSync, Amplify Hosting, автосборка по веткам | **AWS Amplify** |
+
+### 0.2. Ключевые решения
+
+- **Единый репозиторий** содержит:
+  - `/app` — Next.js фронтенд
+  - `/sam` — SAM-инфраструктура (`/sam/lessons`, `/sam/pupils` и т.д.)
+  - `amplify/` — метаданные Amplify (schema, auth config и др.)
+- **Amplify управляет фронтендом**, SAM — backend-инфраструктурой.
+- **Frontend и backend развёртываются независимо**, но **согласованно** через CI/CD пайплайн.
+
+### 0.3. Server Actions + AppSync
+
+**Пример `server action`**:
+```typescript
+// app/actions/lessons.ts
+"use server";
+
+import { cookies } from "next/headers";
+import { createGraphQLClient } from "@/lib/graphql";
+
+export async function createLesson(input: CreateLessonInput) {
+  const token = cookies().get("CognitoIdentityServiceProvider...")?.value;
+  if (!token) throw new Error("Unauthorized");
+
+  const client = createGraphQLClient(process.env.NEXT_PUBLIC_APPSYNC_URL!, token);
+  const { data } = await client.mutate({ mutation: CREATE_LESSON, variables: { input } });
+  return data.createLesson;
+}
+```
+
+> [!NOTE]
+> **JWT в HttpOnly cookie** → защита от XSS.  
+> **AppSync как GraphQL-адаптер к DynamoDB** → типобезопасность, гибкость запросов.
+
+### 0.4. Микросервисная структура SAM
+
+Структура SAM приложения организована по доменам предметной области:
+
+```
+/sam/
+  ├── core/              # Общие ресурсы: Cognito, S3
+  ├── lessons/           # CRUD уроков, золотые стихи
+  ├── pupils/            # Ученики, семьи, группы
+  ├── achievements/      # Достижения, рейтинг
+  └── template.yaml      # master template (nested stacks)
+```
+
+**Принципы:**
+- Каждый модуль — независимый SAM-стек с собственным `template.yaml`
+- Доменная декомпозиция обеспечивает независимость разработки и деплоя
+- Общие ресурсы вынесены в `core/` для переиспользования
+- Nested stacks позволяют управлять зависимостями между модулями
+
+### 0.5. Принципы GraphQL Schema в Amplify
+
+- **Domain-first**: сущности отражают предметную область (`Lesson`, `Pupil`, `Grade`).
+- **@model**: для каждой сущности, хранящейся в DynamoDB.
+- **@auth**: правила доступа через Cognito Groups.
+- **@belongsTo / @hasMany**: связи между сущностями.
+- **Избегать**: глубокой вложенности, избыточных полей.
+
+> [!NOTE]
+> Подробное описание GraphQL schema см. в [`docs/technical/GRAPHQL_SCHEMA.md`](../../technical/GRAPHQL_SCHEMA.md)
+
+### 0.6. Разделение функционала: AWS SAM vs AWS Amplify
+
+| Функционал | Реализуется через |
+|-----------|-------------------|
+| **SAM** | |
+| - Lambda-логика | ✅ |
+| - DynamoDB таблицы | ✅ |
+| - S3 бакеты (аватары) | ✅ |
+| - EventBridge (уведомления) | ✅ |
+| **Amplify** | |
+| - Аутентификация (Cognito) | ✅ |
+| - GraphQL API (AppSync) | ✅ |
+| - Хостинг Next.js | ✅ |
+| - CI/CD по веткам (`dev`/`main`) | ✅ |
+| - Генерация TypeScript-типов | ✅ |
+
+> [!IMPORTANT]
+> **Важно**: AppSync можно использовать **без** Amplify CLI, но вы теряете:  
+> - автоматическую генерацию `API.ts`  
+> - интеграцию `@auth` с Cognito  
+> - CLI-команды для миграций
 
 ---
 
@@ -56,7 +153,6 @@ graph TB
     subgraph "Data Layer"
         AmplifyData[AWS Amplify Data]
         DynamoDB[(DynamoDB)]
-        RDS[(RDS PostgreSQL - опционально)]
         AppSync[AWS AppSync - GraphQL API]
     end
     
@@ -96,7 +192,6 @@ graph TB
     ServerActions --> AmplifyData
     AmplifyData --> AppSync
     AppSync --> DynamoDB
-    AppSync --> RDS
     ServerActions --> Lambda
     Lambda --> DynamoDB
     ServerActions --> S3Storage
@@ -126,7 +221,7 @@ sun_sch/
 │   │   ├── WIREFRAMES.md           # Wireframes страниц
 │   │   └── IMPLEMENTATION_PLAN.md  # План реализации
 │   ├── technical/                  # Техническая документация
-│   │   ├── PRISMA_SCHEMA.md        # Описание схемы Prisma
+│   │   ├── GRAPHQL_SCHEMA.md       # Описание GraphQL schema
 │   │   ├── SERVER_ACTIONS_GUIDE.md # Руководство по Server Actions
 │   │   ├── COMPONENT_STRUCTURE.md  # Структура компонентов
 │   │   ├── STATE_MANAGEMENT.md     # Управление состоянием
@@ -414,20 +509,23 @@ export function HomeworkCheckTable({ lessonId, pupils }: Props) {
 'use server';
 
 import { z } from 'zod';
-import { prisma } from '@/lib/db/prisma';
-import { auth } from '@/lib/auth/auth';
+import { amplifyData } from '@/lib/db/amplify';
+import { getCurrentUser } from '@/lib/auth/cognito';
 import { lessonSchema } from '@/lib/validations/lesson';
+import * as mutations from '@/amplify/data/mutations';
+import * as queries from '@/amplify/data/queries';
 
 export async function createLesson(formData: FormData) {
   try {
     // 1. Проверка аутентификации
-    const session = await auth();
-    if (!session?.user) {
+    const user = await getCurrentUser();
+    if (!user) {
       return { success: false, error: 'Необходима авторизация' };
     }
     
-    // 2. Проверка прав доступа (Teacher или Admin)
-    if (session.user.role !== 'TEACHER' && session.user.role !== 'ADMIN') {
+    // 2. Проверка прав доступа через Cognito Groups
+    const groups = user.signInUserSession.idToken.payload['cognito:groups'] || [];
+    if (!groups.includes('teachers') && !groups.includes('admins')) {
       return { success: false, error: 'Недостаточно прав' };
     }
     
@@ -440,12 +538,15 @@ export async function createLesson(formData: FormData) {
     });
     
     // 4. Получение активного учебного года для группы
-    const activeYear = await prisma.academicYear.findFirst({
-      where: {
+    const { data: academicYearsData } = await amplifyData.graphql({
+      query: queries.academicYearsByGrade,
+      variables: {
         gradeId: data.gradeId,
-        status: 'ACTIVE',
+        filter: { status: { eq: 'ACTIVE' } },
       },
     });
+    
+    const activeYear = academicYearsData?.academicYearsByGrade?.items?.[0];
     
     if (!activeYear) {
       return { 
@@ -454,29 +555,39 @@ export async function createLesson(formData: FormData) {
       };
     }
     
-    // 5. Создание урока
-    const lesson = await prisma.lesson.create({
-      data: {
-        title: data.title,
-        date: new Date(data.date),
-        academicYearId: activeYear.id,
-        createdById: session.user.id,
-        goldenVerses: {
-          create: data.goldenVerseIds.map((verseId: string) => ({
-            goldenVerseId: verseId,
-          })),
-        },
-      },
-      include: {
-        goldenVerses: {
-          include: {
-            goldenVerse: true,
-          },
+    // 5. Создание урока через GraphQL mutation
+    const { data: lessonData } = await amplifyData.graphql({
+      query: mutations.createLesson,
+      variables: {
+        input: {
+          title: data.title,
+          lessonDate: data.date,
+          academicYearId: activeYear.id,
+          createdById: user.userId,
+          order: 0,
         },
       },
     });
     
-    return { success: true, data: lesson };
+    // 6. Создание связей с золотыми стихами
+    if (data.goldenVerseIds.length > 0) {
+      await Promise.all(
+        data.goldenVerseIds.map((verseId: string, index: number) =>
+          amplifyData.graphql({
+            query: mutations.createLessonGoldenVerse,
+            variables: {
+              input: {
+                lessonId: lessonData.createLesson.id,
+                goldenVerseId: verseId,
+                order: index + 1,
+              },
+            },
+          })
+        )
+      );
+    }
+    
+    return { success: true, data: lessonData.createLesson };
   } catch (error) {
     console.error('Error creating lesson:', error);
     
@@ -520,14 +631,14 @@ export async function createLesson(formData: FormData) {
 ### 4.3. Data Access Layer (Слой доступа к данным)
 
 **Ответственность:**
-- Взаимодействие с БД через Prisma ORM
+- Взаимодействие с БД через AWS Amplify Data (GraphQL через AppSync)
 - Кеширование запросов
 - Оптимизация запросов
-- Connection pooling
+- Автоматическое управление соединениями через AWS AppSync
 
 **Компоненты:**
 - AWS Amplify Data (GraphQL через AppSync)
-- DynamoDB или RDS PostgreSQL
+- DynamoDB
 - Database Queries (GraphQL queries/mutations в `lib/db/queries/`)
 - Caching Strategies (React cache, CloudFront)
 
@@ -600,69 +711,67 @@ export const getLessonById = cache(async (lessonId: string) => {
 });
 
 export async function getLessonsByAcademicYear(academicYearId: string) {
-  return await prisma.lesson.findMany({
-    where: { academicYearId },
-    include: {
-      goldenVerses: {
-        include: {
-          goldenVerse: true,
-        },
-      },
-      homeworkChecks: {
-        include: {
-          pupil: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-        },
-      },
-    },
-    orderBy: {
-      date: 'desc',
-    },
-  });
-}
-
-export async function getPupilLeaderboard(gradeId: string, academicYearId: string) {
-  // Агрегация баллов для рейтинга
-  const pupils = await prisma.pupil.findMany({
-    where: { gradeId },
-    include: {
-      homeworkChecks: {
-        where: {
-          lesson: {
-            academicYearId,
-          },
-        },
-        include: {
-          lesson: true,
-        },
-      },
+  const { data, errors } = await amplifyData.graphql({
+    query: queries.lessonsByAcademicYear,
+    variables: {
+      academicYearId,
     },
   });
   
-  // Расчет баллов и домиков
-  return pupils.map(pupil => {
-    const totalPoints = pupil.homeworkChecks.reduce((sum, check) => {
-      return sum + (check.points || 0);
-    }, 0);
-    
-    const houses = pupil.homeworkChecks.filter(check => {
-      // Домик выдается, если все параметры выполнены
-      return check.goldenVerseChecked && 
-             check.testChecked && 
-             check.notebookChecked && 
-             check.choirChecked;
-    }).length;
-    
-    return {
-      ...pupil,
-      totalPoints,
-      houses,
-    };
-  }).sort((a, b) => b.totalPoints - a.totalPoints);
+  if (errors) throw new Error(errors[0].message);
+  return data.lessonsByAcademicYear.items;
+}
+
+export async function getPupilLeaderboard(gradeId: string, academicYearId: string) {
+  // Получение учеников группы
+  const { data: pupilsData } = await amplifyData.graphql({
+    query: queries.pupilsByGrade,
+    variables: { gradeId },
+  });
+  
+  if (!pupilsData?.pupilsByGrade?.items) return [];
+  
+  // Агрегация баллов для рейтинга
+  const leaderboard = await Promise.all(
+    pupilsData.pupilsByGrade.items.map(async (pupil) => {
+      // Получение проверок ДЗ для активного учебного года
+      const { data: checksData } = await amplifyData.graphql({
+        query: queries.homeworkChecksByPupil,
+        variables: {
+          pupilId: pupil.id,
+          filter: {
+            lesson: {
+              academicYearId: { eq: academicYearId },
+            },
+          },
+        },
+      });
+      
+      const checks = checksData?.homeworkChecksByPupil?.items || [];
+      
+      const totalPoints = checks.reduce((sum: number, check: any) => {
+        return sum + (check.points || 0);
+      }, 0);
+      
+      const houses = checks.filter((check: any) => {
+        // Домик выдается, если все параметры выполнены
+        return check.goldenVerse1 && 
+               check.goldenVerse2 && 
+               check.goldenVerse3 &&
+               check.test && 
+               check.notebook && 
+               check.singing;
+      }).length;
+      
+      return {
+        ...pupil,
+        totalPoints,
+        houses,
+      };
+    })
+  );
+  
+  return leaderboard.sort((a, b) => b.totalPoints - a.totalPoints);
 }
 ```
 
@@ -671,7 +780,7 @@ export async function getPupilLeaderboard(gradeId: string, academicYearId: strin
 **Конфигурация AWS Amplify:**
 
 - GraphQL API через AWS AppSync
-- DynamoDB для NoSQL данных (или RDS PostgreSQL для реляционных данных)
+- DynamoDB для всех данных
 - Автоматическое масштабирование и connection pooling через AWS
 
 ```typescript
@@ -696,8 +805,8 @@ const schema = a.schema({
 **Важно:** 
 - Используйте GraphQL queries/mutations через Amplify Data
 - AppSync автоматически управляет соединениями и пулом
-- Используйте DynamoDB для быстрых операций чтения/записи
-- Используйте RDS PostgreSQL для сложных реляционных запросов (опционально)
+- Используйте DynamoDB для всех операций чтения/записи
+- Используйте GSI (Global Secondary Indexes) для сложных запросов
 
 ---
 
@@ -862,15 +971,16 @@ if (!session?.user) {
 }
 
 // Teacher может работать только со своей группой
-if (session.user.role === 'TEACHER') {
-  const hasAccess = await prisma.userGrade.findFirst({
-    where: {
-      userId: session.user.id,
-      gradeId: data.gradeId,
+if (groups.includes('teachers') && !groups.includes('admins')) {
+  const { data: userGradesData } = await amplifyData.graphql({
+    query: queries.userGradesByUser,
+    variables: {
+      userId: user.userId,
+      filter: { gradeId: { eq: data.gradeId } },
     },
   });
   
-  if (!hasAccess) {
+  if (!userGradesData?.userGradesByUser?.items?.length) {
     return { success: false, error: 'Нет доступа к этой группе' };
   }
 }
@@ -1162,11 +1272,14 @@ export function AdminBreadcrumbs() {
 export const revalidate = 3600; // 1 час
 
 export default async function GoldenVersesLibraryPage() {
-  const verses = await prisma.goldenVerse.findMany({
-    orderBy: { createdAt: 'desc' },
+  const { data } = await amplifyData.graphql({
+    query: queries.listGoldenVerses,
+    variables: {
+      limit: 100,
+    },
   });
   
-  return <GoldenVersesList verses={verses} />;
+  return <GoldenVersesList verses={data?.listGoldenVerses?.items || []} />;
 }
 ```
 
@@ -1175,12 +1288,18 @@ export default async function GoldenVersesLibraryPage() {
 ```typescript
 // lib/db/queries/golden-verses.ts
 import { cache } from 'react';
-import { prisma } from '@/lib/db/prisma';
+import { amplifyData } from '@/lib/db/amplify';
+import * as queries from '@/amplify/data/queries';
 
 export const getAllGoldenVerses = cache(async () => {
-  return await prisma.goldenVerse.findMany({
-    orderBy: { text: 'asc' },
+  const { data } = await amplifyData.graphql({
+    query: queries.listGoldenVerses,
+    variables: {
+      limit: 1000,
+    },
   });
+  
+  return data?.listGoldenVerses?.items || [];
 });
 ```
 
@@ -1202,16 +1321,16 @@ export default async function LessonPage({ params }: { params: { lessonId: strin
 
 ```typescript
 import { cache } from 'react';
-import { prisma } from '@/lib/db/prisma';
+import { amplifyData } from '@/lib/db/amplify';
+import * as queries from '@/amplify/data/queries';
 
 export const getGradeById = cache(async (gradeId: string) => {
-  return await prisma.grade.findUnique({
-    where: { id: gradeId },
-    include: {
-      pupils: true,
-      academicYears: true,
-    },
+  const { data } = await amplifyData.graphql({
+    query: queries.getGrade,
+    variables: { id: gradeId },
   });
+  
+  return data?.getGrade;
 });
 ```
 
@@ -1420,9 +1539,6 @@ const result = await dynamoDBClient.send(
     Key: { id: { S: lessonId } }, // Типизированные параметры
   })
 );
-
-// ❌ НЕ ДЕЛАЙТЕ ТАК - прямой SQL запрос (если используете RDS)
-// const result = await rdsClient.query(`SELECT * FROM lessons WHERE id = '${lessonId}'`);
 ```
 
 ---
@@ -1496,7 +1612,7 @@ export function pageview(url: string) {
 ### 13.2. Database Scaling
 
 - **Auto Scaling**: DynamoDB автоматически масштабируется
-- **Read Replicas**: RDS Read Replicas для чтения данных (если используется RDS)
+- **GSI (Global Secondary Indexes)**: для оптимизации запросов по различным ключам
 - **Caching**: ElastiCache (Redis) для кеширования (опционально)
 - **Connection Pooling**: Автоматически через AWS AppSync и Lambda
 
@@ -1568,15 +1684,6 @@ NEXT_PUBLIC_CLOUDFRONT_URL="https://dxxxxxxxxxxxxx.cloudfront.net"
 # ============================================
 
 AWS_DYNAMODB_TABLE_PREFIX="sunday-school-"
-
-# ============================================
-# AWS RDS (если используется PostgreSQL)
-# ============================================
-
-# RDS Connection (опционально, если используете RDS вместо DynamoDB)
-DATABASE_URL="postgresql://user:password@rds-endpoint.region.rds.amazonaws.com:5432/sundayschool"
-RDS_ENDPOINT="rds-endpoint.region.rds.amazonaws.com"
-RDS_DATABASE_NAME="sundayschool"
 
 # ============================================
 # NODE ENVIRONMENT
@@ -1660,49 +1767,102 @@ Resources:
 
 #### 14.3.1. AWS Amplify Hosting
 
-**Шаги:**
-
-1. Инициализировать Amplify проект: `npx ampx pipeline-deploy --app-id <app-id>`
-2. Настроить Environment Variables в Amplify Console
-3. Настроить Build Command: `npm run build`
-4. Настроить Output Directory: `.next`
-5. Подключить Git репозиторий для автоматического деплоя
-
-**Команды:**
+**Инициализация проекта:**
 
 ```bash
-# Инициализация Amplify
-npx ampx pipeline-deploy --app-id <app-id>
-
-# Или через Amplify CLI
+# Инициализация Amplify проекта
 amplify init
-amplify add hosting
+
+# Следовать инструкциям:
+# - Enter a name for the project: sun-sch
+# - Initialize the project with the above configuration? Yes
+# - Select the authentication method: AWS profile
+# - Choose your default profile: [ваш профиль]
+# - Select a region: us-east-1 (или ваш регион)
+```
+
+**Добавление сервисов:**
+
+```bash
+# Добавление GraphQL API (AppSync)
+amplify add api
+
+# Выбрать:
+# - GraphQL
+# - API name: sundayschoolapi
+# - Authorization: Amazon Cognito User Pool
+# - Edit schema: Yes (откроется schema.graphql)
+
+# Добавление Authentication (Cognito)
+amplify add auth
+
+# Выбрать:
+# - Default configuration
+# - Email as username
+# - No, I am done
+
+# Добавление Storage (S3)
+amplify add storage
+
+# Выбрать:
+# - Content (Images, audio, video, etc.)
+# - Bucket name: sundayschool-storage
+# - Access: Auth users only
+```
+
+**Публикация изменений:**
+
+```bash
+# Push изменений в AWS (инфраструктура)
+amplify push
+
+# Публикация приложения (фронтенд + инфраструктура)
 amplify publish
 ```
 
+**Git Integration:**
+
+Amplify Console автоматически отслеживает пуши в подключенные ветки (`dev`/`main`) и запускает сборку при каждом push.
+
 #### 14.3.2. AWS SAM Deployment
 
-**Шаги:**
-
-1. Собрать SAM приложение: `sam build`
-2. Развернуть через SAM: `sam deploy --guided`
-3. Настроить Environment Variables в Lambda Functions
-4. Настроить API Gateway endpoints
-
-**Команды:**
+**Сборка SAM приложения:**
 
 ```bash
 # Сборка SAM приложения
 sam build
 
+# Сборка с использованием контейнера (для native dependencies)
+sam build --use-container
+```
+
+**Деплой:**
+
+```bash
 # Деплой (первый раз с guided режимом)
 sam deploy --guided
+
+# При первом деплое SAM запросит параметры:
+# - Stack Name: sundayschool-stack
+# - AWS Region: us-east-1
+# - Confirm changes before deploy: Yes
+# - Allow SAM CLI IAM role creation: Yes
 
 # Последующие деплои
 sam deploy
 
-# Локальное тестирование
+# Деплой с параметрами окружения
+sam deploy --parameter-overrides Environment=qa --region us-east-1
+```
+
+**Локальное тестирование:**
+
+```bash
+# Локальный запуск API Gateway
 sam local start-api
+
+# Локальный запуск Lambda функции
+sam local invoke FunctionName
 ```
 
 **Post-deployment:**
@@ -1711,6 +1871,9 @@ sam local start-api
 - Настроить CloudWatch для мониторинга
 - Настроить CloudFront для CDN
 - Настроить домен через Route 53 (опционально)
+
+> [!NOTE]
+> Подробное руководство по deployment см. в [`docs/DEPLOYMENT_GUIDE.md`](../../DEPLOYMENT_GUIDE.md)
 
 ---
 
@@ -1729,15 +1892,21 @@ sam local start-api
 **Следующие шаги:**
 
 1. Настройка окружения разработки (см. `docs/SETUP_GUIDE.md`)
-2. Инициализация базы данных (Prisma migrations)
+2. Инициализация базы данных (Amplify push для создания DynamoDB таблиц)
 3. Создание базовых компонентов (Shadcn UI)
 4. Реализация аутентификации (Auth.js v5)
 5. Разработка основного функционала (см. `docs/prds/IMPLEMENTATION_PLAN.md`)
 
 ---
 
-**Версия:** 2.0  
+**Версия:** 2.1  
 **Последнее обновление:** 11 ноября 2025  
 **Автор:** AI Senior Software Architect & Documentation Engineer  
-**Изменения в версии 2.0:** Миграция с Prisma/Supabase на AWS Amplify/SAM/DynamoDB/Cognito
+**Изменения в версии 2.1:** 
+- Добавлен Overview section с архитектурными ролями и ключевыми решениями
+- Удалены все упоминания RDS/PostgreSQL
+- Обновлена секция Deployment на ручной деплой через Amplify/SAM CLI
+- Добавлена секция о микросервисном подходе SAM
+- Обновлены примеры кода с Prisma на Amplify Data/AppSync
+- Создана документация GraphQL Schema
 
