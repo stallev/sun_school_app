@@ -77,6 +77,8 @@ Phase 12: Управление учебными годами (Academic Years)
 - [WIREFRAMES.md](../../../ui_ux/WIREFRAMES.md) - раздел New Lesson Form
 - [VALIDATION.md](../../../api/VALIDATION.md) - раздел Lesson Schemas
 - [USER_FLOW.md](../../../user_flows/USER_FLOW.md) - раздел Create Lesson
+- [TEACHER_FLOWS.md](../../../user_flows/TEACHER_FLOWS.md) - раздел 3.1 Создание нового урока
+- [ADMIN_FLOWS.md](../../../user_flows/ADMIN_FLOWS.md) - раздел 7.1 Создание уроков для любой группы
 
 **Критерии приемки:**
 - Форма создана
@@ -114,6 +116,7 @@ Phase 12: Управление учебными годами (Academic Years)
 **Документация:**
 - [WIREFRAMES.md](../../../ui_ux/WIREFRAMES.md) - раздел Lesson Detail
 - [USER_FLOW.md](../../../user_flows/USER_FLOW.md) - раздел View Lesson
+- [TEACHER_FLOWS.md](../../../user_flows/TEACHER_FLOWS.md) - раздел 2.3 Подготовка к уроку
 
 **Критерии приемки:**
 - Страница просмотра создана
@@ -133,6 +136,7 @@ Phase 12: Управление учебными годами (Academic Years)
 **Документация:**
 - [WIREFRAMES.md](../../../ui_ux/WIREFRAMES.md) - раздел Lesson List
 - [USER_FLOW.md](../../../user_flows/USER_FLOW.md) - раздел Lesson List
+- [TEACHER_FLOWS.md](../../../user_flows/TEACHER_FLOWS.md) - раздел 3.3 Просмотр списка уроков
 
 **Критерии приемки:**
 - Страница списка создана
@@ -151,6 +155,7 @@ Phase 12: Управление учебными годами (Academic Years)
 **Документация:**
 - [WIREFRAMES.md](../../../ui_ux/WIREFRAMES.md) - раздел Edit Lesson
 - [USER_FLOW.md](../../../user_flows/USER_FLOW.md) - раздел Edit Lesson
+- [TEACHER_FLOWS.md](../../../user_flows/TEACHER_FLOWS.md) - раздел 3.2 Редактирование урока
 
 **Критерии приемки:**
 - Страница редактирования создана
@@ -168,6 +173,7 @@ Phase 12: Управление учебными годами (Academic Years)
 **Документация:**
 - [SERVER_ACTIONS.md](../../../api/SERVER_ACTIONS.md) - раздел Delete Lesson
 - [USER_FLOW.md](../../../user_flows/USER_FLOW.md) - раздел Delete Lesson
+- [TEACHER_FLOWS.md](../../../user_flows/TEACHER_FLOWS.md) - раздел 3.3 Просмотр списка уроков
 
 **Критерии приемки:**
 - Удаление работает

@@ -43,6 +43,7 @@ Phase 12: Управление учебными годами (Academic Years)
 **Документация:**
 - [MVP_SCOPE.md](../../../MVP_SCOPE.md) - раздел 2.12.1 Завершение учебного года
 - [USER_FLOW.md](../../../user_flows/USER_FLOW.md) - раздел Admin flows
+- [ADMIN_FLOWS.md](../../../user_flows/ADMIN_FLOWS.md) - раздел 6.1 Завершение учебного года
 
 **Критерии приемки:**
 - UI создан

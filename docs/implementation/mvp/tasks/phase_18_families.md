@@ -45,6 +45,7 @@ Phase 16: Управление учениками (Pupils)
 **Документация:**
 - [WIREFRAMES.md](../../../ui_ux/WIREFRAMES.md) - раздел Families List
 - [USER_FLOW.md](../../../user_flows/USER_FLOW.md) - раздел Admin flows
+- [ADMIN_FLOWS.md](../../../user_flows/ADMIN_FLOWS.md) - раздел 5.1 Создание новой семьи
 
 **Критерии приемки:**
 - Страница списка создана
@@ -61,6 +62,7 @@ Phase 16: Управление учениками (Pupils)
 **Документация:**
 - [WIREFRAMES.md](../../../ui_ux/WIREFRAMES.md) - раздел Family Form
 - [VALIDATION.md](../../../api/VALIDATION.md) - раздел Family Schemas
+- [ADMIN_FLOWS.md](../../../user_flows/ADMIN_FLOWS.md) - раздел 5.1 Создание новой семьи
 
 **Критерии приемки:**
 - Форма создана

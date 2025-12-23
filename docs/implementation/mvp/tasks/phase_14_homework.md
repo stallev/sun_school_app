@@ -104,6 +104,8 @@ Phase 13: Управление уроками (Lessons)
 **Документация:**
 - [WIREFRAMES.md](../../../ui_ux/WIREFRAMES.md) - раздел Homework Check Page
 - [USER_FLOW.md](../../../user_flows/USER_FLOW.md) - раздел Check Homework
+- [TEACHER_FLOWS.md](../../../user_flows/TEACHER_FLOWS.md) - раздел 4.1 Последовательная проверка ДЗ
+- [ADMIN_FLOWS.md](../../../user_flows/ADMIN_FLOWS.md) - раздел 7.2 Проверка ДЗ для любой группы
 
 **Критерии приемки:**
 - Страница создана
@@ -139,6 +141,8 @@ Phase 13: Управление уроками (Lessons)
 **Документация:**
 - [MVP_SCOPE.md](../../../MVP_SCOPE.md) - раздел 2.4.2 Редактирование проверки ДЗ
 - [USER_FLOW.md](../../../user_flows/USER_FLOW.md)
+- [TEACHER_FLOWS.md](../../../user_flows/TEACHER_FLOWS.md) - раздел 4.1 Последовательная проверка ДЗ
+- [ADMIN_FLOWS.md](../../../user_flows/ADMIN_FLOWS.md) - раздел 7.2 Проверка ДЗ для любой группы
 
 **Критерии приемки:**
 - Редактирование работает

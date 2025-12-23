@@ -60,6 +60,7 @@ Phase 13: Управление уроками (Lessons)
 **Документация:**
 - [WIREFRAMES.md](../../../ui_ux/WIREFRAMES.md) - раздел Calendar
 - [USER_FLOW.md](../../../user_flows/USER_FLOW.md) - раздел Schedule
+- [TEACHER_FLOWS.md](../../../user_flows/TEACHER_FLOWS.md) - раздел 6.1 Добавление события в расписание
 
 **Критерии приемки:**
 - Календарь создан

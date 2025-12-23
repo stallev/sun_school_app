@@ -52,6 +52,8 @@ Phase 10: Создание системы валидации
 **Документация:**
 - [WIREFRAMES.md](../../../ui_ux/WIREFRAMES.md) - раздел Grades List
 - [USER_FLOW.md](../../../user_flows/USER_FLOW.md) - раздел Teacher/Admin flows
+- [TEACHER_FLOWS.md](../../../user_flows/TEACHER_FLOWS.md) - раздел 2.1 Вход в систему и навигация
+- [ADMIN_FLOWS.md](../../../user_flows/ADMIN_FLOWS.md) - раздел 3.1 Создание новой группы
 - [MVP_SCOPE.md](../../../MVP_SCOPE.md) - раздел 2.2.1
 
 **Критерии приемки:**
@@ -72,6 +74,7 @@ Phase 10: Создание системы валидации
 **Документация:**
 - [WIREFRAMES.md](../../../ui_ux/WIREFRAMES.md) - раздел Grade Detail
 - [USER_FLOW.md](../../../user_flows/USER_FLOW.md) - раздел Grade View
+- [TEACHER_FLOWS.md](../../../user_flows/TEACHER_FLOWS.md) - раздел 2.1 Вход в систему и навигация
 
 **Критерии приемки:**
 - Страница просмотра группы создана
@@ -91,6 +94,7 @@ Phase 10: Создание системы валидации
 **Документация:**
 - [WIREFRAMES.md](../../../ui_ux/WIREFRAMES.md) - раздел Grade Form
 - [VALIDATION.md](../../../api/VALIDATION.md) - раздел Grade Schemas
+- [ADMIN_FLOWS.md](../../../user_flows/ADMIN_FLOWS.md) - раздел 3.1 Создание новой группы
 - [COMPONENT_LIBRARY.md](../../../components/COMPONENT_LIBRARY.md)
 
 **Критерии приемки:**
@@ -110,6 +114,7 @@ Phase 10: Создание системы валидации
 
 **Документация:**
 - [SECURITY.md](../../../infrastructure/SECURITY.md) - раздел RBAC
+- [ADMIN_FLOWS.md](../../../user_flows/ADMIN_FLOWS.md) - раздел 3.1 Создание новой группы
 - [MVP_SCOPE.md](../../../MVP_SCOPE.md) - раздел 2.1.2 Роли пользователей
 
 **Критерии приемки:**

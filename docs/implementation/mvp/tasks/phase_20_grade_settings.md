@@ -45,6 +45,7 @@ Phase 11: Управление группами (Grades)
 **Документация:**
 - [WIREFRAMES.md](../../../ui_ux/WIREFRAMES.md) - раздел Grade Settings
 - [MVP_SCOPE.md](../../../MVP_SCOPE.md) - раздел 2.11.1 Параметры оценивания
+- [ADMIN_FLOWS.md](../../../user_flows/ADMIN_FLOWS.md) - раздел 3.2 Настройка параметров оценивания группы
 
 **Критерии приемки:**
 - Форма настроек создана

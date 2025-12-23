@@ -64,6 +64,7 @@ Phase 11: Управление группами (Grades)
 **Документация:**
 - [WIREFRAMES.md](../../../ui_ux/WIREFRAMES.md)
 - [USER_FLOW.md](../../../user_flows/USER_FLOW.md)
+- [TEACHER_FLOWS.md](../../../user_flows/TEACHER_FLOWS.md) - раздел 2.1 Вход в систему и навигация
 
 **Критерии приемки:**
 - UI создан

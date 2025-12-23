@@ -46,6 +46,7 @@ Phase 15: Система баллов и домиков
 **Документация:**
 - [WIREFRAMES.md](../../../ui_ux/WIREFRAMES.md) - раздел Rating Table
 - [USER_FLOW.md](../../../user_flows/USER_FLOW.md) - раздел Rating
+- [TEACHER_FLOWS.md](../../../user_flows/TEACHER_FLOWS.md) - раздел 7.1 Просмотр рейтинга группы
 
 **Критерии приемки:**
 - Страница рейтинга создана

@@ -46,6 +46,7 @@ Phase 11: Управление группами (Grades)
 **Документация:**
 - [WIREFRAMES.md](../../../ui_ux/WIREFRAMES.md) - раздел Pupils List
 - [USER_FLOW.md](../../../user_flows/USER_FLOW.md) - раздел Admin flows
+- [ADMIN_FLOWS.md](../../../user_flows/ADMIN_FLOWS.md) - раздел 4.1 Создание нового ученика
 
 **Критерии приемки:**
 - Страница списка создана
@@ -64,6 +65,7 @@ Phase 11: Управление группами (Grades)
 **Документация:**
 - [WIREFRAMES.md](../../../ui_ux/WIREFRAMES.md) - раздел Pupil Form
 - [VALIDATION.md](../../../api/VALIDATION.md) - раздел Pupil Schemas
+- [ADMIN_FLOWS.md](../../../user_flows/ADMIN_FLOWS.md) - раздел 4.1 Создание нового ученика
 
 **Критерии приемки:**
 - Форма создана

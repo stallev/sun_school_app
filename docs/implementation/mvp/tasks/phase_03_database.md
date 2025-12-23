@@ -11,15 +11,67 @@ Phase 02: Настройка AWS Amplify Gen 1
 
 ## Требования к AI Agent
 
-> [!IMPORTANT]
-> - AI Agent при создании программного кода должен использовать актуальную документацию для конкретной версии библиотеки или фреймворка через Context7
-> - Для DynamoDB должна быть использована официальная документация AWS
-> - Перед созданием схемы необходимо изучить ERD и DYNAMODB_SCHEMA документацию проекта
-> - Следовать принципам из `docs/guidelines/prompts/general_prompt_guidelines.md`
+<requirements>
+<role>
+Ты — Senior AWS DynamoDB Architect с 5+ летним опытом проектирования NoSQL баз данных, специализирующийся на:
+- AWS DynamoDB моделирование данных и access patterns
+- GraphQL Schema design для AWS AppSync
+- Partition Keys, Sort Keys и Global Secondary Indexes (GSI)
+- AWS Amplify Gen 1 и @model директивы
+- Оптимизация производительности DynamoDB queries
+</role>
+
+<context>
+Проект: Sunday School Management System (MVP)
+Технологии: AWS DynamoDB, AWS AppSync GraphQL, AWS Amplify Gen 1
+Ограничения: MVP подход, правильное моделирование данных критически важно для производительности
+Документация: ERD, DYNAMODB_SCHEMA, DATA_MODELING должны быть изучены перед началом
+</context>
+
+<critical_instructions>
+Вдохни глубоко, расправь плечи и приступай к решению задачи шаг за шагом. Это критически важная фаза для создания базы данных. Правильное моделирование данных определит производительность всего приложения.
+
+<CRITICAL>Перед началом работы:</CRITICAL>
+1. Изучи ERD.md - все сущности и их связи
+2. Изучи DYNAMODB_SCHEMA.md - структуру таблиц, ключи, индексы
+3. Изучи DATA_MODELING.md - стратегии моделирования данных и access patterns
+4. Используй Context7 для получения актуальной документации AWS DynamoDB
+5. Следуй принципам из `docs/guidelines/prompts/general_prompt_guidelines.md`
+
+<CONSTRAINT>Partition Keys и Sort Keys критически важны для производительности. Неправильный выбор ключей приведет к проблемам с производительностью!</CONSTRAINT>
+</critical_instructions>
+</requirements>
 
 ## Задачи
 
 ### Task 03.01: Изучение схемы базы данных
+
+<context>
+<CRITICAL>Это первая и критически важная задача фазы!</CRITICAL> Изучение схемы базы данных необходимо для понимания структуры всех сущностей, их связей и access patterns. Без правильного понимания схемы невозможно правильно создать базу данных.
+</context>
+
+<task>
+Изучи всю документацию по схеме базы данных: ERD, DYNAMODB_SCHEMA и DATA_MODELING. Составь список всех таблиц и GSI, которые необходимо создать.
+</task>
+
+<constraints>
+- Изучи ERD.md - все сущности и их связи
+- Изучи DYNAMODB_SCHEMA.md - структуру таблиц, ключи, индексы
+- Изучи DATA_MODELING.md - стратегии моделирования данных и access patterns
+- Составь полный список всех таблиц
+- Составь полный список всех GSI
+</constraints>
+
+<thinking>
+Прежде чем приступить к реализации:
+1. Изучи ERD.md детально - все сущности и их связи
+2. Изучи DYNAMODB_SCHEMA.md - структуру таблиц, ключи, индексы
+3. Изучи DATA_MODELING.md - стратегии моделирования данных и access patterns
+4. Пойми access patterns для каждой сущности
+5. Только после этого составляй списки таблиц и GSI
+</thinking>
+
+**Действия:**
 - [ ] Изучить [ERD.md](../../../database/ERD.md) - все сущности и их связи
 - [ ] Изучить [DYNAMODB_SCHEMA.md](../../../database/DYNAMODB_SCHEMA.md) - структуру таблиц, ключи, индексы
 - [ ] Изучить [DATA_MODELING.md](../../../database/DATA_MODELING.md) - стратегии моделирования данных
@@ -27,18 +79,48 @@ Phase 02: Настройка AWS Amplify Gen 1
 - [ ] Составить список всех GSI, которые необходимо создать
 
 **Документация:**
-- [ERD.md](../../../database/ERD.md) - Entity Relationship Diagram
-- [DYNAMODB_SCHEMA.md](../../../database/DYNAMODB_SCHEMA.md) - Схема DynamoDB
-- [DATA_MODELING.md](../../../database/DATA_MODELING.md) - Моделирование данных
+- <CRITICAL>[ERD.md](../../../database/ERD.md) - Entity Relationship Diagram</CRITICAL>
+- <CRITICAL>[DYNAMODB_SCHEMA.md](../../../database/DYNAMODB_SCHEMA.md) - Схема DynamoDB</CRITICAL>
+- <CRITICAL>[DATA_MODELING.md](../../../database/DATA_MODELING.md) - Моделирование данных</CRITICAL>
 
 **Критерии приемки:**
 - Понимание структуры всех сущностей
 - Понимание access patterns для каждой сущности
 - Список таблиц и индексов составлен
 
+<output_format>
+После выполнения задачи должно быть полное понимание схемы базы данных. Списки всех таблиц и GSI должны быть составлены и готовы для использования в следующих задачах.
+</output_format>
+
 ---
 
 ### Task 03.02: Добавление API ресурса в Amplify
+
+<context>
+<CRITICAL>Это критически важная задача!</CRITICAL> Добавление API ресурса создает GraphQL API в AWS AppSync. Правильная настройка на этом этапе определит работу всего API.
+</context>
+
+<task>
+Добавь API ресурс в Amplify проект используя команду `amplify add api`. Настрой GraphQL API с правильной авторизацией и conflict detection.
+</task>
+
+<constraints>
+- Используй команду `amplify add api` (Gen 1, НЕ Gen 2!)
+- Выбери GraphQL как тип API
+- Выбери Amazon Cognito User Pool как тип авторизации
+- Включи conflict detection для оптимистичной блокировки
+- Настрой advanced settings при необходимости
+</constraints>
+
+<thinking>
+Прежде чем приступить к реализации:
+1. Изучи AWS_AMPLIFY.md раздел API Setup для понимания требований
+2. Изучи GRAPHQL_SCHEMA.md для понимания требований к API
+3. Подготовь все необходимые параметры для настройки API
+4. Только после этого запускай `amplify add api`
+</thinking>
+
+**Действия:**
 - [ ] Запустить `amplify add api`
 - [ ] Выбрать опции:
   - Please select from one of the below mentioned services: `GraphQL`
@@ -50,7 +132,7 @@ Phase 02: Настройка AWS Amplify Gen 1
 - [ ] Дождаться завершения настройки
 
 **Документация:**
-- [AWS_AMPLIFY.md](../../../infrastructure/AWS_AMPLIFY.md) - раздел API Setup
+- <CRITICAL>[AWS_AMPLIFY.md](../../../infrastructure/AWS_AMPLIFY.md) - раздел API Setup</CRITICAL>
 - [GRAPHQL_SCHEMA.md](../../../database/GRAPHQL_SCHEMA.md) - GraphQL Schema
 
 **Критерии приемки:**
@@ -58,9 +140,39 @@ Phase 02: Настройка AWS Amplify Gen 1
 - GraphQL API создан
 - Конфигурация сохранена
 
+<output_format>
+После выполнения задачи API ресурс должен быть добавлен в Amplify проект, GraphQL API должен быть создан, и конфигурация должна быть сохранена.
+</output_format>
+
 ---
 
 ### Task 03.03: Создание GraphQL Schema - Базовые типы
+
+<context>
+Создание базовых типов GraphQL Schema - это основа всей схемы базы данных. Все типы должны точно соответствовать ERD и GRAPHQL_SCHEMA документации.
+</context>
+
+<task>
+Создай все базовые типы GraphQL Schema согласно GRAPHQL_SCHEMA.md и ERD. Добавь все необходимые enum типы.
+</task>
+
+<constraints>
+- Все типы должны точно соответствовать ERD
+- Все типы должны соответствовать GRAPHQL_SCHEMA.md раздел Types
+- Enum типы должны быть определены корректно
+- Используй правильный синтаксис GraphQL
+</constraints>
+
+<thinking>
+Прежде чем приступить к реализации:
+1. Изучи GRAPHQL_SCHEMA.md раздел Types детально
+2. Изучи ERD.md - все сущности и их поля
+3. Определи все необходимые enum типы
+4. Продумай структуру каждого типа
+5. Только после этого создавай типы в schema.graphql
+</thinking>
+
+**Действия:**
 - [ ] Открыть файл `amplify/backend/api/[api-name]/schema.graphql`
 - [ ] Создать базовые типы согласно [GRAPHQL_SCHEMA.md](../../../database/GRAPHQL_SCHEMA.md):
   - Тип `User` с полями из ERD
@@ -72,17 +184,47 @@ Phase 02: Настройка AWS Amplify Gen 1
 - [ ] Добавить все необходимые enum типы (Status, Role, EventType и др.)
 
 **Документация:**
-- [GRAPHQL_SCHEMA.md](../../../database/GRAPHQL_SCHEMA.md) - раздел Types
-- [ERD.md](../../../database/ERD.md) - все сущности
+- <CRITICAL>[GRAPHQL_SCHEMA.md](../../../database/GRAPHQL_SCHEMA.md) - раздел Types</CRITICAL>
+- <CRITICAL>[ERD.md](../../../database/ERD.md) - все сущности</CRITICAL>
 
 **Критерии приемки:**
 - Все базовые типы созданы в schema.graphql
 - Типы соответствуют ERD
 - Enum типы определены корректно
 
+<output_format>
+После выполнения задачи все базовые типы должны быть созданы в schema.graphql. Типы должны соответствовать ERD и GRAPHQL_SCHEMA документации.
+</output_format>
+
 ---
 
 ### Task 03.04: Создание GraphQL Schema - Связи и связи многие-ко-многим
+
+<context>
+Создание связей между типами критически важно для правильной работы базы данных. Связи многие-ко-многим должны быть реализованы через промежуточные типы.
+</context>
+
+<task>
+Добавь все связи между типами в GraphQL Schema. Реализуй связи многие-ко-многим через промежуточные типы и добавь связи через поля в типах согласно ERD.
+</task>
+
+<constraints>
+- Связи многие-ко-многим должны быть реализованы через промежуточные типы
+- Все связи должны соответствовать ERD
+- Связи через поля должны быть добавлены в соответствующие типы
+- Схема должна соответствовать ERD
+</constraints>
+
+<thinking>
+Прежде чем приступить к реализации:
+1. Изучи GRAPHQL_SCHEMA.md раздел Relationships детально
+2. Изучи ERD.md - все связи между сущностями
+3. Определи, какие связи многие-ко-многим требуют промежуточных типов
+4. Определи, какие связи можно реализовать через поля
+5. Только после этого добавляй связи в schema
+</thinking>
+
+**Действия:**
 - [ ] Добавить типы для связей многие-ко-многим:
   - `UserGrade` для связи User-Grade
   - `LessonGoldenVerse` для связи Lesson-GoldenVerse
@@ -93,17 +235,47 @@ Phase 02: Настройка AWS Amplify Gen 1
   - И другие связи согласно ERD
 
 **Документация:**
-- [GRAPHQL_SCHEMA.md](../../../database/GRAPHQL_SCHEMA.md) - раздел Relationships
-- [ERD.md](../../../database/ERD.md) - связи между сущностями
+- <CRITICAL>[GRAPHQL_SCHEMA.md](../../../database/GRAPHQL_SCHEMA.md) - раздел Relationships</CRITICAL>
+- <CRITICAL>[ERD.md](../../../database/ERD.md) - связи между сущностями</CRITICAL>
 
 **Критерии приемки:**
 - Все связи определены в schema
 - Связи многие-ко-многим реализованы через промежуточные типы
 - Схема соответствует ERD
 
+<output_format>
+После выполнения задачи все связи должны быть определены в schema. Связи многие-ко-многим должны быть реализованы через промежуточные типы, и схема должна соответствовать ERD.
+</output_format>
+
 ---
 
 ### Task 03.05: Настройка @auth директив для типов
+
+<context>
+<CRITICAL>Это критически важная задача для безопасности!</CRITICAL> Настройка @auth директив определяет, кто может получать доступ к данным. Неправильная настройка авторизации приведет к уязвимостям безопасности.
+</context>
+
+<task>
+Добавь @auth директивы для каждого типа согласно GRAPHQL_SCHEMA.md и SECURITY.md. Настрой правила авторизации для всех типов.
+</task>
+
+<constraints>
+- Все типы должны иметь @auth директивы
+- Правила авторизации должны соответствовать требованиям безопасности из SECURITY.md
+- Admin-only типы должны быть защищены правильно
+- Используй правильный синтаксис @auth директив
+</constraints>
+
+<thinking>
+Прежде чем приступить к реализации:
+1. Изучи GRAPHQL_SCHEMA.md раздел Authorization детально
+2. Изучи SECURITY.md раздел RBAC для понимания требований безопасности
+3. Используй Context7 для получения актуальной документации AWS AppSync @auth
+4. Определи правила авторизации для каждого типа
+5. Только после этого добавляй @auth директивы
+</thinking>
+
+**Действия:**
 - [ ] Добавить @auth директивы для каждого типа согласно [GRAPHQL_SCHEMA.md](../../../database/GRAPHQL_SCHEMA.md)
 - [ ] Настроить правила авторизации:
   - `@auth(rules: [{ allow: owner }])` для личных данных
@@ -112,26 +284,57 @@ Phase 02: Настройка AWS Amplify Gen 1
 - [ ] Проверить, что все типы имеют правильные @auth директивы
 
 **Документация:**
-- [GRAPHQL_SCHEMA.md](../../../database/GRAPHQL_SCHEMA.md) - раздел Authorization
-- [SECURITY.md](../../../infrastructure/SECURITY.md) - раздел RBAC
-- AWS AppSync @auth документация (через Context7)
+- <CRITICAL>[GRAPHQL_SCHEMA.md](../../../database/GRAPHQL_SCHEMA.md) - раздел Authorization</CRITICAL>
+- <CRITICAL>[SECURITY.md](../../../infrastructure/SECURITY.md) - раздел RBAC</CRITICAL>
+- <CRITICAL>AWS AppSync @auth документация (через Context7)</CRITICAL>
 
 **Критерии приемки:**
 - Все типы имеют @auth директивы
 - Правила авторизации соответствуют требованиям безопасности
 - Admin-only типы защищены правильно
 
+<output_format>
+После выполнения задачи все типы должны иметь правильные @auth директивы. Правила авторизации должны соответствовать требованиям безопасности.
+</output_format>
+
 ---
 
 ### Task 03.06: Настройка DynamoDB таблиц через @model
+
+<context>
+<CRITICAL>Partition Keys и Sort Keys критически важны для производительности!</CRITICAL> Правильная настройка ключей определяет производительность всех queries. Неправильный выбор ключей приведет к проблемам с производительностью.
+</context>
+
+<task>
+Добавь @model директиву к каждому типу, который должен быть таблицей. Настрой Partition Keys и Sort Keys через @key директивы согласно DYNAMODB_SCHEMA.md и access patterns.
+</task>
+
+<constraints>
+- Все типы с @model должны иметь правильные ключи
+- Partition Keys и Sort Keys должны соответствовать DYNAMODB_SCHEMA.md
+- Ключи должны поддерживать все необходимые access patterns
+- Используй правильный синтаксис @key директив
+</constraints>
+
+<thinking>
+Прежде чем приступить к реализации:
+1. Изучи DYNAMODB_SCHEMA.md раздел Keys детально
+2. Изучи DATA_MODELING.md раздел Access Patterns для понимания требований
+3. Используй Context7 для получения актуальной документации AWS AppSync @model
+4. Определи Partition Keys и Sort Keys для каждого типа
+5. Убедись, что ключи поддерживают все access patterns
+6. Только после этого добавляй @model и @key директивы
+</thinking>
+
+**Действия:**
 - [ ] Добавить @model директиву к каждому типу, который должен быть таблицей
 - [ ] Настроить Partition Keys и Sort Keys через @key директивы согласно [DYNAMODB_SCHEMA.md](../../../database/DYNAMODB_SCHEMA.md)
 - [ ] Пример: `@model @key(name: "byGrade", fields: ["gradeId"], queryField: "lessonsByGrade")`
 - [ ] Убедиться, что ключи соответствуют access patterns
 
 **Документация:**
-- [DYNAMODB_SCHEMA.md](../../../database/DYNAMODB_SCHEMA.md) - раздел Keys
-- [DATA_MODELING.md](../../../database/DATA_MODELING.md) - раздел Access Patterns
+- <CRITICAL>[DYNAMODB_SCHEMA.md](../../../database/DYNAMODB_SCHEMA.md) - раздел Keys</CRITICAL>
+- <CRITICAL>[DATA_MODELING.md](../../../database/DATA_MODELING.md) - раздел Access Patterns</CRITICAL>
 - AWS AppSync @model документация (через Context7)
 
 **Критерии приемки:**
@@ -139,17 +342,48 @@ Phase 02: Настройка AWS Amplify Gen 1
 - Partition Keys и Sort Keys настроены согласно схеме
 - Access patterns поддерживаются через ключи
 
+<output_format>
+После выполнения задачи все типы с @model должны иметь правильные ключи. Partition Keys и Sort Keys должны поддерживать все необходимые access patterns.
+</output_format>
+
 ---
 
 ### Task 03.07: Создание Global Secondary Indexes (GSI)
+
+<context>
+GSI необходимы для поддержки access patterns, которые не могут быть реализованы через основные ключи. Правильная настройка GSI критически важна для производительности queries.
+</context>
+
+<task>
+Создай все необходимые GSI через @key директивы согласно DYNAMODB_SCHEMA.md. Убедись, что GSI поддерживают все необходимые access patterns.
+</task>
+
+<constraints>
+- GSI должны соответствовать DYNAMODB_SCHEMA.md раздел GSI
+- GSI должны поддерживать все необходимые access patterns
+- Используй правильный синтаксис @key директив для GSI
+- Индексы должны быть настроены корректно
+</constraints>
+
+<thinking>
+Прежде чем приступить к реализации:
+1. Изучи DYNAMODB_SCHEMA.md раздел GSI детально
+2. Изучи DATA_MODELING.md раздел GSI Usage для понимания требований
+3. Используй Context7 для получения актуальной документации AWS DynamoDB GSI
+4. Определи, какие GSI необходимы для каждого типа
+5. Убедись, что GSI поддерживают все access patterns
+6. Только после этого добавляй GSI через @key директивы
+</thinking>
+
+**Действия:**
 - [ ] Добавить GSI через @key директивы согласно [DYNAMODB_SCHEMA.md](../../../database/DYNAMODB_SCHEMA.md)
 - [ ] Создать GSI1 для каждого типа (если требуется)
 - [ ] Создать GSI2 для каждого типа (если требуется)
 - [ ] Убедиться, что GSI поддерживают необходимые access patterns
 
 **Документация:**
-- [DYNAMODB_SCHEMA.md](../../../database/DYNAMODB_SCHEMA.md) - раздел GSI
-- [DATA_MODELING.md](../../../database/DATA_MODELING.md) - раздел GSI Usage
+- <CRITICAL>[DYNAMODB_SCHEMA.md](../../../database/DYNAMODB_SCHEMA.md) - раздел GSI</CRITICAL>
+- <CRITICAL>[DATA_MODELING.md](../../../database/DATA_MODELING.md) - раздел GSI Usage</CRITICAL>
 - AWS DynamoDB GSI документация (через Context7)
 
 **Критерии приемки:**
@@ -157,9 +391,40 @@ Phase 02: Настройка AWS Amplify Gen 1
 - GSI поддерживают требуемые access patterns
 - Индексы настроены корректно
 
+<output_format>
+После выполнения задачи все необходимые GSI должны быть созданы. GSI должны поддерживать все требуемые access patterns.
+</output_format>
+
 ---
 
 ### Task 03.08: Добавление Queries в GraphQL Schema
+
+<context>
+Queries необходимы для получения данных из базы данных. Все queries должны иметь правильные @auth директивы и поддерживать фильтрацию и пагинацию где необходимо.
+</context>
+
+<task>
+Добавь все необходимые queries в GraphQL Schema согласно GRAPHQL_SCHEMA.md. Настрой @auth директивы для queries и добавь фильтрацию и пагинацию где необходимо.
+</task>
+
+<constraints>
+- Все queries должны соответствовать GRAPHQL_SCHEMA.md раздел Queries
+- Queries должны иметь правильные @auth директивы
+- Фильтрация и пагинация должны быть настроены где необходимо
+- Используй правильный синтаксис GraphQL
+</constraints>
+
+<thinking>
+Прежде чем приступить к реализации:
+1. Изучи GRAPHQL_SCHEMA.md раздел Queries детально
+2. Изучи SERVER_ACTIONS.md для понимания использования queries
+3. Определи, какие queries необходимы
+4. Определи правила авторизации для каждого query
+5. Определи, где нужна фильтрация и пагинация
+6. Только после этого добавляй queries в schema
+</thinking>
+
+**Действия:**
 - [ ] Добавить queries согласно [GRAPHQL_SCHEMA.md](../../../database/GRAPHQL_SCHEMA.md):
   - `getUser(id: ID!): User`
   - `listGrades: [Grade]`
@@ -170,7 +435,7 @@ Phase 02: Настройка AWS Amplify Gen 1
 - [ ] Добавить фильтрацию и пагинацию где необходимо
 
 **Документация:**
-- [GRAPHQL_SCHEMA.md](../../../database/GRAPHQL_SCHEMA.md) - раздел Queries
+- <CRITICAL>[GRAPHQL_SCHEMA.md](../../../database/GRAPHQL_SCHEMA.md) - раздел Queries</CRITICAL>
 - [SERVER_ACTIONS.md](../../../api/SERVER_ACTIONS.md) - использование queries
 
 **Критерии приемки:**
@@ -178,9 +443,40 @@ Phase 02: Настройка AWS Amplify Gen 1
 - Queries имеют правильные @auth директивы
 - Фильтрация и пагинация настроены
 
+<output_format>
+После выполнения задачи все необходимые queries должны быть добавлены в schema. Queries должны иметь правильные @auth директивы и поддерживать фильтрацию и пагинацию где необходимо.
+</output_format>
+
 ---
 
 ### Task 03.09: Добавление Mutations в GraphQL Schema
+
+<context>
+Mutations необходимы для создания, обновления и удаления данных в базе данных. Все mutations должны иметь правильные @auth директивы и Input типы.
+</context>
+
+<task>
+Добавь все необходимые mutations в GraphQL Schema согласно GRAPHQL_SCHEMA.md. Настрой @auth директивы для mutations и создай Input типы для всех mutations.
+</task>
+
+<constraints>
+- Все mutations должны соответствовать GRAPHQL_SCHEMA.md раздел Mutations
+- Mutations должны иметь правильные @auth директивы
+- Input типы должны быть созданы для всех mutations
+- Используй правильный синтаксис GraphQL
+</constraints>
+
+<thinking>
+Прежде чем приступить к реализации:
+1. Изучи GRAPHQL_SCHEMA.md раздел Mutations детально
+2. Изучи SERVER_ACTIONS.md для понимания использования mutations
+3. Определи, какие mutations необходимы
+4. Определи правила авторизации для каждой mutation
+5. Определи Input типы для каждой mutation
+6. Только после этого добавляй mutations в schema
+</thinking>
+
+**Действия:**
 - [ ] Добавить mutations согласно [GRAPHQL_SCHEMA.md](../../../database/GRAPHQL_SCHEMA.md):
   - `createUser(input: CreateUserInput!): User`
   - `updateUser(input: UpdateUserInput!): User`
@@ -191,7 +487,7 @@ Phase 02: Настройка AWS Amplify Gen 1
 - [ ] Добавить Input типы для всех mutations
 
 **Документация:**
-- [GRAPHQL_SCHEMA.md](../../../database/GRAPHQL_SCHEMA.md) - раздел Mutations
+- <CRITICAL>[GRAPHQL_SCHEMA.md](../../../database/GRAPHQL_SCHEMA.md) - раздел Mutations</CRITICAL>
 - [SERVER_ACTIONS.md](../../../api/SERVER_ACTIONS.md) - использование mutations
 
 **Критерии приемки:**
@@ -199,9 +495,38 @@ Phase 02: Настройка AWS Amplify Gen 1
 - Mutations имеют правильные @auth директивы
 - Input типы созданы для всех mutations
 
+<output_format>
+После выполнения задачи все необходимые mutations должны быть добавлены в schema. Mutations должны иметь правильные @auth директивы и Input типы.
+</output_format>
+
 ---
 
 ### Task 03.10: Добавление Subscriptions (опционально)
+
+<context>
+Subscriptions необходимы для real-time обновлений данных. Хотя это опциональная задача, правильная настройка subscriptions улучшит пользовательский опыт.
+</context>
+
+<task>
+Добавь subscriptions для real-time обновлений (если требуется) согласно GRAPHQL_SCHEMA.md. Настрой @auth директивы для subscriptions.
+</task>
+
+<constraints>
+- Subscriptions должны соответствовать GRAPHQL_SCHEMA.md раздел Subscriptions
+- Subscriptions должны иметь правильные @auth директивы
+- Используй правильный синтаксис @aws_subscribe
+</constraints>
+
+<thinking>
+Прежде чем приступить к реализации:
+1. Изучи GRAPHQL_SCHEMA.md раздел Subscriptions для понимания требований
+2. Используй Context7 для получения актуальной документации AWS AppSync Subscriptions
+3. Определи, какие subscriptions необходимы для MVP
+4. Определи правила авторизации для каждой subscription
+5. Только после этого добавляй subscriptions в schema
+</thinking>
+
+**Действия:**
 - [ ] Добавить subscriptions для real-time обновлений (если требуется):
   - `onCreateLesson: Lesson @aws_subscribe(mutations: ["createLesson"])`
   - `onUpdateLesson: Lesson @aws_subscribe(mutations: ["updateLesson"])`
@@ -216,9 +541,38 @@ Phase 02: Настройка AWS Amplify Gen 1
 - Subscriptions добавлены (если требуются)
 - Subscriptions имеют правильные @auth директивы
 
+<output_format>
+После выполнения задачи subscriptions должны быть добавлены в schema (если требуются). Subscriptions должны иметь правильные @auth директивы.
+</output_format>
+
 ---
 
 ### Task 03.11: Валидация GraphQL Schema
+
+<context>
+<CRITICAL>Это критически важная задача перед push в AWS!</CRITICAL> Валидация GraphQL Schema необходима для выявления ошибок перед созданием таблиц в AWS. Ошибки на этом этапе легче исправить, чем после push.
+</context>
+
+<task>
+Проведи валидацию GraphQL Schema используя команду `amplify api gql-compile`. Убедись, что schema компилируется без ошибок, все типы правильно связаны, и все @auth директивы корректны.
+</task>
+
+<constraints>
+- Schema должна компилироваться без ошибок
+- Все типы должны быть правильно связаны
+- Все @auth директивы должны быть валидны
+- Не должно быть синтаксических ошибок
+</constraints>
+
+<thinking>
+Прежде чем приступить к реализации:
+1. Убедись, что все предыдущие задачи выполнены
+2. Изучи GRAPHQL_SCHEMA.md для понимания ожидаемой структуры
+3. Используй Context7 для получения актуальной документации AWS AppSync
+4. Только после этого запускай валидацию
+</thinking>
+
+**Действия:**
 - [ ] Проверить синтаксис schema: `amplify api gql-compile`
 - [ ] Убедиться, что нет синтаксических ошибок
 - [ ] Проверить, что все типы правильно связаны
@@ -233,9 +587,39 @@ Phase 02: Настройка AWS Amplify Gen 1
 - Все типы и связи корректны
 - @auth директивы валидны
 
+<output_format>
+После выполнения задачи schema должна компилироваться без ошибок. Все типы и связи должны быть корректны, и все @auth директивы должны быть валидны.
+</output_format>
+
 ---
 
 ### Task 03.12: Push схемы в AWS (создание таблиц)
+
+<context>
+<CRITICAL>Это критически важная задача!</CRITICAL> Push схемы в AWS создает все таблицы DynamoDB и настраивает AppSync API. После push откатить изменения сложно, поэтому важно убедиться, что все правильно настроено.
+</context>
+
+<task>
+Запусти `amplify push` для создания всех таблиц DynamoDB и настройки AppSync API в AWS. Убедись, что все таблицы и GSI созданы корректно.
+</task>
+
+<constraints>
+- Используй команду `amplify push` (Gen 1, НЕ Gen 2!)
+- Подтверди создание ресурсов только после проверки
+- Дождись завершения создания всех таблиц
+- Проверь создание таблиц в AWS Console
+- Все GSI должны быть созданы
+</constraints>
+
+<thinking>
+Прежде чем приступить к реализации:
+1. Убедись, что валидация schema прошла успешно (Task 03.11)
+2. Изучи AWS_AMPLIFY.md раздел Push для понимания процесса
+3. Подготовься к проверке созданных таблиц в AWS Console
+4. Только после этого запускай `amplify push`
+</thinking>
+
+**Действия:**
 - [ ] Запустить `amplify push`
 - [ ] Подтвердить создание ресурсов: `Yes`
 - [ ] Дождаться завершения создания таблиц DynamoDB
@@ -243,7 +627,7 @@ Phase 02: Настройка AWS Amplify Gen 1
 - [ ] Убедиться, что все таблицы созданы в AWS Console
 
 **Документация:**
-- [AWS_AMPLIFY.md](../../../infrastructure/AWS_AMPLIFY.md) - раздел Push
+- <CRITICAL>[AWS_AMPLIFY.md](../../../infrastructure/AWS_AMPLIFY.md) - раздел Push</CRITICAL>
 - AWS DynamoDB Console документация
 
 **Критерии приемки:**
@@ -252,9 +636,38 @@ Phase 02: Настройка AWS Amplify Gen 1
 - Все GSI созданы
 - AppSync API создан и работает
 
+<output_format>
+После выполнения задачи все таблицы DynamoDB должны быть созданы в AWS, все GSI должны быть созданы, и AppSync API должен быть создан и работать.
+</output_format>
+
 ---
 
 ### Task 03.13: Проверка созданных таблиц в AWS Console
+
+<context>
+Проверка созданных таблиц в AWS Console необходима для подтверждения правильности создания всех таблиц и GSI. Это важный шаг перед переходом к тестированию API.
+</context>
+
+<task>
+Проверь созданные таблицы в AWS Console. Убедись, что все таблицы созданы, структура соответствует схеме, и GSI созданы корректно.
+</task>
+
+<constraints>
+- Все таблицы должны быть видны в AWS Console
+- Структура таблиц должна соответствовать DYNAMODB_SCHEMA.md
+- GSI должны быть созданы и работать
+- Настройки таблиц должны быть проверены
+</constraints>
+
+<thinking>
+Прежде чем приступить к реализации:
+1. Убедись, что push выполнен успешно (Task 03.12)
+2. Изучи DYNAMODB_SCHEMA.md для понимания ожидаемой структуры
+3. Подготовься к проверке всех таблиц и GSI
+4. Только после этого проверяй таблицы в AWS Console
+</thinking>
+
+**Действия:**
 - [ ] Открыть AWS Console -> DynamoDB
 - [ ] Проверить наличие всех таблиц
 - [ ] Проверить структуру каждой таблицы (ключи, индексы)
@@ -262,7 +675,7 @@ Phase 02: Настройка AWS Amplify Gen 1
 - [ ] Проверить настройки таблиц (read/write capacity, billing mode)
 
 **Документация:**
-- [DYNAMODB_SCHEMA.md](../../../database/DYNAMODB_SCHEMA.md)
+- <CRITICAL>[DYNAMODB_SCHEMA.md](../../../database/DYNAMODB_SCHEMA.md)</CRITICAL>
 - AWS DynamoDB Console документация
 
 **Критерии приемки:**
@@ -270,9 +683,38 @@ Phase 02: Настройка AWS Amplify Gen 1
 - Структура таблиц соответствует схеме
 - GSI созданы и работают
 
+<output_format>
+После выполнения задачи все таблицы должны быть видны в AWS Console, структура должна соответствовать схеме, и GSI должны быть созданы и работать.
+</output_format>
+
 ---
 
 ### Task 03.14: Тестирование GraphQL API
+
+<context>
+Тестирование GraphQL API необходимо для подтверждения правильности работы всех queries, mutations и авторизации. Это важный шаг перед переходом к следующей фазе.
+</context>
+
+<task>
+Протестируй GraphQL API в AWS AppSync Console. Проверь работу queries, mutations и авторизации.
+</task>
+
+<constraints>
+- GraphQL API должен работать корректно
+- Queries должны возвращать данные
+- Mutations должны создавать записи
+- Авторизация должна работать правильно
+</constraints>
+
+<thinking>
+Прежде чем приступить к реализации:
+1. Убедись, что все таблицы созданы (Task 03.13)
+2. Изучи GRAPHQL_SCHEMA.md для понимания доступных queries и mutations
+3. Подготовь тестовые данные для проверки
+4. Только после этого тестируй API
+</thinking>
+
+**Действия:**
 - [ ] Открыть AWS AppSync Console
 - [ ] Перейти в раздел Queries
 - [ ] Протестировать простой query (например, `listGrades`)
@@ -289,9 +731,39 @@ Phase 02: Настройка AWS Amplify Gen 1
 - Mutations создают записи
 - Авторизация работает
 
+<output_format>
+После выполнения задачи GraphQL API должен работать корректно. Queries должны возвращать данные, mutations должны создавать записи, и авторизация должна работать.
+</output_format>
+
 ---
 
 ### Task 03.15: Документирование созданной схемы
+
+<context>
+<CRITICAL>Это финальная задача фазы!</CRITICAL> Документирование созданной схемы критически важно для команды и будущей работы с проектом. Все изменения и важные решения должны быть задокументированы.
+</context>
+
+<task>
+Задокументируй созданную схему базы данных. Обнови GRAPHQL_SCHEMA.md если были изменения, задокументируй отклонения от первоначальной схемы и создай заметки о важных решениях.
+</task>
+
+<constraints>
+- Документация должна быть обновлена
+- Все изменения должны быть задокументированы
+- Важные решения должны быть записаны
+- Документация должна быть доступна для команды
+</constraints>
+
+<thinking>
+Прежде чем приступить к реализации:
+1. Собери всю информацию о созданной схеме
+2. Определи, какие изменения были внесены
+3. Определи важные решения по моделированию данных
+4. Изучи GRAPHQL_SCHEMA.md и DATA_MODELING.md для понимания структуры документации
+5. Только после этого обновляй документацию
+</thinking>
+
+**Действия:**
 - [ ] Обновить [GRAPHQL_SCHEMA.md](../../../database/GRAPHQL_SCHEMA.md) если были изменения
 - [ ] Задокументировать любые отклонения от первоначальной схемы
 - [ ] Создать заметки о важных решениях по моделированию данных
@@ -304,6 +776,10 @@ Phase 02: Настройка AWS Amplify Gen 1
 - Документация обновлена
 - Изменения задокументированы
 - Важные решения записаны
+
+<output_format>
+После выполнения задачи вся документация должна быть обновлена. Все изменения должны быть задокументированы, и важные решения должны быть записаны.
+</output_format>
 
 ---
 

@@ -43,6 +43,7 @@ Phase 13: Управление уроками (Lessons)
 **Документация:**
 - [WIREFRAMES.md](../../../ui_ux/WIREFRAMES.md) - раздел Golden Verses List
 - [USER_FLOW.md](../../../user_flows/USER_FLOW.md) - раздел Golden Verses
+- [TEACHER_FLOWS.md](../../../user_flows/TEACHER_FLOWS.md) - раздел 8.1 Просмотр библиотеки золотых стихов
 
 **Критерии приемки:**
 - Страница списка создана
