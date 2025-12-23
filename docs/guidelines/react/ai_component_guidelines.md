@@ -29,6 +29,14 @@ Pages/Views → Layouts → Organisms → Molecules → Atoms
 - **Accessibility**: Components should follow WCAG guidelines
 - **Explicit Typing**: Use explicit parameter typing `(props: PropsType)` instead of `React.FC<PropsType>` for better type inference and flexibility
 - **Arrow Functions**: ⚠️ **MANDATORY REQUIREMENT**: All React components MUST be defined as arrow functions (`const ComponentName = (props: PropsType) => {...}`), NOT as regular functions (`function ComponentName() {...}`). This rule applies to all components: Server Components, Client Components, pages, layouts, and any other React components. Exception: Server Actions and utility functions may use regular functions.
+- **SOLID Principles**: Components should follow SOLID principles:
+  - **Single Responsibility Principle (SRP)**: Each component should have one clear responsibility and one reason to change
+  - **Open/Closed Principle (OCP)**: Components should be open for extension through composition, but closed for modification
+  - **Liskov Substitution Principle (LSP)**: Sub-components should be interchangeable without breaking parent component functionality
+  - **Interface Segregation Principle (ISP)**: Props interfaces should be specific and not force components to implement unnecessary properties
+  - **Dependency Inversion Principle (DIP)**: Components should depend on abstractions (interfaces, types), not on concrete implementations
+- **Component Size Limit**: ⚠️ **MANDATORY REQUIREMENT**: Components must not exceed **100 lines of code** (code lines only, excluding comments and empty lines). If the limit is exceeded, **refactoring is required**.
+- **Code Language**: ⚠️ **MANDATORY REQUIREMENT**: All code in this document (examples, code comments, variable names, function names, component names) must be exclusively in English.
 
 ### 1.3. Why Not React.FC?
 
@@ -58,6 +66,107 @@ export const Component: React.FC<ComponentProps> = ({ prop1, prop2 }) => {
   // component implementation
 };
 ```
+
+### 1.4. Component Size and Refactoring
+
+#### 1.4.1. Component Size Limit
+
+**⚠️ MANDATORY REQUIREMENT**: All React components must contain no more than **100 lines of code**.
+
+**Code Language Requirement**: ⚠️ **MANDATORY REQUIREMENT**: All code in this document (examples, code comments, variable names, function names, component names) must be exclusively in English.
+
+**How to count lines:**
+- Count only code lines (TypeScript/JavaScript)
+- **Exclude**: comments, empty lines, JSDoc blocks
+- **Include**: imports, type interfaces, component logic, JSX markup
+
+**Counting example:**
+```typescript
+// This line is NOT counted (comment)
+import React from 'react'; // ← Counted (line 1)
+
+interface Props { // ← Counted (line 2)
+  name: string; // ← Counted (line 3)
+} // ← Counted (line 4)
+
+// Empty line is NOT counted
+
+export const Component = ({ name }: Props) => { // ← Counted (line 5)
+  return <div>{name}</div>; // ← Counted (line 6)
+}; // ← Counted (line 7)
+```
+
+#### 1.4.2. Refactoring Strategies
+
+If a component exceeds 100 lines, it is necessary to refactor using the following strategies:
+
+**1. Splitting into Sub-components (Atomic Design)**
+- Extract logical parts into separate components (Molecules, Atoms)
+- Use composition to combine sub-components
+
+**2. Extracting Logic into Custom Hooks**
+- Move business logic and state into custom hooks
+- Leave only presentation logic in the component
+
+**3. Extracting Utility Functions**
+- Extract calculations and data transformations into separate functions in `lib/`
+- Use pure functions for data processing
+
+**4. Using Component Composition**
+- Apply Compound Components or Render Props patterns
+- Split responsibilities between components
+
+**Refactoring Example:**
+
+```typescript
+// ❌ BAD: Component exceeds 100 lines
+export const UserProfile = ({ userId }: UserProfileProps) => {
+  // ... 200+ lines of code with logic, state, handlers and JSX
+};
+
+// ✅ GOOD: Splitting into sub-components and hooks
+// hooks/useUserProfile.ts
+export const useUserProfile = (userId: string) => {
+  // Logic for fetching and processing user data
+};
+
+// components/molecules/UserAvatar.tsx
+export const UserAvatar = ({ user }: UserAvatarProps) => {
+  // User avatar component
+};
+
+// components/molecules/UserInfo.tsx
+export const UserInfo = ({ user }: UserInfoProps) => {
+  // User information component
+};
+
+// components/organisms/UserProfile.tsx
+export const UserProfile = ({ userId }: UserProfileProps) => {
+  const { user, loading, error } = useUserProfile(userId);
+  
+  if (loading) return <LoadingSpinner />;
+  if (error) return <ErrorMessage error={error} />;
+  
+  return (
+    <div>
+      <UserAvatar user={user} />
+      <UserInfo user={user} />
+    </div>
+  );
+};
+```
+
+#### 1.4.3. When to Refactor
+
+Refactoring is necessary when:
+
+- Component exceeds 100 lines of code
+- Component has multiple responsibilities (SRP violation)
+- Component is difficult to test
+- Component is difficult to maintain and extend
+- Component has deep JSX nesting (>3 levels)
+
+**Important**: Refactoring must preserve component functionality and not break existing interfaces.
 
 ---
 
