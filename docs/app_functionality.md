@@ -5,12 +5,6 @@
 **Последнее обновление:** 11 ноября 2025  
 **Язык:** Русский
 
-> **Изменения в версии 2.0:**
-> - Обновлен технический стек: заменены Prisma ORM и PostgreSQL на AWS Amplify Data (GraphQL через AppSync) и AWS DynamoDB
-> - Обновлена аутентификация: заменен Auth.js на AWS Cognito / Amplify Auth
-> - Обновлена инфраструктура: добавлены AWS Amplify Hosting / AWS SAM для deployment
-> - Убраны упоминания React Query (используются Server Components для серверного состояния)
-
 ---
 
 ## Содержание
@@ -45,10 +39,10 @@ Sunday School App — веб-приложение для автоматизац�
 - ✅ Ролевой доступ (Teacher, Admin, Superadmin)
 
 ### 1.3 Технический стек
-- **Frontend:** Next.js 16+ (App Router, React 19), TypeScript, Shadcn UI + Tailwind CSS, Zustand (глобальное состояние), Server Components для серверного состояния, поддержка Server/Client Components.
-- **Backend & API:** Next.js Server Actions, AWS Amplify Data (GraphQL через AppSync), AWS DynamoDB, валидация через Zod.
+- **Frontend:** Next.js 15.5.9 (App Router, React 19), TypeScript, Shadcn UI + Tailwind CSS, Zustand (глобальное состояние), Server Components по умолчанию, поддержка Server/Client Components.
+- **Backend & API:** Next.js Server Actions, AWS Amplify Data (Gen 1, CLI: `amplify init/add api/push`) с GraphQL через AppSync поверх DynamoDB, валидация через Zod.
 - **Аутентификация и безопасность:** AWS Cognito / Amplify Auth с JWT токенами, middleware для ролевого доступа через Cognito Groups.
-- **Архитектура и инфраструктура:** AWS Amplify Hosting / AWS SAM для deployment, AWS DynamoDB для хранения данных, AWS S3 для файлов, CloudFront CDN, npm и Turbopack/webpack для сборки, ESLint/Prettier, AWS CodePipeline (планируется) для CI/CD.
+- **Архитектура и инфраструктура:** AWS Amplify Hosting (Gen 1) + CloudFront CDN; AWS S3 для файлов; npm и Turbopack/webpack для сборки; ESLint/Prettier; AWS CodePipeline (планируется) для CI/CD; AWS SAM — опционально для отдельных Lambda (future).
 
 ---
 
