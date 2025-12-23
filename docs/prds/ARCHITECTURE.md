@@ -994,6 +994,8 @@ if (groups.includes('teachers') && !groups.includes('admins')) {
 
 **Принцип:** Минимальное использование Zustand, только для клиентского UI состояния.
 
+> 📖 **Подробные инструкции:** См. [`docs/guidelines/react/ai_zustand_store_nextjs_guideline.md`](../guidelines/react/ai_zustand_store_nextjs_guideline.md) для детальных паттернов и best practices использования Zustand в Next.js.
+
 ### 6.1. UI Store
 
 ```typescript
