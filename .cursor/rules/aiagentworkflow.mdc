@@ -16,6 +16,53 @@ The CursorAI agent must follow the steps below for each development task to ensu
 
 - **Goal**: Understand task requirements and align with project architecture.
 - **Actions**:
+  - **⚠️ CRITICALLY IMPORTANT: Pre-Task Verification**:
+    - **Mandatory rule**: Before executing any task from the implementation phase task list, the CursorAI agent **MUST** perform a comprehensive verification of task completion status.
+    - **Verification process**:
+      1. **Check task status in phase files**:
+         - Review the corresponding phase file in `docs/implementation/mvp/tasks/phase_*.md` for the current implementation phase.
+         - Identify all tasks related to the current instruction or task block.
+         - Check the completion status of each task (`- [ ]` for incomplete, `- [x]` for complete).
+      2. **Verify code existence**:
+         - For each task marked as incomplete (`- [ ]`), verify if the required code files actually exist in the codebase.
+         - Check if the files mentioned in the task description are present (e.g., components, Server Actions, utilities).
+         - Verify if the functionality described in the task is already implemented.
+         - Use codebase search and file system inspection to confirm code existence.
+      3. **Update task status if code exists**:
+         - If code files exist and functionality is implemented, but task status is `- [ ]`:
+           - Update task status from `- [ ]` to `- [x]` in the corresponding phase file.
+           - Document the verification: "✅ Task already completed - code verified and status updated."
+         - If code files exist but are incomplete or partially implemented:
+           - Document findings: "⚠️ Task partially completed - [describe what exists and what's missing]."
+           - Proceed with completing the missing parts.
+      4. **Quality assessment** (if task is already completed):
+         - Review the existing implementation for:
+           - **Architecture compliance**: Correct file placement, correct imports, adherence to project structure.
+           - **TypeScript compliance**: Strict typing, no `any` types, proper type definitions.
+           - **Code quality**: Following project patterns, proper error handling, JSDoc comments.
+           - **Functionality completeness**: All requirements from task description are met.
+           - **Integration**: Proper integration with amplifyData, AWS Cognito, and other services.
+         - If quality issues are found:
+           - Document findings: "⚠️ Quality issues detected: [list issues]."
+           - Propose improvements: "💡 Suggested improvements: [list improvements]."
+           - **Important**: Only propose improvements if they are critical for functionality or architecture compliance. For MVP, minor improvements can be deferred.
+         - If implementation is of acceptable quality:
+           - Document: "✅ Task verified - implementation quality is acceptable."
+           - Skip re-implementation unless user explicitly requests changes.
+      5. **Proceed with task execution**:
+         - If task is incomplete or code doesn't exist: proceed with normal task execution workflow (Steps 2-7).
+         - If task is complete and quality is acceptable: skip to Step 7 (Documentation Update) to ensure documentation is up to date.
+         - If task is complete but quality issues are critical: proceed with improvements following Steps 2-7.
+    - **This verification prevents**:
+      - Duplicate work on already completed tasks.
+      - Inconsistent task status in phase files.
+      - Missing updates to task status when code exists but status is incorrect.
+      - Proceeding with implementation without understanding existing codebase state.
+    - **Verification must be performed**:
+      - Before executing any task from `docs/implementation/mvp/tasks/phase_*.md`.
+      - Before executing any task block or group of tasks.
+      - When user requests work on a specific phase or task.
+      - When starting a new implementation phase.
   - Study the task description and cross-reference with relevant sections:
     - [`docs/MVP_SCOPE.md`](docs/MVP_SCOPE.md) - what is included and not included in MVP.
     - [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md) - technical architecture of the project.

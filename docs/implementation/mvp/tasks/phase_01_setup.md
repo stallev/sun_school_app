@@ -152,6 +152,7 @@ TypeScript должен быть настроен с строгой типиза
 </context>
 
 <task>
+Перед установкой BlockNote изучи актуальную документацию интеграции BlockNote с shadcn компонентами по ссылке `https://www.blocknotejs.org/docs/getting-started/shadcn`.
 Установи все основные зависимости проекта: React 19, Zustand, Framer Motion, BlockNote и lucide-react. Проверь совместимость всех пакетов с Next.js 15.5.9 перед установкой.
 </task>
 
@@ -175,7 +176,7 @@ TypeScript должен быть настроен с строгой типиза
 - [ ] Установить React 19: `npm install react@^19.0.0 react-dom@^19.0.0`
 - [ ] Установить Zustand: `npm install zustand@latest`
 - [ ] Установить Framer Motion: `npm install framer-motion@latest`
-- [ ] Установить BlockNote: `npm install @blocknote/core @blocknote/react`
+- [ ] Установить BlockNote: `npm install @blocknote/core @blocknote/react @blocknote/shadcn`
 - [ ] Установить lucide-react для иконок: `npm install lucide-react`
 - [ ] Проверить совместимость всех зависимостей с Next.js 15.5.9
 
