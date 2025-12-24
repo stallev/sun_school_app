@@ -40,4 +40,16 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# AWS Amplify
+.amplify/
+amplifyconfiguration.json
+amplifyconfiguration.*.json
+amplify-build-config.json
+amplify-gradle-output.json
+amplifytools.xcconfig
+amplifytools.d.ts
+amplify_outputs.json
+amplify_outputs.*.json
+
+# examples
 /examples

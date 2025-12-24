@@ -312,6 +312,7 @@
 **Документация:**
 - <CRITICAL>[DEPLOYMENT_GUIDE.md](../../../deployment/DEPLOYMENT_GUIDE.md) - раздел AWS Amplify Hosting</CRITICAL>
 - <CRITICAL>[AWS_AMPLIFY.md](../../../infrastructure/AWS_AMPLIFY.md) - раздел Hosting</CRITICAL>
+- <CRITICAL>[AMPLIFY_COMPATIBILITY.md](../../../infrastructure/AMPLIFY_COMPATIBILITY.md) - Совместимость Next.js 15.5.9 с AWS Amplify Hosting</CRITICAL>
 - <CRITICAL>AWS Amplify Hosting официальная документация (через Context7)</CRITICAL>
 
 **Критерии приемки:**

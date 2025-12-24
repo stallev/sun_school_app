@@ -439,6 +439,31 @@ The CursorAI agent must follow the steps below for each development task to ensu
     - Ensure task matches completed work.
     - If task was split into subtasks, update status of all completed subtasks.
   - If task affects development plan, update [`docs/implementation/mvp/implementation_phases_list.md`](docs/implementation/mvp/implementation_phases_list.md) with additional information.
+  - **⚠️ CRITICALLY IMPORTANT: Documentation Integration**:
+    - **Mandatory rule**: After creating or updating any documentation file (e.g., in `docs/infrastructure/`, `docs/architecture/`, `docs/api/`, etc.), the CursorAI agent **MUST** integrate it into the project documentation system.
+    - **Integration process**:
+      1. **Add references in phase task files**:
+         - Review all phase files in `docs/implementation/mvp/tasks/phase_*.md`.
+         - Identify tasks that are related to the new/updated documentation.
+         - Add links to the new documentation in the **Документация** section of relevant tasks.
+         - Use format: `- [DOCUMENT_NAME.md](../../../path/to/DOCUMENT_NAME.md) - description`
+      2. **Update main documentation index** (if exists):
+         - Add reference to new documentation in main documentation files (e.g., `README.md`, `docs/README.md`).
+      3. **Cross-reference with related documents**:
+         - Add links to new documentation in related documents (e.g., if creating AWS Amplify doc, add link in `ARCHITECTURE.md`, `DEPLOYMENT_GUIDE.md`).
+         - Ensure bidirectional links where appropriate.
+      4. **Update implementation phases list** (if applicable):
+         - If documentation affects implementation plan, update `docs/implementation/mvp/implementation_phases_list.md`.
+    - **This ensures**:
+      - New documentation is discoverable and accessible.
+      - Developers can easily find relevant documentation when working on tasks.
+      - Documentation system remains organized and comprehensive.
+      - No orphaned documentation files.
+    - **Example**:
+      - Created `docs/infrastructure/AMPLIFY_COMPATIBILITY.md`
+      - Added link in `docs/implementation/mvp/tasks/phase_01_setup.md` Task 01.07
+      - Added link in `docs/infrastructure/AWS_AMPLIFY.md` (if exists)
+      - Added link in `docs/deployment/DEPLOYMENT_GUIDE.md` (if exists)
   - Ensure all documentation and code comments are in English.
 
 ---

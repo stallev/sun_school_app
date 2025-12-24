@@ -29,6 +29,10 @@ This document provides a comprehensive guide to configuring **AWS Amplify Genera
 
 **⚠️ CRITICAL:** This project uses **Amplify Gen 1**, NOT Gen 2. All CLI commands and configurations follow Gen 1 conventions.
 
+### 1.3 Next.js Compatibility
+
+**Important:** Before deploying to AWS Amplify Hosting, verify Next.js compatibility. See [AMPLIFY_COMPATIBILITY.md](./AMPLIFY_COMPATIBILITY.md) for detailed compatibility information for Next.js 15.5.9 with AWS Amplify Hosting, including support for App Router, Server Actions, and Server Components.
+
 ---
 
 ## 2. Prerequisites

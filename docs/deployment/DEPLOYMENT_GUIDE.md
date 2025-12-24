@@ -98,6 +98,8 @@ AWS_REGION=us-east-1
 -   **Managed SSL:** Automatic HTTPS with AWS Certificate Manager.
 -   **Preview Environments:** Branch-based preview deployments.
 
+**⚠️ Important:** Before deploying, verify Next.js 15.5.9 compatibility with AWS Amplify Hosting. See [AMPLIFY_COMPATIBILITY.md](../infrastructure/AMPLIFY_COMPATIBILITY.md) for detailed compatibility information, including support for App Router, Server Actions, and Server Components.
+
 ---
 
 ### 3.2. Initial Setup
