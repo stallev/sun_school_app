@@ -169,9 +169,9 @@ AWS credentials необходимы для работы с AWS сервисам
 </thinking>
 
 **Действия:**
-- [ ] Перейти в корневую директорию проекта
-- [ ] Запустить `amplify init`
-- [ ] Выбрать опции:
+- [x] Перейти в корневую директорию проекта
+- [x] Запустить `amplify init`
+- [x] Выбрать опции:
   - Enter a name for the project: `sun-sch` (или другое имя)
   - Initialize the project with the above configuration: `Yes`
   - Select the authentication method: `AWS profile` (или `AWS access keys`)
@@ -183,7 +183,7 @@ AWS credentials необходимы для работы с AWS сервисам
   - Build Command: `npm run build`
   - Start Command: `npm run start` (или `npm run dev` для dev)
   - Do you want to use an AWS profile: `Yes` (выбрать профиль)
-- [ ] Дождаться завершения инициализации
+- [x] Дождаться завершения инициализации
 
 **Документация:**
 - <CRITICAL>[AWS_AMPLIFY.md](../../../infrastructure/AWS_AMPLIFY.md) - раздел Initialization</CRITICAL>
@@ -226,11 +226,11 @@ AWS credentials необходимы для работы с AWS сервисам
 </thinking>
 
 **Действия:**
-- [ ] Проверить наличие папки `.amplify/`
+- [x] Проверить наличие папки `.amplify/`
 - [ ] Проверить наличие файла `amplify/backend/amplify-meta.json`
-- [ ] Проверить наличие файла `amplify/team-provider-info.json`
-- [ ] Убедиться, что структура соответствует Gen 1 (не Gen 2)
-- [ ] Проверить содержимое `amplify.yml` (если существует)
+- [x] Проверить наличие файла `amplify/team-provider-info.json`
+- [x] Убедиться, что структура соответствует Gen 1 (не Gen 2)
+- [x] Проверить содержимое `amplify.yml` (если существует)
 
 **Документация:**
 - <CRITICAL>[AWS_AMPLIFY.md](../../../infrastructure/AWS_AMPLIFY.md) - раздел Project Structure</CRITICAL>
@@ -275,16 +275,16 @@ AWS credentials необходимы для работы с AWS сервисам
 </thinking>
 
 **Действия:**
-- [ ] Проверить текущее окружение: `amplify env list`
-- [ ] Создать окружение dev (если не создано): `amplify env add`
+- [x] Проверить текущее окружение: `amplify env list`
+- [x] Создать окружение dev (если не создано): `amplify env add`
   - Enter a name for the environment: `dev`
   - Select the authentication method: выбрать метод
-- [ ] Создать окружение prod: `amplify env add`
+- [x] Создать окружение prod: `amplify env add`
   - Enter a name for the environment: `prod`
   - Select the authentication method: выбрать метод
   - **Для multi-region setup:** Использовать AWS profile для региона `eu-west-1` (если prod должен быть в другом регионе)
-- [ ] Переключиться на dev окружение: `amplify env checkout dev`
-- [ ] Настроить связь веток Git с окружениями в AWS Console (если используется Amplify Hosting):
+- [x] Переключиться на dev окружение: `amplify env checkout dev`
+- [x] Настроить связь веток Git с окружениями в AWS Console (если используется Amplify Hosting):
   - Ветка `dev` → backend окружение `dev`
   - Ветка `master` → backend окружение `prod`
 
@@ -339,13 +339,13 @@ AWS credentials необходимы для работы с AWS сервисам
 </thinking>
 
 **Действия:**
-- [ ] Проверить поддержку Next.js 15.5.9 в Amplify Hosting
-- [ ] Изучить требования к `amplify.yml` для Next.js
-- [ ] Создать или обновить `amplify.yml` с правильной конфигурацией для Next.js
+- [x] Проверить поддержку Next.js 15.5.9 в Amplify Hosting
+- [x] Изучить требования к `amplify.yml` для Next.js
+- [x] Создать или обновить `amplify.yml` с правильной конфигурацией для Next.js
   - Добавить логику автоматического выбора backend окружения по ветке (master → prod, dev → dev)
-- [ ] Настроить связь ветки `master` с prod окружением в AWS Console
-- [ ] Проверить, что prod окружение использует регион `eu-west-1` (если настроено multi-region)
-- [ ] Настроить build settings для Next.js:
+- [x] Настроить связь ветки `master` с prod окружением в AWS Console
+- [x] Проверить, что prod окружение использует регион `eu-west-1` (если настроено multi-region)
+- [x] Настроить build settings для Next.js:
   - version: `1`
   - frontend:
     - phases:
@@ -409,10 +409,10 @@ AWS credentials необходимы для работы с AWS сервисам
 </thinking>
 
 **Действия:**
-- [ ] Проверить статус: `amplify status`
-- [ ] Убедиться, что проект инициализирован корректно
-- [ ] Проверить текущее окружение
-- [ ] Проверить наличие backend ресурсов (пока должно быть пусто)
+- [x] Проверить статус: `amplify status`
+- [x] Убедиться, что проект инициализирован корректно
+- [x] Проверить текущее окружение
+- [x] Проверить наличие backend ресурсов (пока должно быть пусто)
 
 **Документация:**
 - [AWS_AMPLIFY.md](../../../infrastructure/AWS_AMPLIFY.md)
@@ -454,11 +454,11 @@ AWS credentials необходимы для работы с AWS сервисам
 </thinking>
 
 **Действия:**
-- [ ] Открыть `.gitignore`
-- [ ] Добавить строку `.amplify/` (если еще не добавлено)
-- [ ] Добавить строку `amplify/` (если необходимо)
-- [ ] Убедиться, что `amplify/team-provider-info.json` не игнорируется (содержит важную информацию)
-- [ ] Проверить, что `amplify.yml` не игнорируется (нужен для деплоя)
+- [x] Открыть `.gitignore`
+- [x] Добавить строку `.amplify/` (если еще не добавлено)
+- [x] Добавить строку `amplify/` (если необходимо)
+- [x] Убедиться, что `amplify/team-provider-info.json` не игнорируется (содержит важную информацию)
+- [x] Проверить, что `amplify.yml` не игнорируется (нужен для деплоя)
 
 **Документация:**
 - [DEPLOYMENT_GUIDE.md](../../../deployment/DEPLOYMENT_GUIDE.md)
@@ -500,10 +500,10 @@ AWS credentials необходимы для работы с AWS сервисам
 </thinking>
 
 **Действия:**
-- [ ] Задокументировать выбранный регион AWS
-- [ ] Задокументировать имена окружений (dev, prod)
-- [ ] Задокументировать структуру проекта Amplify
-- [ ] Создать заметки о важных настройках
+- [x] Задокументировать выбранный регион AWS
+- [x] Задокументировать имена окружений (dev, prod)
+- [x] Задокументировать структуру проекта Amplify
+- [x] Создать заметки о важных настройках
 
 **Документация:**
 - [AWS_AMPLIFY.md](../../../infrastructure/AWS_AMPLIFY.md)
@@ -544,10 +544,10 @@ AWS credentials необходимы для работы с AWS сервисам
 </thinking>
 
 **Действия:**
-- [ ] Запустить `amplify status` и проверить отсутствие ошибок
-- [ ] Проверить, что можно переключаться между окружениями: `amplify env checkout dev`
-- [ ] Убедиться, что AWS credentials работают
-- [ ] Проверить, что структура проекта соответствует Gen 1
+- [x] Запустить `amplify status` и проверить отсутствие ошибок
+- [x] Проверить, что можно переключаться между окружениями: `amplify env checkout dev`
+- [x] Убедиться, что AWS credentials работают
+- [x] Проверить, что структура проекта соответствует Gen 1
 
 **Документация:**
 - [AWS_AMPLIFY.md](../../../infrastructure/AWS_AMPLIFY.md)

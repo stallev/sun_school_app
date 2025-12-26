@@ -1,0 +1,28 @@
+{
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-sunsch-dev-f567d-authRole",
+      "UnauthRoleArn": "arn:aws:iam::707421297188:role/amplify-sunsch-dev-f567d-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::707421297188:role/amplify-sunsch-dev-f567d-authRole",
+      "Region": "us-east-1",
+      "DeploymentBucketName": "amplify-sunsch-dev-f567d-deployment",
+      "UnauthRoleName": "amplify-sunsch-dev-f567d-unauthRole",
+      "StackName": "amplify-sunsch-dev-f567d",
+      "StackId": "arn:aws:cloudformation:us-east-1:707421297188:stack/amplify-sunsch-dev-f567d/0a12ff00-e255-11f0-b6d9-12c787dab1bf",
+      "AmplifyAppId": "d2rgh6z0vn36x9"
+    }
+  },
+  "prod": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-sunsch-prod-e50ea-authRole",
+      "UnauthRoleArn": "arn:aws:iam::707421297188:role/amplify-sunsch-prod-e50ea-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::707421297188:role/amplify-sunsch-prod-e50ea-authRole",
+      "Region": "eu-west-1",
+      "DeploymentBucketName": "amplify-sunsch-prod-e50ea-deployment",
+      "UnauthRoleName": "amplify-sunsch-prod-e50ea-unauthRole",
+      "StackName": "amplify-sunsch-prod-e50ea",
+      "StackId": "arn:aws:cloudformation:eu-west-1:707421297188:stack/amplify-sunsch-prod-e50ea/886e7da0-e257-11f0-92af-06aca0acdb21",
+      "AmplifyAppId": "d1a795g3snm344"
+    }
+  }
+}
