@@ -542,6 +542,7 @@ AWS credentials необходимы для работы с AWS сервисам
 
 ## Ссылки на документацию проекта
 
+- <CRITICAL>[Руководство по ручному выполнению Phase 02](../manual_guides/phase_02_amplify_manual.md) - Подробное пошаговое руководство для ручного выполнения всех задач фазы</CRITICAL>
 - [AWS_AMPLIFY.md](../../../infrastructure/AWS_AMPLIFY.md) - Настройка AWS Amplify Gen 1
 - [ARCHITECTURE.md](../../../architecture/ARCHITECTURE.md) - Архитектура проекта
 - [DEPLOYMENT_GUIDE.md](../../../deployment/DEPLOYMENT_GUIDE.md) - Руководство по развертыванию
