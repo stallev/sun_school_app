@@ -1168,6 +1168,157 @@ amplify console auth
 npm install aws-amplify
 ```
 
+#### Issue 4: Next.js SSR App Returns 404 in Production
+
+**Symptoms:**
+
+-   App works in dev environment but returns 404 in production
+-   CloudFront returns "Error from cloudfront" with `server: AmazonS3`
+-   Build logs show: `CustomerError: It looks like you are attempting to deploy a Next.js SSR app, but your app's framework looks wrong`
+
+**Root Cause:**
+
+-   Amplify App is configured with wrong Platform (WEB instead of WEB_COMPUTE)
+-   Branch Framework is not set to "Next.js - SSR"
+
+**Solution:**
+
+**Step 1: Update App Platform to WEB_COMPUTE**
+
+```bash
+# Replace <app-id> and <region> with your values
+aws amplify update-app \
+  --app-id <app-id> \
+  --platform WEB_COMPUTE \
+  --region <region>
+
+# Example:
+aws amplify update-app \
+  --app-id d1a795g3snm344 \
+  --platform WEB_COMPUTE \
+  --region eu-west-1
+
+aws amplify update-app --app-id d1a795g3snm344 --platform WEB_COMPUTE --region eu-west-1
+aws amplify update-branch --app-id d1a795g3snm344 --branch-name master --framework "Next.js - SSR" --region eu-west-1  
+```
+
+**Step 2: Update Branch Framework to "Next.js - SSR"**
+
+```bash
+# Replace <app-id>, <branch-name>, and <region> with your values
+aws amplify update-branch \
+  --app-id <app-id> \
+  --branch-name <branch-name> \
+  --framework "Next.js - SSR" \
+  --region <region>
+
+# Example:
+aws amplify update-branch \
+  --app-id d1a795g3snm344 \
+  --branch-name master \
+  --framework "Next.js - SSR" \
+  --region eu-west-1
+```
+
+**Step 3: Trigger a New Build**
+
+```bash
+# Replace <app-id>, <branch-name>, and <region> with your values
+aws amplify start-job \
+  --app-id <app-id> \
+  --branch-name <branch-name> \
+  --job-type RELEASE \
+  --region <region>
+
+# Example:
+aws amplify start-job \
+  --app-id d1a795g3snm344 \
+  --branch-name master \
+  --job-type RELEASE \
+  --region eu-west-1
+```
+
+**Step 4: Check Build Status**
+
+```bash
+# Replace <app-id>, <branch-name>, <job-id>, and <region> with your values
+aws amplify get-job \
+  --app-id <app-id> \
+  --branch-name <branch-name> \
+  --job-id <job-id> \
+  --region <region>
+
+# Example:
+aws amplify get-job \
+  --app-id d1a795g3snm344 \
+  --branch-name master \
+  --job-id 6 \
+  --region eu-west-1
+```
+
+**Alternative: Fix via AWS Console**
+
+1. Open AWS Amplify Console: `https://<region>.console.aws.amazon.com/amplify/apps/<app-id>`
+2. Go to **App settings** → **General**
+3. Click **Edit**
+4. Set **Platform** to `WEB_COMPUTE`
+5. Set **Framework** to `Next.js - SSR`
+6. Save and redeploy
+
+#### Issue 5: Useful AWS CLI Commands for Amplify Hosting
+
+**List All Amplify Apps:**
+
+```bash
+aws amplify list-apps --region <region>
+```
+
+**Get App Details:**
+
+```bash
+aws amplify get-app --app-id <app-id> --region <region>
+```
+
+**List Branches for an App:**
+
+```bash
+aws amplify list-branches --app-id <app-id> --region <region>
+```
+
+**Get Branch Details:**
+
+```bash
+aws amplify get-branch --app-id <app-id> --branch-name <branch-name> --region <region>
+```
+
+**List Jobs (Builds) for a Branch:**
+
+```bash
+aws amplify list-jobs --app-id <app-id> --branch-name <branch-name> --region <region>
+```
+
+**Stop a Running Build:**
+
+```bash
+aws amplify stop-job --app-id <app-id> --branch-name <branch-name> --job-id <job-id> --region <region>
+```
+
+**Delete a Branch:**
+
+```bash
+aws amplify delete-branch --app-id <app-id> --branch-name <branch-name> --region <region>
+```
+
+**Update Environment Variables:**
+
+```bash
+aws amplify update-branch \
+  --app-id <app-id> \
+  --branch-name <branch-name> \
+  --environment-variables KEY1=value1,KEY2=value2 \
+  --region <region>
+```
+
 ---
 
 ## 10. Best Practices
