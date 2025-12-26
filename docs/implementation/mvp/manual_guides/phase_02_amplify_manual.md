@@ -990,6 +990,101 @@ amplify env add
 
 **Время выполнения:** 2-5 минут
 
+**Важно: Изоляция ресурсов между окружениями**
+
+Каждое backend окружение (dev и prod) создает **полностью изолированные** AWS ресурсы:
+
+- **Cognito User Pools:** Отдельные для dev и prod. Пользователи, зарегистрированные в dev, не могут получить доступ к prod, и наоборот.
+- **AppSync APIs:** Отдельные GraphQL endpoints для dev и prod с отдельными схемами.
+- **DynamoDB таблицы:** Полностью изолированные таблицы. Данные dev никогда не появятся в prod таблицах, и наоборот.
+- **S3 buckets:** Отдельные buckets для Storage и deployment артефактов.
+- **Lambda функции:** Отдельные функции (если используются) с отдельными конфигурациями.
+
+**Примеры имен ресурсов:**
+
+**Dev окружение:**
+- CloudFormation Stack: `amplify-sun-sch-dev-12345`
+- Cognito User Pool: `sun-sch-dev-UserPool-12345`
+- AppSync API: `sun-sch-dev-API-12345`
+- DynamoDB таблицы: `Lesson-dev-12345`, `Pupil-dev-12345`, `Teacher-dev-12345`
+- S3 buckets: `sun-sch-dev-storage-12345`, `amplify-sun-sch-dev-12345-deployment`
+
+**Prod окружение:**
+- CloudFormation Stack: `amplify-sun-sch-prod-67890`
+- Cognito User Pool: `sun-sch-prod-UserPool-67890`
+- AppSync API: `sun-sch-prod-API-67890`
+- DynamoDB таблицы: `Lesson-prod-67890`, `Pupil-prod-67890`, `Teacher-prod-67890`
+- S3 buckets: `sun-sch-prod-storage-67890`, `amplify-sun-sch-prod-67890-deployment`
+
+**Ключевой момент:** Данные dev и prod **полностью изолированы**. Нет способа, чтобы данные dev случайно появились в prod, или наоборот. Это обеспечивает безопасность и целостность данных.
+
+#### Шаг 3.1: Настройка prod окружения в другом регионе (опционально)
+
+**Почему:** Production окружение может быть развернуто в другом AWS регионе для:
+- Улучшения задержки для целевой аудитории
+- Соответствия требованиям (GDPR, data residency)
+- Резервирования и отказоустойчивости
+
+**Если prod должен быть в регионе `eu-west-1` (или другом, отличном от dev):**
+
+1. **Настройте AWS credentials для целевого региона:**
+   - Создайте отдельный AWS profile для prod региона:
+     ```bash
+     aws configure --profile prod-eu-west-1
+     ```
+   - Введите те же Access Key ID и Secret Access Key
+   - Укажите регион: `eu-west-1`
+
+2. **Создайте prod окружение с указанием профиля:**
+   ```bash
+   amplify env add
+   ```
+   
+   **Интерактивный процесс:**
+   
+   1. **Enter a name for the environment:**
+      ```
+      prod
+      ```
+   
+   2. **Select the authentication method you want to use:**
+      ```
+      AWS profile
+      ```
+   
+   3. **Please choose the profile you want to use:**
+      ```
+      prod-eu-west-1
+      ```
+      - Или используйте профиль, настроенный для региона `eu-west-1`
+
+**Что происходит:**
+
+- Amplify CLI создает окружение `prod` в регионе `eu-west-1`
+- Создает CloudFormation stack в регионе `eu-west-1`
+- Создает S3 bucket в регионе `eu-west-1`
+
+**Проверка региона:**
+
+После создания окружения проверьте регион:
+
+```bash
+cat amplify/team-provider-info.json | grep -A 5 '"prod"'
+```
+
+**Ожидаемый результат:**
+
+```json
+"prod": {
+  "awscloudformation": {
+    "Region": "eu-west-1",
+    ...
+  }
+}
+```
+
+**Примечание:** Если prod окружение уже создано в том же регионе, что и dev, и вы хотите переместить его в другой регион, потребуется удалить и пересоздать окружение. Это можно сделать позже, если необходимо.
+
 #### Шаг 4: Переключение на окружение `dev`
 
 **Почему:** Убедиться, что текущее окружение — `dev` для разработки.
@@ -1069,12 +1164,113 @@ cat amplify/team-provider-info.json
 
 **Примечание:** Оба окружения используют один и тот же `AmplifyAppId`, но разные CloudFormation stacks.
 
+**Важно:** Если prod окружение создано в другом регионе (например, `eu-west-1`), вы увидите разные регионы:
+
+```json
+{
+  "dev": {
+    "awscloudformation": {
+      "Region": "us-east-1",
+      ...
+    }
+  },
+  "prod": {
+    "awscloudformation": {
+      "Region": "eu-west-1",
+      ...
+    }
+  }
+}
+```
+
+#### Шаг 7: Настройка связи веток Git с окружениями (для Amplify Hosting)
+
+**Почему:** Если используется Amplify Hosting, нужно связать ветки Git с backend окружениями. Это позволяет автоматически использовать правильное backend окружение при деплое из разных веток.
+
+**Важно:** Эта настройка выполняется в **AWS Amplify Console**, а не в коде проекта. Код проекта не требует изменений для этой настройки.
+
+**Действие 1: Настройка в AWS Amplify Console**
+
+1. **Откройте AWS Amplify Console:**
+   - Перейдите на https://console.aws.amazon.com/amplify/
+   - Войдите в свой AWS аккаунт
+
+2. **Найдите ваш Amplify App:**
+   - Найдите приложение по имени проекта или AmplifyAppId
+
+3. **Подключите ветки Git (если еще не подключены):**
+   - Перейдите в раздел "App settings" → "General"
+   - Нажмите "Connect branch" для каждой ветки:
+     - **Ветка `dev`:** Подключите ветку `dev` из вашего Git репозитория
+     - **Ветка `master`:** Подключите ветку `master` из вашего Git репозитория
+
+4. **Настройте связь веток с backend окружениями:**
+   - Для каждой ветки перейдите в "App settings" → "Build settings"
+   - Найдите раздел "Backend environment" или "Environment variables"
+   - Установите:
+     - **Ветка `dev`:** Backend environment = `dev`
+     - **Ветка `master`:** Backend environment = `prod`
+
+**Что это означает:**
+
+- При push в ветку `dev` → Amplify автоматически использует backend окружение `dev`
+- При push в ветку `master` → Amplify автоматически использует backend окружение `prod` (в регионе `eu-west-1`, если настроено)
+
+**Действие 2: Опциональная настройка в `amplify.yml` (для автоматического выбора)**
+
+Если вы хотите, чтобы `amplify.yml` автоматически выбирал backend окружение на основе ветки, добавьте следующую логику:
+
+```yaml
+version: 1
+backend:
+  phases:
+    build:
+      commands:
+        - |
+          if [ "$AWS_BRANCH" = "master" ]; then
+            amplifyPush --simple --environment prod
+          elif [ "$AWS_BRANCH" = "dev" ]; then
+            amplifyPush --simple --environment dev
+          else
+            amplifyPush --simple --environment dev
+          fi
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - npm ci --cache .npm --prefer-offline
+    build:
+      commands:
+        - npm run build
+  artifacts:
+    baseDirectory: .next
+    files:
+      - '**/*'
+  cache:
+    paths:
+      - .next/cache/**/*
+      - .npm/**/*
+```
+
+**Объяснение:**
+
+- `${AWS_BRANCH}` — переменная окружения, содержащая имя текущей ветки Git
+- Если ветка `master` → используется окружение `prod` (в регионе `eu-west-1`)
+- Если ветка `dev` → используется окружение `dev`
+- Для других веток → используется окружение `dev` по умолчанию
+
+**Примечание:** Настройка в AWS Console имеет приоритет. Если в консоли указано backend окружение для ветки, оно будет использоваться независимо от логики в `amplify.yml`.
+
 ### Критерии успешного выполнения
 
 - ✅ Созданы окружения `dev` и `prod`
+- ✅ Prod окружение создано в регионе `eu-west-1` (если требуется multi-region setup)
 - ✅ Текущее окружение — `dev`
 - ✅ Команда `amplify env list` показывает оба окружения
 - ✅ Конфигурация сохранена в `amplify/team-provider-info.json`
+- ✅ Настроена связь веток Git с окружениями в AWS Console (если используется Amplify Hosting):
+  - Ветка `dev` → backend окружение `dev`
+  - Ветка `master` → backend окружение `prod`
 
 ### Что дальше
 
@@ -1139,6 +1335,16 @@ Amplify Hosting предоставляет:
 - ✅ Artifacts directory установлен в `.next`
 - ✅ Node.js версия 18.x или 20.x (проверьте в build logs)
 - ✅ Build image поддерживает Next.js App Router и Server Components
+
+6. **Проверьте связь веток Git с backend окружениями:**
+   - Перейдите в раздел "App settings" → "Build settings" для каждой ветки
+   - Проверьте настройку "Backend environment" или "Environment variables"
+   - Убедитесь, что:
+     - **Ветка `dev`** связана с backend окружением `dev`
+     - **Ветка `master`** связана с backend окружением `prod`
+   - Проверьте регион для каждой ветки:
+     - Dev окружение может быть в любом регионе (например, `us-east-1`)
+     - Prod окружение должно быть в регионе `eu-west-1` (если настроено multi-region)
 
 **Действие 2: Проверка локальной конфигурации**
 
@@ -1239,12 +1445,19 @@ backend:
   phases:
     build:
       commands:
-        - amplifyPush --simple
+        - |
+          if [ "$AWS_BRANCH" = "master" ]; then
+            amplifyPush --simple --environment prod
+          elif [ "$AWS_BRANCH" = "dev" ]; then
+            amplifyPush --simple --environment dev
+          else
+            amplifyPush --simple --environment dev
+          fi
 frontend:
   phases:
     preBuild:
       commands:
-        - npm ci
+        - npm ci --cache .npm --prefer-offline
     build:
       commands:
         - npm run build
@@ -1254,22 +1467,31 @@ frontend:
       - '**/*'
   cache:
     paths:
-      - node_modules/**/*
       - .next/cache/**/*
+      - .npm/**/*
 ```
 
 **Объяснение конфигурации:**
 
 - **`version: 1`** — версия формата конфигурации
 - **`backend.phases.build`** — команды для деплоя backend ресурсов (Auth, API, Storage)
+  - Автоматический выбор backend окружения на основе ветки Git:
+    - Ветка `master` → использует окружение `prod` (в регионе `eu-west-1`)
+    - Ветка `dev` → использует окружение `dev`
+    - Другие ветки → используют окружение `dev` по умолчанию
+  - `${AWS_BRANCH}` — переменная окружения, содержащая имя текущей ветки Git
   - `amplifyPush --simple` — деплой backend без интерактивных вопросов
 - **`frontend.phases.preBuild`** — команды перед сборкой
-  - `npm ci` — установка зависимостей (быстрее, чем `npm install`)
+  - `npm ci --cache .npm --prefer-offline` — установка зависимостей с кешированием
 - **`frontend.phases.build`** — команды для сборки
   - `npm run build` — сборка Next.js приложения
 - **`artifacts.baseDirectory`** — директория со скомпилированным приложением (`.next` для Next.js)
 - **`artifacts.files`** — файлы для деплоя (`**/*` — все файлы)
 - **`cache.paths`** — пути для кеширования (ускоряет последующие сборки)
+
+**Примечание о multi-region setup:**
+
+Если prod окружение находится в регионе `eu-west-1`, а dev в другом регионе (например, `us-east-1`), команда `amplifyPush --simple --environment prod` автоматически использует правильный регион из конфигурации окружения `prod` в `amplify/team-provider-info.json`.
 
 **Сохранение файла:**
 
@@ -1287,9 +1509,204 @@ frontend:
 
 **Или используйте онлайн валидатор YAML:** https://www.yamllint.com/
 
-#### Шаг 5: Добавление Hosting через CLI (опционально)
+#### Шаг 5: Настройка production деплоя через AWS Web Console
 
-**Почему:** Можно добавить Hosting через CLI, но это не обязательно на данном этапе.
+**Почему:** Production деплой из ветки `master` должен быть настроен через AWS Web Console для обеспечения правильной связи с backend окружением `prod` в регионе `eu-west-1`.
+
+**Важно: Один Amplify App с двумя URL**
+
+При использовании Подхода 1 создается **один Amplify App** с **двумя постоянными URL** для доступа:
+
+- **Dev URL:** `https://dev.xxxxx.amplifyapp.com` (ветка `dev`) - **постоянно активен**
+- **Prod URL:** `https://master.xxxxx.amplifyapp.com` или кастомный домен (ветка `master`) - **постоянно активен**
+
+Оба URL принадлежат одному Amplify App (с одним `AmplifyAppId`), но каждый URL связан с соответствующим backend окружением:
+- Dev URL → Backend environment `dev` (us-east-1) с изолированными ресурсами
+- Prod URL → Backend environment `prod` (eu-west-1) с изолированными ресурсами
+
+**Постоянные URL для каждой ветки**
+
+Когда вы подключаете ветку к Amplify App, Amplify **автоматически создает постоянный URL** для этой ветки. Этот URL существует постоянно и остается активным, пока ветка подключена.
+
+**Формат URL:**
+```
+https://<branch-name>.<AmplifyAppId>.amplifyapp.com
+```
+
+**Пример:**
+- После подключения ветки `dev`: `https://dev.d1234567890abc.amplifyapp.com` (постоянно активен)
+- После подключения ветки `master`: `https://master.d1234567890abc.amplifyapp.com` (постоянно активен)
+
+**Ключевые моменты:**
+- **Оба URL существуют постоянно:** После подключения обеих веток у вас есть два постоянных URL
+- **Оба URL активны одновременно:** Вы можете открыть оба URL в браузере одновременно
+- **Независимые обновления:** Push в ветку `dev` обновляет только dev URL; push в ветку `master` обновляет только prod URL
+- **Каждый URL указывает на свой deployment:** Dev URL → dev backend окружение; Prod URL → prod backend окружение
+
+**Где найти URL в AWS Console:**
+- Перейдите в **Amplify Console** → **Ваш App** → раздел **"Branches"**
+- Для каждой ветки отображается её постоянный URL
+- URL доступны сразу после подключения ветки (даже до первого деплоя)
+
+**Действие 1: Подключение ветки `master` к Amplify App**
+
+1. **Откройте AWS Amplify Console:**
+   - Перейдите на https://console.aws.amazon.com/amplify/
+   - Войдите в свой AWS аккаунт
+
+2. **Найдите ваш Amplify App:**
+   - Найдите приложение по имени проекта или AmplifyAppId
+
+3. **Подключите ветку `master`:**
+   - Перейдите в раздел "App settings" → "General"
+   - Нажмите "Connect branch"
+   - Выберите ваш Git репозиторий
+   - Выберите ветку `master`
+   - Нажмите "Next"
+
+**Действие 2: Настройка backend окружения для ветки `master`**
+
+1. **Укажите backend окружение:**
+   - В разделе "Backend environment" выберите `prod`
+   - Это обеспечит использование backend окружения `prod` (в регионе `eu-west-1`) при деплое из ветки `master`
+
+2. **Проверьте регион:**
+   - Убедитесь, что backend окружение `prod` использует регион `eu-west-1`
+   - Это можно проверить в `amplify/team-provider-info.json`:
+     ```bash
+     cat amplify/team-provider-info.json | grep -A 3 '"prod"'
+     ```
+   - Должен быть указан регион `eu-west-1`
+
+**Действие 3: Настройка Build settings для production**
+
+1. **Перейдите в Build settings:**
+   - Для ветки `master` перейдите в "Build settings"
+   - Или используйте файл `amplify.yml` в корне проекта (если он существует)
+
+2. **Проверьте настройки:**
+   - **Build command:** `npm run build`
+   - **Artifacts directory:** `.next`
+   - **Base directory:** `.` (корень проекта)
+
+3. **Настройте Environment variables (если необходимо):**
+   - Перейдите в "App settings" → "Environment variables"
+   - Добавьте переменные окружения для production (если отличаются от dev)
+
+**Действие 4: Проверка настройки ветки `dev`**
+
+1. **Проверьте настройку ветки `dev`:**
+   - Убедитесь, что ветка `dev` подключена
+   - Проверьте, что backend окружение для ветки `dev` установлено в `dev`
+
+**Что происходит при деплое:**
+
+- **Push в ветку `dev`:**
+  - Amplify автоматически запускает build
+  - Использует backend окружение `dev` (из текущего региона)
+  - Деплоит frontend на dev URL (`https://dev.xxxxx.amplifyapp.com`)
+  - **Важно:** Dev URL остается постоянно активным, обновляется только содержимое
+
+- **Push в ветку `master`:**
+  - Amplify автоматически запускает build
+  - Использует backend окружение `prod` (в регионе `eu-west-1`)
+  - Деплоит frontend на production URL (`https://master.xxxxx.amplifyapp.com`)
+  - **Важно:** Prod URL остается постоянно активным, обновляется только содержимое
+
+**Важно о постоянных URL:**
+- **Обе ссылки активны постоянно:** Dev и prod URL существуют и работают одновременно
+- **Независимые обновления:** Push в одну ветку обновляет только соответствующий URL
+- **Другая ссылка не изменяется:** Push в `dev` не влияет на prod URL, и наоборот
+- **URL не исчезают:** После подключения веток URL существуют постоянно, пока ветки подключены
+
+**Примечание:** Если вы настроили `amplify.yml` с автоматическим выбором окружения по ветке (см. Шаг 3), это обеспечит дополнительную автоматизацию, но настройки в AWS Console имеют приоритет.
+
+#### Шаг 6: Постоянные URL и их использование
+
+**Почему:** Понимание постоянной структуры URL важно для правильного использования dev и prod окружений.
+
+**Постоянная структура URL:**
+
+После подключения обеих веток (`dev` и `master`) к Amplify App у вас будет:
+
+```
+Один Amplify App (AmplifyAppId: d1234567890abc)
+│
+├── Ветка: dev
+│   ├── URL: https://dev.d1234567890abc.amplifyapp.com (постоянно активен)
+│   ├── Backend: dev environment (us-east-1)
+│   └── Статус: Active
+│
+└── Ветка: master
+    ├── URL: https://master.d1234567890abc.amplifyapp.com (постоянно активен)
+    ├── Custom domain: https://sundayschool.com (если настроен)
+    ├── Backend: prod environment (eu-west-1)
+    └── Статус: Active
+```
+
+**Как найти URL в AWS Console:**
+
+1. **Откройте AWS Amplify Console:**
+   - Перейдите на https://console.aws.amazon.com/amplify/
+   - Войдите в свой AWS аккаунт
+
+2. **Найдите ваш Amplify App:**
+   - Найдите приложение по имени проекта или AmplifyAppId
+
+3. **Перейдите в раздел "Branches":**
+   - В главном меню App выберите раздел **"Branches"**
+   - Вы увидите список всех подключенных веток
+
+4. **Просмотр URL для каждой ветки:**
+   - Для каждой ветки отображается её постоянный URL
+   - URL отображается в формате: `https://<branch-name>.<AmplifyAppId>.amplifyapp.com`
+   - Если настроен кастомный домен, он также отображается
+
+**Примеры использования:**
+
+- **Dev URL для тестирования:**
+  - Используйте `https://dev.xxxxx.amplifyapp.com` для тестирования новых функций
+  - Этот URL всегда указывает на dev deployment
+  - Использует dev backend (dev Cognito, dev DynamoDB)
+
+- **Prod URL для production:**
+  - Используйте `https://master.xxxxx.amplifyapp.com` или кастомный домен для production
+  - Этот URL всегда указывает на prod deployment
+  - Использует prod backend (prod Cognito, prod DynamoDB)
+
+**Настройка кастомного домена (опционально):**
+
+1. **В AWS Amplify Console:**
+   - Перейдите в **Domain management** → **Add domain**
+   - Введите ваш домен (например, `sundayschool.com`)
+
+2. **Настройка DNS:**
+   - Если домен в Route 53: Amplify автоматически настроит DNS записи
+   - Если внешний DNS провайдер: добавьте CNAME запись
+     ```
+     www.sundayschool.com → d1234567890abc.amplifyapp.com
+     ```
+
+3. **Связывание домена с веткой:**
+   - После добавления домена выберите, какая ветка будет обслуживать этот домен
+   - Для prod обычно выбираете ветку `master`
+
+4. **Результат:**
+   - После настройки кастомного домена оба URL работают:
+     - Автоматический: `https://master.xxxxx.amplifyapp.com` (все еще работает)
+     - Кастомный: `https://sundayschool.com` (также работает)
+   - Оба URL указывают на один и тот же deployment
+
+**Важные моменты:**
+
+- **URL создаются автоматически:** При подключении ветки URL создается сразу, не требует дополнительной настройки
+- **URL существуют постоянно:** После подключения ветки URL остается активным постоянно
+- **Обе ссылки работают одновременно:** Dev и prod URL можно использовать одновременно
+- **Независимые обновления:** Каждая ветка обновляет только свой URL
+
+#### Шаг 7: Добавление Hosting через CLI (опционально)
+
+**Почему:** Можно добавить Hosting через CLI, но это не обязательно на данном этапе, особенно если вы уже настроили через Web Console.
 
 **Действие:**
 
@@ -1315,7 +1732,7 @@ amplify add hosting
 - Amplify CLI открывает браузер с AWS Amplify Console
 - Там можно подключить Git репозиторий для автоматического деплоя
 
-**Примечание:** Этот шаг можно пропустить, если вы не готовы к деплою сейчас.
+**Примечание:** Этот шаг можно пропустить, если вы уже настроили Hosting через Web Console.
 
 ### Критерии успешного выполнения
 
@@ -1734,19 +2151,68 @@ amplify/team-provider-info.json
 - **Регион AWS:** us-east-1
 - **Дата инициализации:** 23 декабря 2025
 
+## Архитектура деплоя
+
+### Amplify App
+
+- **Amplify App ID:** d1234567890abc
+- **Количество Apps:** 1 (один App для обоих окружений)
+- **URL для доступа:**
+  - Dev: `https://dev.xxxxx.amplifyapp.com` (ветка `dev`)
+  - Prod: `https://master.xxxxx.amplifyapp.com` или кастомный домен (ветка `master`)
+
 ## Окружения (Environments)
 
 ### dev
 - **Имя:** dev
+- **Регион AWS:** us-east-1 (или другой, указанный при инициализации)
 - **CloudFormation Stack:** amplify-sun-sch-dev-12345
 - **Deployment Bucket:** amplify-sun-sch-dev-12345-deployment
+- **Git ветка:** `dev`
 - **Назначение:** Разработка и тестирование
+- **Деплой:** Автоматический из ветки `dev` через Amplify Hosting
+- **URL:** `https://dev.xxxxx.amplifyapp.com`
 
 ### prod
 - **Имя:** prod
+- **Регион AWS:** eu-west-1
 - **CloudFormation Stack:** amplify-sun-sch-prod-67890
 - **Deployment Bucket:** amplify-sun-sch-prod-67890-deployment
+- **Git ветка:** `master`
 - **Назначение:** Production окружение
+- **Деплой:** Автоматический из ветки `master` через Amplify Hosting
+- **URL:** `https://master.xxxxx.amplifyapp.com` или кастомный домен
+
+**Примечание о multi-region setup:**
+- Dev и prod окружения могут быть в разных регионах AWS
+- Prod в регионе `eu-west-1` для лучшей задержки/соответствия требованиям
+- Каждое окружение имеет свой CloudFormation stack в своем регионе
+
+## Изоляция ресурсов
+
+Каждое backend окружение создает **полностью изолированные** AWS ресурсы:
+
+### Dev окружение (us-east-1):
+
+- **Cognito User Pool:** `sun-sch-dev-UserPool-12345` (отдельный)
+- **AppSync API:** `sun-sch-dev-API-12345` (отдельный)
+- **DynamoDB таблицы:** `Lesson-dev-12345`, `Pupil-dev-12345`, `Teacher-dev-12345`, и т.д. (отдельные)
+- **S3 buckets:** `sun-sch-dev-storage-12345`, `amplify-sun-sch-dev-12345-deployment` (отдельные)
+- **Lambda функции:** `sun-sch-dev-function-12345` (отдельные, если используются)
+
+### Prod окружение (eu-west-1):
+
+- **Cognito User Pool:** `sun-sch-prod-UserPool-67890` (отдельный)
+- **AppSync API:** `sun-sch-prod-API-67890` (отдельный)
+- **DynamoDB таблицы:** `Lesson-prod-67890`, `Pupil-prod-67890`, `Teacher-prod-67890`, и т.д. (отдельные)
+- **S3 buckets:** `sun-sch-prod-storage-67890`, `amplify-sun-sch-prod-67890-deployment` (отдельные)
+- **Lambda функции:** `sun-sch-prod-function-67890` (отдельные, если используются)
+
+**Важно:**
+- Данные dev и prod **полностью изолированы** - нет пересечения данных между окружениями
+- Пользователи dev не могут получить доступ к prod, и наоборот
+- Ошибки в dev не влияют на prod данные или ресурсы
+- Каждое окружение может масштабироваться независимо
 
 ## Структура проекта
 
@@ -1792,7 +2258,23 @@ amplify.yml (опционально, для Hosting)
 
 ### Окружения
 - **dev:** Используется для разработки и тестирования
-- **prod:** Используется для production (будет настроено позже)
+  - Регион: us-east-1 (или другой, указанный при инициализации)
+  - Git ветка: `dev`
+  - Деплой: автоматический из ветки `dev`
+- **prod:** Используется для production
+  - Регион: eu-west-1
+  - Git ветка: `master`
+  - Деплой: автоматический из ветки `master` через AWS Web Console
+
+### Multi-Region Setup
+- **Причина:** Prod окружение в регионе `eu-west-1` для лучшей задержки/соответствия требованиям
+- **Настройка:** Prod окружение создается с указанием AWS profile для региона `eu-west-1`
+- **Backend ресурсы:** Каждое окружение имеет свои ресурсы (Cognito, AppSync, DynamoDB) в своем регионе
+
+### Branch-Based Deployment
+- **Ветка `dev`:** Автоматически деплоится в dev окружение
+- **Ветка `master`:** Автоматически деплоится в prod окружение (eu-west-1)
+- **Настройка:** Выполняется в AWS Amplify Console, не требует изменений в коде проекта
 
 ### AWS Profile
 - **Используемый профиль:** default
