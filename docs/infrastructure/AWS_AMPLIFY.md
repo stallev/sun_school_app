@@ -622,6 +622,184 @@ amplify env checkout prod  # Switch to prod
 amplify env list
 ```
 
+### 7.1.1. Multi-Region Setup
+
+**Overview:**
+
+Dev and prod environments can be deployed in different AWS regions. This is useful for:
+- **Latency optimization:** Deploy prod closer to your target audience
+- **Compliance:** Meet data residency requirements (e.g., GDPR)
+- **Resilience:** Geographic redundancy
+
+**Example: Creating prod environment in `eu-west-1`:**
+
+1. **Configure AWS credentials for target region:**
+
+   ```bash
+   aws configure --profile prod-eu-west-1
+   ```
+
+   - Enter the same Access Key ID and Secret Access Key
+   - Specify region: `eu-west-1`
+
+2. **Create prod environment with region-specific profile:**
+
+   ```bash
+   amplify env add
+   ```
+
+   **Prompts:**
+
+   ```plaintext
+   ? Enter a name for the environment: prod
+   ? Do you want to use an existing service role for CloudFormation? No
+   ? Choose the authentication method you want to use: AWS profile
+   ? Please choose the profile you want to use: prod-eu-west-1
+   ```
+
+3. **Verify region:**
+
+   ```bash
+   cat amplify/team-provider-info.json | grep -A 3 '"prod"'
+   ```
+
+   **Expected output:**
+
+   ```json
+   "prod": {
+     "awscloudformation": {
+       "Region": "eu-west-1",
+       ...
+     }
+   }
+   ```
+
+**Important Notes:**
+
+- Each environment has its own CloudFormation stack in its own region
+- Backend resources (Cognito, AppSync, DynamoDB) are created in the environment's region
+- Both environments share the same `AmplifyAppId` but have different stacks
+
+**Architecture Diagram:**
+
+```mermaid
+graph TB
+    subgraph AmplifyApp["Amplify App<br/>AmplifyAppId: d1234567890abc"]
+        DevURL["Dev URL<br/>https://dev.xxxxx.amplifyapp.com"]
+        ProdURL["Prod URL<br/>https://master.xxxxx.amplifyapp.com"]
+    end
+    
+    subgraph DevEnv["Backend Environment: dev<br/>Region: us-east-1"]
+        DevStack[CloudFormation Stack<br/>amplify-sun-sch-dev-12345]
+        DevCognito[Cognito User Pool<br/>dev-UserPool-12345]
+        DevAppSync[AppSync API<br/>dev-API-12345]
+        DevDynamoDB[DynamoDB Tables<br/>dev-*-12345]
+        DevS3[S3 Buckets<br/>dev-*-12345]
+        DevLambda[Lambda Functions<br/>dev-*-12345]
+    end
+    
+    subgraph ProdEnv["Backend Environment: prod<br/>Region: eu-west-1"]
+        ProdStack[CloudFormation Stack<br/>amplify-sun-sch-prod-67890]
+        ProdCognito[Cognito User Pool<br/>prod-UserPool-67890]
+        ProdAppSync[AppSync API<br/>prod-API-67890]
+        ProdDynamoDB[DynamoDB Tables<br/>prod-*-67890]
+        ProdS3[S3 Buckets<br/>prod-*-67890]
+        ProdLambda[Lambda Functions<br/>prod-*-67890]
+    end
+    
+    DevURL --> DevEnv
+    ProdURL --> ProdEnv
+    
+    DevEnv --> DevStack
+    DevStack --> DevCognito
+    DevStack --> DevAppSync
+    DevStack --> DevDynamoDB
+    DevStack --> DevS3
+    DevStack --> DevLambda
+    
+    ProdEnv --> ProdStack
+    ProdStack --> ProdCognito
+    ProdStack --> ProdAppSync
+    ProdStack --> ProdDynamoDB
+    ProdStack --> ProdS3
+    ProdStack --> ProdLambda
+    
+    style AmplifyApp fill:#ff9900,stroke:#333,stroke-width:3px,color:#fff
+    style DevEnv fill:#90EE90,stroke:#333,stroke-width:2px
+    style ProdEnv fill:#FFB6C1,stroke:#333,stroke-width:2px
+```
+
+### 7.1.2. Resource Isolation Between Environments
+
+**Overview:**
+
+Each backend environment created via `amplify env add` creates **completely isolated** AWS resources. This ensures that dev and prod data never mix, providing security and data integrity.
+
+**Isolated Resources:**
+
+When you create separate environments (dev and prod), each environment gets its own:
+
+1. **CloudFormation Stack:**
+   - Dev: `amplify-sun-sch-dev-12345`
+   - Prod: `amplify-sun-sch-prod-67890`
+
+2. **Cognito User Pool:**
+   - Dev: `sun-sch-dev-UserPool-12345` (us-east-1)
+   - Prod: `sun-sch-prod-UserPool-67890` (eu-west-1)
+   - **Isolation:** Users registered in dev cannot access prod, and vice versa
+
+3. **AppSync API:**
+   - Dev: `sun-sch-dev-API-12345` (us-east-1)
+   - Prod: `sun-sch-prod-API-67890` (eu-west-1)
+   - **Isolation:** Separate GraphQL endpoints with separate schemas
+
+4. **DynamoDB Tables:**
+   - Dev: `Lesson-dev-12345`, `Pupil-dev-12345`, `Teacher-dev-12345`, etc. (us-east-1)
+   - Prod: `Lesson-prod-67890`, `Pupil-prod-67890`, `Teacher-prod-67890`, etc. (eu-west-1)
+   - **Isolation:** Complete data separation - dev data never appears in prod tables
+
+5. **S3 Buckets:**
+   - Dev: `sun-sch-dev-storage-12345`, `amplify-sun-sch-dev-12345-deployment` (us-east-1)
+   - Prod: `sun-sch-prod-storage-67890`, `amplify-sun-sch-prod-67890-deployment` (eu-west-1)
+   - **Isolation:** Separate storage buckets for files and deployment artifacts
+
+6. **Lambda Functions (if used):**
+   - Dev: `sun-sch-dev-function-12345` (us-east-1)
+   - Prod: `sun-sch-prod-function-67890` (eu-west-1)
+   - **Isolation:** Separate function instances with separate configurations
+
+**Key Points:**
+
+- **Complete Data Isolation:** Data in dev environment is completely separate from prod environment
+- **No Data Mixing:** There is no way for dev data to accidentally appear in prod, or vice versa
+- **Security:** Errors or issues in dev cannot affect prod data or resources
+- **Independent Scaling:** Each environment can be scaled independently
+- **Region-Specific:** Resources are created in their environment's region (dev in us-east-1, prod in eu-west-1)
+
+**Example Resource Naming:**
+
+**Dev Environment (us-east-1):**
+```
+CloudFormation Stack: amplify-sun-sch-dev-12345
+Cognito User Pool: sun-sch-dev-UserPool-12345
+AppSync API: sun-sch-dev-API-12345
+DynamoDB Tables: Lesson-dev-12345, Pupil-dev-12345, Teacher-dev-12345
+S3 Buckets: sun-sch-dev-storage-12345, amplify-sun-sch-dev-12345-deployment
+Lambda Functions: sun-sch-dev-function-12345 (if used)
+```
+
+**Prod Environment (eu-west-1):**
+```
+CloudFormation Stack: amplify-sun-sch-prod-67890
+Cognito User Pool: sun-sch-prod-UserPool-67890
+AppSync API: sun-sch-prod-API-67890
+DynamoDB Tables: Lesson-prod-67890, Pupil-prod-67890, Teacher-prod-67890
+S3 Buckets: sun-sch-prod-storage-67890, amplify-sun-sch-prod-67890-deployment
+Lambda Functions: sun-sch-prod-function-67890 (if used)
+```
+
+**Important:** Even though both environments share the same `AmplifyAppId`, all backend resources are completely isolated. This is the default behavior of Amplify Gen 1 when using multiple environments.
+
 ---
 
 ### 7.2. Environment-Specific Variables
@@ -692,13 +870,20 @@ amplify status
 
 3.  **Configure Build Settings:**
     ```yaml
-    # amplify.yml (auto-generated)
+    # amplify.yml
     version: 1
     backend:
       phases:
         build:
           commands:
-            - amplifyPush --simple
+            - |
+              if [ "$AWS_BRANCH" = "master" ]; then
+                amplifyPush --simple --environment prod
+              elif [ "$AWS_BRANCH" = "dev" ]; then
+                amplifyPush --simple --environment dev
+              else
+                amplifyPush --simple --environment dev
+              fi
     frontend:
       phases:
         preBuild:
@@ -714,10 +899,209 @@ amplify status
       cache:
         paths:
           - node_modules/**/*
+          - .next/cache/**/*
     ```
 
 4.  **Deploy:**
     -   Every push to the connected branch triggers an automatic build and deployment.
+
+### 8.2.1. Branch-Based Environment Mapping
+
+**Overview:**
+
+You can map Git branches to specific backend environments in AWS Amplify Console. This allows automatic use of the correct backend environment when deploying from different branches.
+
+**Configuration in AWS Amplify Console:**
+
+1.  **Connect Multiple Branches:**
+    -   Navigate to **Amplify Console** → **Your App** → **App settings** → **General**.
+    -   Click **Connect branch** for each branch:
+        -   **`dev` branch:** Connect to your Git repository
+        -   **`master` branch:** Connect to your Git repository
+
+2.  **Map Branches to Backend Environments:**
+    -   For each branch, go to **App settings** → **Build settings**.
+    -   Find **Backend environment** or **Environment variables** section.
+    -   Set:
+        -   **`dev` branch:** Backend environment = `dev`
+        -   **`master` branch:** Backend environment = `prod`
+
+**Example Configuration:**
+
+-   **Dev branch (`dev`):**
+    -   Backend environment: `dev`
+    -   Region: `us-east-1` (or your dev region)
+    -   Auto-deploys on push to `dev` branch
+
+-   **Production branch (`master`):**
+    -   Backend environment: `prod`
+    -   Region: `eu-west-1` (or your prod region)
+    -   Auto-deploys on push to `master` branch
+
+**Important Notes:**
+
+-   This configuration is done in **AWS Amplify Console**, not in code
+-   No code changes are required in your project
+-   The `amplify.yml` file can optionally include logic to automatically select the backend environment based on `${AWS_BRANCH}` (see example above)
+-   Console settings take priority over `amplify.yml` configuration
+
+**Benefits:**
+
+-   Automatic environment selection based on Git branch
+-   Separate backend resources for dev and prod
+-   Multi-region support (dev and prod in different regions)
+-   No manual environment switching required
+
+### 8.2.2. Single Amplify App with Multiple URLs
+
+**Overview:**
+
+When using Approach 1 (single Amplify App with multiple backend environments), you create **one Amplify App** that provides **two separate URLs** for accessing dev and prod deployments.
+
+**Architecture:**
+
+- **One Amplify App:** Created with a single `AmplifyAppId` (e.g., `d1234567890abc`)
+- **Two URLs:**
+  - **Dev URL:** `https://dev.xxxxx.amplifyapp.com` (for `dev` branch)
+  - **Prod URL:** `https://master.xxxxx.amplifyapp.com` or custom domain (for `master` branch)
+- **Two Backend Environments:** Each URL is connected to its corresponding backend environment with completely isolated resources
+
+**How It Works:**
+
+1. **Amplify App Creation:**
+   - One Amplify App is created via `amplify init` or AWS Console
+   - This App has a single `AmplifyAppId` stored in `amplify/team-provider-info.json`
+
+2. **Branch Connection:**
+   - Connect `dev` branch to the Amplify App → creates dev URL
+   - Connect `master` branch to the Amplify App → creates prod URL
+
+3. **Backend Environment Mapping:**
+   - Dev URL → Backend environment `dev` (us-east-1)
+   - Prod URL → Backend environment `prod` (eu-west-1)
+
+4. **Resource Isolation:**
+   - Each URL uses its own isolated backend resources
+   - Dev URL uses dev resources (Cognito, AppSync, DynamoDB, S3 in us-east-1)
+   - Prod URL uses prod resources (Cognito, AppSync, DynamoDB, S3 in eu-west-1)
+
+**Permanent URLs Structure:**
+
+When using Approach 1, you have **one Amplify App with two permanent URLs** that exist continuously:
+
+- **Structure:** One App → Two Branches → Two Permanent URLs
+- **Both URLs are active simultaneously:** You can access both dev and prod URLs at the same time
+- **Independent updates:** Push to `dev` branch updates only the dev URL; push to `master` branch updates only the prod URL
+- **Each URL points to its own deployment:** Dev URL → dev backend environment; Prod URL → prod backend environment
+
+**How URLs are Created:**
+
+1. **Automatic Creation:**
+   - When you connect a branch to Amplify App, a permanent URL is **automatically created**
+   - URL format: `https://<branch-name>.<AmplifyAppId>.amplifyapp.com`
+   - No additional configuration required
+
+2. **First Branch Connection:**
+   - Connect `dev` branch → Creates `https://dev.xxxxx.amplifyapp.com` (permanently active)
+   - URL is available immediately, even before first deployment
+
+3. **Second Branch Connection:**
+   - Connect `master` branch → Creates `https://master.xxxxx.amplifyapp.com` (permanently active)
+   - Both URLs now exist and work simultaneously
+
+**Finding URLs in AWS Console:**
+
+- Navigate to **Amplify Console** → **Your App** → **Branches** section
+- Each branch displays its permanent URL
+- URLs are visible immediately after connecting a branch
+
+**Example URLs:**
+
+After connecting both branches, you will have:
+
+- **Dev Environment:**
+  - Frontend URL: `https://dev.xxxxx.amplifyapp.com` (permanently active)
+  - Backend: dev environment resources (us-east-1)
+  - Users: dev Cognito User Pool
+  - Data: dev DynamoDB tables
+
+- **Production Environment:**
+  - Frontend URL: `https://master.xxxxx.amplifyapp.com` (permanently active)
+  - Custom domain: `https://sundayschool.com` (if configured, also permanently active)
+  - Backend: prod environment resources (eu-west-1)
+  - Users: prod Cognito User Pool
+  - Data: prod DynamoDB tables
+
+**Important Notes:**
+
+- **Both URLs exist permanently:** Once branches are connected, both URLs remain active continuously
+- **Custom domain adds to existing URL:** After setting up a custom domain, both the automatic URL and custom domain work simultaneously
+- **URLs don't disappear:** URLs remain active as long as branches are connected to the App
+
+**Important Notes:**
+
+- **Single Management Point:** One Amplify App in AWS Console for managing both environments
+- **Complete Resource Isolation:** Backend resources are completely isolated between dev and prod
+- **No Data Mixing:** Data in dev never appears in prod, and vice versa
+- **Independent Scaling:** Each environment can be scaled independently
+- **Region-Specific:** Resources are created in their environment's region
+
+**Architecture Diagram:**
+
+```mermaid
+graph TB
+    subgraph GitRepo["Git Repository"]
+        DevBranch[dev branch]
+        MasterBranch[master branch]
+    end
+    
+    subgraph AmplifyApp["Amplify App<br/>AmplifyAppId: d1234567890abc"]
+        DevURL["Dev URL<br/>https://dev.xxxxx.amplifyapp.com"]
+        ProdURL["Prod URL<br/>https://master.xxxxx.amplifyapp.com"]
+    end
+    
+    subgraph DevEnv["Backend Environment: dev<br/>Region: us-east-1"]
+        DevStack[CloudFormation Stack<br/>amplify-sun-sch-dev-12345]
+        DevCognito[Cognito User Pool<br/>dev-UserPool-12345]
+        DevAppSync[AppSync API<br/>dev-API-12345]
+        DevDynamoDB[DynamoDB Tables<br/>dev-*-12345]
+        DevS3[S3 Buckets<br/>dev-*-12345]
+        DevLambda[Lambda Functions<br/>dev-*-12345]
+    end
+    
+    subgraph ProdEnv["Backend Environment: prod<br/>Region: eu-west-1"]
+        ProdStack[CloudFormation Stack<br/>amplify-sun-sch-prod-67890]
+        ProdCognito[Cognito User Pool<br/>prod-UserPool-67890]
+        ProdAppSync[AppSync API<br/>prod-API-67890]
+        ProdDynamoDB[DynamoDB Tables<br/>prod-*-67890]
+        ProdS3[S3 Buckets<br/>prod-*-67890]
+        ProdLambda[Lambda Functions<br/>prod-*-67890]
+    end
+    
+    DevBranch -->|Auto Deploy| DevURL
+    MasterBranch -->|Auto Deploy| ProdURL
+    
+    DevURL --> DevEnv
+    ProdURL --> ProdEnv
+    
+    DevEnv --> DevStack
+    DevStack --> DevCognito
+    DevStack --> DevAppSync
+    DevStack --> DevDynamoDB
+    DevStack --> DevS3
+    DevStack --> DevLambda
+    
+    ProdEnv --> ProdStack
+    ProdStack --> ProdCognito
+    ProdStack --> ProdAppSync
+    ProdStack --> ProdDynamoDB
+    ProdStack --> ProdS3
+    ProdStack --> ProdLambda
+    
+    style AmplifyApp fill:#ff9900,stroke:#333,stroke-width:3px,color:#fff
+    style DevEnv fill:#90EE90,stroke:#333,stroke-width:2px
+    style ProdEnv fill:#FFB6C1,stroke:#333,stroke-width:2px
+```
 
 ---
 

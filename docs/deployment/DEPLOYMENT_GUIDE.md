@@ -226,9 +226,29 @@ amplify publish
                 - amplifyPush --simple --environment ${AWS_BRANCH}
         ```
 
-3.  **Preview URLs:**
-    -   `https://main.d1234567890abc.amplifyapp.com` (production)
-    -   `https://develop.d1234567890abc.amplifyapp.com` (development)
+3.  **Permanent URLs for Each Branch:**
+    
+    When you connect a branch to an Amplify App, Amplify **automatically creates a permanent URL** for that branch. This URL exists continuously and remains active as long as the branch is connected.
+    
+    **URL Format:**
+    ```
+    https://<branch-name>.<AmplifyAppId>.amplifyapp.com
+    ```
+    
+    **Example:**
+    -   After connecting `dev` branch: `https://dev.d1234567890abc.amplifyapp.com` (permanently active)
+    -   After connecting `master` branch: `https://master.d1234567890abc.amplifyapp.com` (permanently active)
+    
+    **Key Points:**
+    -   **Both URLs exist permanently:** Once both branches are connected, you have two permanent URLs
+    -   **Both URLs are active simultaneously:** You can access both dev and prod URLs at the same time
+    -   **Independent updates:** Push to `dev` branch updates only the dev URL; push to `master` branch updates only the prod URL
+    -   **Each URL points to its own deployment:** Dev URL → dev backend environment; Prod URL → prod backend environment
+    
+    **Finding URLs in AWS Console:**
+    -   Navigate to **Amplify Console** → **Your App** → **Branches** section
+    -   Each branch displays its permanent URL
+    -   URLs are available immediately after connecting a branch (even before first deployment)
 
 ---
 
@@ -248,10 +268,25 @@ amplify publish
 3.  **SSL Certificate:**
     -   Amplify automatically provisions an SSL certificate via **AWS Certificate Manager**.
 
+**Important Notes:**
+
+-   **Custom domain is added to existing URL:** The automatic URL (`https://master.xxxxx.amplifyapp.com`) continues to work even after adding a custom domain
+-   **Both URLs work simultaneously:** After setting up a custom domain, both URLs are active:
+    -   Automatic URL: `https://master.xxxxx.amplifyapp.com` (still works)
+    -   Custom domain: `https://sundayschool.com` (also works)
+-   **Domain mapping:** You can map different custom domains to different branches
+
 **Example Domain Configuration:**
 
--   `https://sundayschool.com` → main branch
--   `https://dev.sundayschool.com` → develop branch
+-   **Production (master branch):**
+    -   Automatic URL: `https://master.d1234567890abc.amplifyapp.com` (permanently active)
+    -   Custom domain: `https://sundayschool.com` (if configured)
+    -   Both URLs point to the same deployment
+    
+-   **Development (dev branch):**
+    -   Automatic URL: `https://dev.d1234567890abc.amplifyapp.com` (permanently active)
+    -   Custom domain: `https://dev.sundayschool.com` (if configured)
+    -   Both URLs point to the same deployment
 
 ---
 
