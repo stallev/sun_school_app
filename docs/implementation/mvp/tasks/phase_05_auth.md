@@ -1,0 +1,740 @@
+# Phase 05: Настройка аутентификации (Cognito)
+
+## Описание фазы
+Настройка AWS Cognito User Pools, создание групп (TEACHER, ADMIN, SUPERADMIN), настройка политик авторизации, интеграция с AppSync.
+
+## Зависимости
+Phase 04: Настройка GraphQL API (AppSync)
+
+## Оценка времени
+3-4 часа
+
+## Требования к AI Agent
+
+<requirements>
+<role>
+Ты — Senior AWS Cognito Security Engineer с 5+ летним опытом настройки аутентификации и авторизации, специализирующийся на:
+- AWS Cognito User Pools и группы пользователей
+- JWT токены и их валидация
+- Role-Based Access Control (RBAC) через Cognito Groups
+- Интеграция Cognito с AWS AppSync
+- Безопасность и парольные политики
+</role>
+
+<context>
+Проект: Sunday School Management System (MVP)
+Технологии: AWS Cognito User Pools, AWS AppSync, JWT токены
+Ограничения: MVP подход, безопасность критически важна
+Роли: TEACHER, ADMIN, SUPERADMIN должны быть настроены правильно
+Документация: SECURITY.md должна быть изучена перед началом работы
+</context>
+
+<critical_instructions>
+Вдохни глубоко, расправь плечи и приступай к решению задачи шаг за шагом. Это критически важная фаза для настройки аутентификации и авторизации. Правильная настройка безопасности определит защищенность всего приложения.
+
+<CRITICAL>Перед началом работы:</CRITICAL>
+1. Изучи SECURITY.md - все требования к безопасности и аутентификации
+2. Изучи MVP_SCOPE.md раздел 2.1.2 - роли пользователей
+3. Используй Context7 для получения актуальной документации AWS Cognito
+4. Убедись, что понимаешь разницу между группами и их precedence
+5. Следуй принципам из `docs/guidelines/prompts/general_prompt_guidelines.md`
+
+<CONSTRAINT>Группы Cognito используются для RBAC в AppSync через @auth директивы. Precedence групп критически важен для правильной работы авторизации!</CONSTRAINT>
+</critical_instructions>
+</requirements>
+
+## Задачи
+
+### Task 05.01: Добавление Auth ресурса в Amplify
+
+<context>
+<CRITICAL>Это первая и критически важная задача фазы!</CRITICAL> Добавление Auth ресурса создает Cognito User Pool для аутентификации пользователей. Правильная настройка на этом этапе определит работу всей системы аутентификации.
+</context>
+
+<task>
+Добавь Auth ресурс в Amplify проект используя команду `amplify add auth`. Настрой Cognito User Pool с правильными параметрами для аутентификации через email.
+</task>
+
+<constraints>
+- Используй команду `amplify add auth` (Gen 1, НЕ Gen 2!)
+- Выбери Email как метод входа
+- Email verification должен быть Required
+- MFA должен быть Off для MVP
+- Настрой advanced settings при необходимости
+</constraints>
+
+<thinking>
+Прежде чем приступить к реализации:
+1. Изучи AWS_AMPLIFY.md раздел Auth Setup для понимания требований
+2. Изучи SECURITY.md раздел Authentication для понимания требований безопасности
+3. Используй Context7 для получения актуальной документации AWS Cognito
+4. Подготовь все необходимые параметры для настройки
+5. Только после этого запускай `amplify add auth`
+</thinking>
+
+**Действия:**
+- [ ] Запустить `amplify add auth`
+- [ ] Выбрать опции:
+  - Do you want to use the default authentication and security configuration? `Default configuration`
+  - How do you want users to be able to sign in? `Email`
+  - Do you want to configure advanced settings? `Yes`
+  - What attributes are required for signing up? `Email` (и другие при необходимости)
+  - Do you want to enable Multi-Factor Authentication (MFA)? `Off` (для MVP)
+  - Email verification: `Required`
+- [ ] Дождаться завершения настройки
+
+**Документация:**
+- <CRITICAL>[AWS_AMPLIFY.md](../../../infrastructure/AWS_AMPLIFY.md) - раздел Auth Setup</CRITICAL>
+- <CRITICAL>[SECURITY.md](../../../infrastructure/SECURITY.md) - раздел Authentication</CRITICAL>
+- <CRITICAL>AWS Cognito документация (через Context7)</CRITICAL>
+
+**Критерии приемки:**
+- Auth ресурс добавлен в Amplify проект
+- Cognito User Pool создан
+- Конфигурация сохранена
+
+<output_format>
+После выполнения задачи Auth ресурс должен быть добавлен в Amplify проект, Cognito User Pool должен быть создан, и конфигурация должна быть сохранена.
+</output_format>
+
+---
+
+### Task 05.02: Настройка парольной политики
+
+<context>
+<CRITICAL>Это критически важная задача для безопасности!</CRITICAL> Парольная политика определяет требования к паролям пользователей. Правильная настройка парольной политики защитит систему от слабых паролей.
+</context>
+
+<task>
+Настрой парольную политику для Cognito User Pool согласно SECURITY.md. Убедись, что политика требует минимальную длину 8 символов и включает uppercase, lowercase, number и special character.
+</task>
+
+<constraints>
+- Парольная политика должна соответствовать SECURITY.md раздел 2.1 Password Policy
+- Minimum length должна быть 8 characters
+- Должны быть требуемы: Uppercase, lowercase, number, special character
+- Политика должна применяться при регистрации
+</constraints>
+
+<thinking>
+Прежде чем приступить к реализации:
+1. Изучи SECURITY.md раздел 2.1 Password Policy детально
+2. Используй Context7 для получения актуальной документации AWS Cognito Password Policy
+3. Определи все требования к парольной политике
+4. Только после этого настраивай парольную политику в AWS Console
+</thinking>
+
+**Действия:**
+- [ ] Открыть AWS Console -> Cognito -> User Pools
+- [ ] Выбрать созданный User Pool
+- [ ] Перейти в раздел "Sign-in experience" -> "Password policy"
+- [ ] Настроить политику паролей согласно [SECURITY.md](../../../infrastructure/SECURITY.md):
+  - Minimum length: 8 characters
+  - Require: Uppercase, lowercase, number, special character
+- [ ] Сохранить изменения
+
+**Документация:**
+- <CRITICAL>[SECURITY.md](../../../infrastructure/SECURITY.md) - раздел 2.1 Password Policy</CRITICAL>
+- AWS Cognito Password Policy документация (через Context7)
+
+**Критерии приемки:**
+- Парольная политика настроена
+- Требования соответствуют документации
+- Политика применяется при регистрации
+
+<output_format>
+После выполнения задачи парольная политика должна быть настроена, требования должны соответствовать документации, и политика должна применяться при регистрации.
+</output_format>
+
+---
+
+### Task 05.03: Создание групп пользователей (Cognito Groups)
+
+<context>
+<CRITICAL>Это критически важная задача для RBAC!</CRITICAL> Создание групп пользователей необходимо для реализации Role-Based Access Control (RBAC). Группы используются в AppSync через @auth директивы для авторизации.
+</context>
+
+<task>
+Создай три группы пользователей в Cognito User Pool: TEACHER, ADMIN и SUPERADMIN. Настрой правильный Precedence для каждой группы согласно требованиям RBAC.
+</task>
+
+<constraints>
+- Все три группы должны быть созданы: TEACHER, ADMIN, SUPERADMIN
+- Precedence должен быть настроен правильно (ADMIN > TEACHER)
+- Группы должны быть видны в Cognito Console
+- Precedence критически важен для правильной работы авторизации
+</constraints>
+
+<thinking>
+Прежде чем приступить к реализации:
+1. Изучи SECURITY.md раздел 3.1 Role-Based Access Control для понимания требований
+2. Изучи MVP_SCOPE.md раздел 2.1.2 Роли пользователей для понимания ролей
+3. Используй Context7 для получения актуальной документации AWS Cognito Groups
+4. Определи правильный Precedence для каждой группы
+5. Только после этого создавай группы
+</thinking>
+
+**Действия:**
+- [ ] Открыть AWS Console -> Cognito -> User Pools
+- [ ] Выбрать созданный User Pool
+- [ ] Перейти в раздел "Groups"
+- [ ] Создать группу `TEACHER`:
+  - Group name: `TEACHER`
+  - Description: `Преподаватели воскресной школы`
+  - Precedence: `1`
+- [ ] Создать группу `ADMIN`:
+  - Group name: `ADMIN`
+  - Description: `Администраторы воскресной школы`
+  - Precedence: `2`
+- [ ] Создать группу `SUPERADMIN`:
+  - Group name: `SUPERADMIN`
+  - Description: `Главные администраторы`
+  - Precedence: `3`
+
+**Документация:**
+- <CRITICAL>[SECURITY.md](../../../infrastructure/SECURITY.md) - раздел 3.1 Role-Based Access Control</CRITICAL>
+- <CRITICAL>[MVP_SCOPE.md](../../../MVP_SCOPE.md) - раздел 2.1.2 Роли пользователей</CRITICAL>
+- AWS Cognito Groups документация (через Context7)
+
+**Критерии приемки:**
+- Все три группы созданы
+- Precedence настроен правильно (ADMIN > TEACHER)
+- Группы видны в Cognito Console
+
+<output_format>
+После выполнения задачи все три группы должны быть созданы, Precedence должен быть настроен правильно, и группы должны быть видны в Cognito Console.
+</output_format>
+
+---
+
+### Task 05.04: Настройка IAM ролей для групп
+
+<context>
+Настройка IAM ролей для групп необходима для предоставления группам правильных разрешений для работы с AppSync API. Правильная настройка ролей обеспечит корректную работу авторизации.
+</context>
+
+<task>
+Настрой IAM роли для всех групп пользователей (TEACHER, ADMIN, SUPERADMIN). Убедись, что роли имеют правильные разрешения для использования AppSync API.
+</task>
+
+<constraints>
+- IAM роли должны быть настроены для всех групп
+- Роли должны иметь правильные разрешения для AppSync
+- Группы должны иметь возможность использовать AppSync API
+- Разрешения должны соответствовать требованиям безопасности
+</constraints>
+
+<thinking>
+Прежде чем приступить к реализации:
+1. Изучи SECURITY.md раздел 3.2 IAM Roles для понимания требований
+2. Используй Context7 для получения актуальной документации AWS Cognito IAM Roles
+3. Определи необходимые разрешения для каждой группы
+4. Только после этого настраивай IAM роли
+</thinking>
+
+**Действия:**
+- [ ] Открыть AWS Console -> Cognito -> User Pools
+- [ ] Выбрать созданный User Pool
+- [ ] Перейти в раздел "Groups" -> выбрать группу `TEACHER`
+- [ ] Настроить IAM роль для группы (если требуется)
+- [ ] Повторить для групп `ADMIN` и `SUPERADMIN`
+- [ ] Убедиться, что роли имеют правильные разрешения для AppSync
+
+**Документация:**
+- [SECURITY.md](../../../infrastructure/SECURITY.md) - раздел 3.2 IAM Roles
+- AWS Cognito IAM Roles документация (через Context7)
+
+**Критерии приемки:**
+- IAM роли настроены для всех групп
+- Роли имеют правильные разрешения
+- Группы могут использовать AppSync API
+
+<output_format>
+После выполнения задачи IAM роли должны быть настроены для всех групп, роли должны иметь правильные разрешения, и группы должны иметь возможность использовать AppSync API.
+</output_format>
+
+---
+
+### Task 05.05: Интеграция Cognito с AppSync
+
+<context>
+<CRITICAL>Это критически важная задача!</CRITICAL> Интеграция Cognito с AppSync необходима для работы авторизации через @auth директивы. Без правильной интеграции авторизация не будет работать.
+</context>
+
+<task>
+Интегрируй Cognito User Pool с AppSync API. Убедись, что Cognito добавлен как Authorization provider, AppSync использует правильный User Pool, и группы Cognito доступны в AppSync для @auth директив.
+</task>
+
+<constraints>
+- Cognito User Pool должен быть добавлен как Authorization provider в AppSync
+- AppSync должен использовать правильный User Pool
+- Группы Cognito должны быть доступны в AppSync для @auth директив
+- Интеграция должна быть настроена правильно
+</constraints>
+
+<thinking>
+Прежде чем приступить к реализации:
+1. Изучи AWS_AMPLIFY.md раздел AppSync Integration для понимания требований
+2. Изучи SECURITY.md раздел 4.1 AppSync Authorization для понимания процесса
+3. Используй Context7 для получения актуальной документации AWS AppSync Cognito Integration
+4. Определи правильный User Pool для интеграции
+5. Только после этого настраивай интеграцию
+</thinking>
+
+**Действия:**
+- [ ] Открыть AWS Console -> AppSync
+- [ ] Выбрать созданный API
+- [ ] Перейти в раздел "Settings" -> "Authorization"
+- [ ] Убедиться, что Cognito User Pool добавлен как Authorization provider
+- [ ] Проверить, что AppSync использует правильный User Pool
+- [ ] Убедиться, что группы Cognito доступны в AppSync
+
+**Документация:**
+- <CRITICAL>[AWS_AMPLIFY.md](../../../infrastructure/AWS_AMPLIFY.md) - раздел AppSync Integration</CRITICAL>
+- <CRITICAL>[SECURITY.md](../../../infrastructure/SECURITY.md) - раздел 4.1 AppSync Authorization</CRITICAL>
+- <CRITICAL>AWS AppSync Cognito Integration документация (через Context7)</CRITICAL>
+
+**Критерии приемки:**
+- Cognito интегрирован с AppSync
+- AppSync использует правильный User Pool
+- Группы доступны в AppSync для @auth директив
+
+<output_format>
+После выполнения задачи Cognito должен быть интегрирован с AppSync, AppSync должен использовать правильный User Pool, и группы должны быть доступны в AppSync для @auth директив.
+</output_format>
+
+---
+
+### Task 05.06: Настройка JWT токенов
+
+<context>
+Настройка JWT токенов критически важна для безопасности и удобства пользователей. Правильная настройка времени жизни токенов обеспечит баланс между безопасностью и удобством использования.
+</context>
+
+<task>
+Настрой JWT токены для Cognito User Pool. Установи время жизни ID Token, Access Token и Refresh Token согласно требованиям безопасности.
+</task>
+
+<constraints>
+- ID Token expiration должен быть настроен (например, 1 day)
+- Access Token expiration должен быть настроен (например, 1 day)
+- Refresh Token expiration должен быть достаточным (30 days)
+- Время жизни токенов должно соответствовать требованиям безопасности
+</constraints>
+
+<thinking>
+Прежде чем приступить к реализации:
+1. Изучи SECURITY.md раздел 2.3 JWT Tokens для понимания требований
+2. Изучи MVP_SCOPE.md раздел 2.1.1 JWT токены для понимания требований
+3. Используй Context7 для получения актуальной документации AWS Cognito Token Settings
+4. Определи оптимальное время жизни токенов
+5. Только после этого настраивай токены
+</thinking>
+
+**Действия:**
+- [ ] Открыть AWS Console -> Cognito -> User Pools
+- [ ] Выбрать созданный User Pool
+- [ ] Перейти в раздел "App integration" -> "App client settings"
+- [ ] Настроить токены:
+  - ID Token expiration: `1 day` (или другое значение)
+  - Access Token expiration: `1 day`
+  - Refresh Token expiration: `30 days`
+- [ ] Включить необходимые OAuth scopes (если требуется)
+
+**Документация:**
+- <CRITICAL>[SECURITY.md](../../../infrastructure/SECURITY.md) - раздел 2.3 JWT Tokens</CRITICAL>
+- [MVP_SCOPE.md](../../../MVP_SCOPE.md) - раздел 2.1.1 JWT токены
+- AWS Cognito Token Settings документация (через Context7)
+
+**Критерии приемки:**
+- JWT токены настроены
+- Время жизни токенов соответствует требованиям
+- Refresh token имеет достаточное время жизни (30 дней)
+
+<output_format>
+После выполнения задачи JWT токены должны быть настроены, время жизни токенов должно соответствовать требованиям, и refresh token должен иметь достаточное время жизни (30 дней).
+</output_format>
+
+---
+
+### Task 05.07: Создание тестовых пользователей
+
+<context>
+Создание тестовых пользователей необходимо для тестирования аутентификации и авторизации. Тестовые пользователи создаются только для разработки, в production их не должно быть.
+</context>
+
+<task>
+Создай тестовых пользователей для всех ролей (TEACHER, ADMIN, SUPERADMIN) в Cognito User Pool. Добавь пользователей в соответствующие группы и пометь email как verified.
+</task>
+
+<constraints>
+- Тестовые пользователи должны быть созданы для всех ролей
+- Пользователи должны быть добавлены в соответствующие группы
+- Email должен быть помечен как verified
+- Пароли должны быть надежными
+- Тестовые пользователи только для разработки
+</constraints>
+
+<thinking>
+Прежде чем приступить к реализации:
+1. Изучи SECURITY.md раздел Testing для понимания требований
+2. Используй Context7 для получения актуальной документации AWS Cognito User Management
+3. Определи email адреса для тестовых пользователей
+4. Создай надежные пароли
+5. Только после этого создавай тестовых пользователей
+</thinking>
+
+**Действия:**
+- [ ] Открыть AWS Console -> Cognito -> User Pools
+- [ ] Выбрать созданный User Pool
+- [ ] Перейти в раздел "Users"
+- [ ] Создать тестового пользователя с ролью TEACHER:
+  - Email: `teacher@test.com`
+  - Temporary password: создать надежный пароль
+  - Mark email as verified: `Yes`
+  - Add to group: `TEACHER`
+- [ ] Создать тестового пользователя с ролью ADMIN:
+  - Email: `admin@test.com`
+  - Temporary password: создать надежный пароль
+  - Mark email as verified: `Yes`
+  - Add to group: `ADMIN`
+- [ ] Создать тестового пользователя с ролью SUPERADMIN:
+  - Email: `superadmin@test.com`
+  - Temporary password: создать надежный пароль
+  - Mark email as verified: `Yes`
+  - Add to group: `SUPERADMIN`
+
+**Документация:**
+- [SECURITY.md](../../../infrastructure/SECURITY.md) - раздел Testing
+- AWS Cognito User Management документация (через Context7)
+
+**Критерии приемки:**
+- Тестовые пользователи созданы для всех ролей
+- Пользователи добавлены в соответствующие группы
+- Email помечен как verified
+
+<output_format>
+После выполнения задачи тестовые пользователи должны быть созданы для всех ролей, пользователи должны быть добавлены в соответствующие группы, и email должен быть помечен как verified.
+</output_format>
+
+---
+
+### Task 05.08: Тестирование аутентификации
+
+<context>
+Тестирование аутентификации необходимо для подтверждения правильности работы входа, получения JWT токенов и содержания информации о группах в токенах.
+</context>
+
+<task>
+Протестируй аутентификацию с тестовыми пользователями. Установи AWS Amplify библиотеки, протестируй вход и проверь получение JWT токенов с правильной информацией о группах.
+</task>
+
+<constraints>
+- AWS Amplify библиотеки должны быть установлены
+- Вход должен работать для всех тестовых пользователей
+- JWT токены должны получаться корректно
+- Токены должны содержать информацию о группах
+- Настройка Amplify конфигурации будет сделана в Phase 08
+</constraints>
+
+<thinking>
+Прежде чем приступить к реализации:
+1. Убедись, что тестовые пользователи созданы (Task 05.07)
+2. Изучи AWS_AMPLIFY.md раздел Frontend Integration для понимания требований
+3. Изучи SECURITY.md раздел Authentication Flow для понимания процесса
+4. Используй Context7 для получения актуальной документации AWS Amplify Auth
+5. Только после этого тестируй аутентификацию
+</thinking>
+
+**Действия:**
+- [ ] Установить AWS Amplify библиотеки: `npm install aws-amplify`
+- [ ] Настроить Amplify конфигурацию в проекте (будет сделано в Phase 08)
+- [ ] Протестировать вход с тестовыми пользователями
+- [ ] Проверить получение JWT токенов
+- [ ] Проверить, что токены содержат правильные группы
+
+**Документация:**
+- [AWS_AMPLIFY.md](../../../infrastructure/AWS_AMPLIFY.md) - раздел Frontend Integration
+- [SECURITY.md](../../../infrastructure/SECURITY.md) - раздел Authentication Flow
+- AWS Amplify Auth документация (через Context7)
+
+**Критерии приемки:**
+- Вход работает для всех тестовых пользователей
+- JWT токены получаются корректно
+- Токены содержат информацию о группах
+
+<output_format>
+После выполнения задачи вход должен работать для всех тестовых пользователей, JWT токены должны получаться корректно, и токены должны содержать информацию о группах.
+</output_format>
+
+---
+
+### Task 05.09: Настройка email верификации (если требуется)
+
+<context>
+Email верификация критически важна для безопасности. Правильная настройка email верификации защитит систему от поддельных аккаунтов.
+</context>
+
+<task>
+Настрой email верификацию для Cognito User Pool. Для MVP используй Cognito's default email, для production можно настроить SES. Протестируй отправку email верификации.
+</task>
+
+<constraints>
+- Email верификация должна быть настроена
+- Для MVP используй Cognito's default email
+- Email должны отправляться корректно
+- Пользователи должны иметь возможность верифицировать email
+</constraints>
+
+<thinking>
+Прежде чем приступить к реализации:
+1. Изучи SECURITY.md раздел 2.1 Email Verification для понимания требований
+2. Используй Context7 для получения актуальной документации AWS Cognito Email Settings
+3. Определи, использовать ли Cognito's default email или SES
+4. Только после этого настраивай email верификацию
+</thinking>
+
+**Действия:**
+- [ ] Открыть AWS Console -> Cognito -> User Pools
+- [ ] Выбрать созданный User Pool
+- [ ] Перейти в раздел "Messaging" -> "Email"
+- [ ] Настроить email отправку:
+  - Use Cognito's default email: `Yes` (для MVP)
+  - Или настроить SES (для production)
+- [ ] Протестировать отправку email верификации
+
+**Документация:**
+- [SECURITY.md](../../../infrastructure/SECURITY.md) - раздел 2.1 Email Verification
+- AWS Cognito Email Settings документация (через Context7)
+
+**Критерии приемки:**
+- Email верификация настроена
+- Email отправляются корректно
+- Пользователи могут верифицировать email
+
+<output_format>
+После выполнения задачи email верификация должна быть настроена, email должны отправляться корректно, и пользователи должны иметь возможность верифицировать email.
+</output_format>
+
+---
+
+### Task 05.10: Push изменений в AWS
+
+<context>
+<CRITICAL>Это критически важная задача!</CRITICAL> Push изменений в AWS применяет все изменения в настройках Cognito к AWS. После push изменения вступают в силу в production.
+</context>
+
+<task>
+Запусти `amplify push` для применения всех изменений в настройках Cognito к AWS. Убедись, что все обновления применены успешно.
+</task>
+
+<constraints>
+- Используй команду `amplify push` (Gen 1, НЕ Gen 2!)
+- Подтверди обновление ресурсов только после проверки
+- Дождись завершения обновления Cognito
+- Проверь статус после обновления
+</constraints>
+
+<thinking>
+Прежде чем приступить к реализации:
+1. Убедись, что все предыдущие задачи выполнены
+2. Изучи AWS_AMPLIFY.md раздел Push для понимания процесса
+3. Подготовься к проверке обновлений
+4. Только после этого запускай `amplify push`
+</thinking>
+
+**Действия:**
+- [ ] Запустить `amplify push`
+- [ ] Подтвердить обновление ресурсов
+- [ ] Дождаться завершения обновления Cognito
+- [ ] Проверить статус: `amplify status`
+
+**Документация:**
+- <CRITICAL>[AWS_AMPLIFY.md](../../../infrastructure/AWS_AMPLIFY.md) - раздел Push</CRITICAL>
+
+**Критерии приемки:**
+- Команда `amplify push` выполнена успешно
+- Cognito User Pool обновлен
+- Нет ошибок при обновлении
+
+<output_format>
+После выполнения задачи команда `amplify push` должна быть выполнена успешно, Cognito User Pool должен быть обновлен, и не должно быть ошибок при обновлении.
+</output_format>
+
+---
+
+### Task 05.11: Проверка конфигурации в amplifyconfiguration.json
+
+<context>
+Проверка конфигурации в amplifyconfiguration.json критически важна для правильной работы аутентификации в приложении. Конфигурация должна содержать правильные User Pool ID и Client ID.
+</context>
+
+<task>
+Проверь конфигурацию в amplifyconfiguration.json. Убедись, что секция Auth содержит правильные User Pool ID, Client ID и region.
+</task>
+
+<constraints>
+- `amplifyconfiguration.json` должен содержать правильную конфигурацию Auth
+- User Pool ID должен быть корректным
+- Client ID должен быть корректным
+- Region должен быть правильным
+- Конфигурация должна быть готова к использованию в приложении
+</constraints>
+
+<thinking>
+Прежде чем приступить к реализации:
+1. Убедись, что push выполнен успешно (Task 05.10)
+2. Изучи AWS_AMPLIFY.md раздел Configuration Files для понимания структуры
+3. Изучи ARCHITECTURE.md раздел Configuration для понимания требований
+4. Только после этого проверяй конфигурацию
+</thinking>
+
+**Действия:**
+- [ ] Открыть файл `amplifyconfiguration.json` (или `src/amplifyconfiguration.json`)
+- [ ] Проверить наличие секции `Auth`:
+  ```json
+  {
+    "Auth": {
+      "Cognito": {
+        "userPoolId": "...",
+        "userPoolClientId": "...",
+        "region": "..."
+      }
+    }
+  }
+  ```
+- [ ] Убедиться, что конфигурация корректна
+- [ ] Проверить, что User Pool ID и Client ID правильные
+
+**Документация:**
+- [AWS_AMPLIFY.md](../../../infrastructure/AWS_AMPLIFY.md) - раздел Configuration Files
+- [ARCHITECTURE.md](../../../architecture/ARCHITECTURE.md) - раздел Configuration
+
+**Критерии приемки:**
+- `amplifyconfiguration.json` содержит правильную конфигурацию Auth
+- User Pool ID и Client ID корректны
+- Конфигурация готова к использованию в приложении
+
+<output_format>
+После выполнения задачи `amplifyconfiguration.json` должен содержать правильную конфигурацию Auth, User Pool ID и Client ID должны быть корректны, и конфигурация должна быть готова к использованию в приложении.
+</output_format>
+
+---
+
+### Task 05.12: Документирование настроек аутентификации
+
+<context>
+Документирование настроек аутентификации критически важно для команды и будущей работы с системой. Все настройки должны быть задокументированы для справки.
+</context>
+
+<task>
+Задокументируй все настройки аутентификации: созданные группы и их назначение, парольную политику, настройки токенов и тестовых пользователей. Обнови SECURITY.md если необходимо.
+</task>
+
+<constraints>
+- Документация должна быть обновлена
+- Все настройки должны быть задокументированы
+- Тестовые пользователи должны быть записаны (для разработки)
+- Документация должна быть доступна для команды
+</constraints>
+
+<thinking>
+Прежде чем приступить к реализации:
+1. Собери всю информацию о настройках аутентификации
+2. Определи, какие настройки критически важны для документирования
+3. Изучи SECURITY.md и AWS_AMPLIFY.md для понимания структуры документации
+4. Только после этого обновляй документацию
+</thinking>
+
+**Действия:**
+- [ ] Задокументировать созданные группы и их назначение
+- [ ] Задокументировать парольную политику
+- [ ] Задокументировать настройки токенов
+- [ ] Задокументировать тестовых пользователей (для разработки)
+- [ ] Обновить [SECURITY.md](../../../infrastructure/SECURITY.md) если необходимо
+
+**Документация:**
+- [SECURITY.md](../../../infrastructure/SECURITY.md)
+- [AWS_AMPLIFY.md](../../../infrastructure/AWS_AMPLIFY.md)
+
+**Критерии приемки:**
+- Документация обновлена
+- Настройки задокументированы
+- Тестовые пользователи записаны (для разработки)
+
+<output_format>
+После выполнения задачи вся документация должна быть обновлена, все настройки должны быть задокументированы, и тестовые пользователи должны быть записаны (для разработки).
+</output_format>
+
+---
+
+### Task 05.13: Финальная проверка настройки
+
+<context>
+<CRITICAL>Это финальная проверка фазы!</CRITICAL> Финальная проверка настройки аутентификации необходима для подтверждения готовности системы к использованию в приложении. Все настройки должны работать корректно.
+</context>
+
+<task>
+Проведи финальную проверку настройки аутентификации. Проверь, что все группы созданы, Cognito интегрирован с AppSync, тестовые пользователи могут входить, JWT токены содержат группы, и нет критических ошибок.
+</task>
+
+<constraints>
+- Все настройки должны работать корректно
+- Аутентификация должна функционировать
+- Авторизация через группы должна работать
+- Не должно быть критических ошибок
+- Система должна быть готова к использованию в приложении
+</constraints>
+
+<thinking>
+Прежде чем приступить к реализации:
+1. Убедись, что все предыдущие задачи выполнены
+2. Подготовься к проверке всех аспектов настройки
+3. Только после этого проводи финальную проверку
+</thinking>
+
+**Действия:**
+- [ ] Проверить, что все группы созданы
+- [ ] Проверить, что Cognito интегрирован с AppSync
+- [ ] Проверить, что тестовые пользователи могут входить
+- [ ] Проверить, что JWT токены содержат группы
+- [ ] Убедиться, что нет критических ошибок
+
+**Документация:**
+- [SECURITY.md](../../../infrastructure/SECURITY.md)
+- [AWS_AMPLIFY.md](../../../infrastructure/AWS_AMPLIFY.md)
+
+**Критерии приемки:**
+- Все настройки работают корректно
+- Аутентификация функционирует
+- Авторизация через группы работает
+- Система готова к использованию в приложении
+
+<output_format>
+После выполнения задачи все настройки должны работать корректно, аутентификация должна функционировать, авторизация через группы должна работать, и система должна быть готова к использованию в приложении.
+</output_format>
+
+---
+
+## Ссылки на документацию проекта
+
+- [SECURITY.md](../../../infrastructure/SECURITY.md) - Безопасность и аутентификация
+- [AWS_AMPLIFY.md](../../../infrastructure/AWS_AMPLIFY.md) - Настройка AWS Amplify
+- [MVP_SCOPE.md](../../../MVP_SCOPE.md) - Роли пользователей
+- [GRAPHQL_SCHEMA.md](../../../database/GRAPHQL_SCHEMA.md) - Авторизация в GraphQL
+
+---
+
+## Примечания
+
+- Группы Cognito используются для RBAC в AppSync через @auth директивы
+- Precedence групп важен для правильной работы авторизации
+- Тестовые пользователи создаются только для разработки, в production их не должно быть
+- JWT токены содержат информацию о группах пользователя
+- Email верификация обязательна для безопасности
+
+---
+
+**Версия:** 1.0  
+**Последнее обновление:** 23 декабря 2025
+

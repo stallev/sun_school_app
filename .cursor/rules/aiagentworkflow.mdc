@@ -1,0 +1,731 @@
+---
+alwaysApply: true
+---
+
+## Purpose
+
+Task Execution Workflow ensures that all development tasks are executed systematically, with thorough validation and documentation to maintain code quality, consistency, and compliance with MVP project requirements. This workflow is mandatory for the CursorAI agent when executing each task.
+
+---
+
+## Task Execution Workflow
+
+The CursorAI agent must follow the steps below for each development task to ensure compliance with technical, functional, and design requirements of the project.
+
+### Step 1: Task Analysis
+
+- **Goal**: Understand task requirements and align with project architecture.
+- **Actions**:
+  - **⚠️ CRITICALLY IMPORTANT: Pre-Task Verification**:
+    - **Mandatory rule**: Before executing any task from the implementation phase task list, the CursorAI agent **MUST** perform a comprehensive verification of task completion status.
+    - **Verification process**:
+      1. **Check task status in phase files**:
+         - Review the corresponding phase file in `docs/implementation/mvp/tasks/phase_*.md` for the current implementation phase.
+         - Identify all tasks related to the current instruction or task block.
+         - Check the completion status of each task (`- [ ]` for incomplete, `- [x]` for complete).
+      2. **Verify code existence**:
+         - For each task marked as incomplete (`- [ ]`), verify if the required code files actually exist in the codebase.
+         - Check if the files mentioned in the task description are present (e.g., components, Server Actions, utilities).
+         - Verify if the functionality described in the task is already implemented.
+         - Use codebase search and file system inspection to confirm code existence.
+      3. **Update task status if code exists**:
+         - If code files exist and functionality is implemented, but task status is `- [ ]`:
+           - Update task status from `- [ ]` to `- [x]` in the corresponding phase file.
+           - Document the verification: "✅ Task already completed - code verified and status updated."
+         - If code files exist but are incomplete or partially implemented:
+           - Document findings: "⚠️ Task partially completed - [describe what exists and what's missing]."
+           - Proceed with completing the missing parts.
+      4. **Quality assessment** (if task is already completed):
+         - Review the existing implementation for:
+           - **Architecture compliance**: Correct file placement, correct imports, adherence to project structure.
+           - **TypeScript compliance**: Strict typing, no `any` types, proper type definitions.
+           - **Code quality**: Following project patterns, proper error handling, JSDoc comments.
+           - **Functionality completeness**: All requirements from task description are met.
+           - **Integration**: Proper integration with amplifyData, AWS Cognito, and other services.
+         - If quality issues are found:
+           - Document findings: "⚠️ Quality issues detected: [list issues]."
+           - Propose improvements: "💡 Suggested improvements: [list improvements]."
+           - **Important**: Only propose improvements if they are critical for functionality or architecture compliance. For MVP, minor improvements can be deferred.
+         - If implementation is of acceptable quality:
+           - Document: "✅ Task verified - implementation quality is acceptable."
+           - Skip re-implementation unless user explicitly requests changes.
+      5. **Proceed with task execution**:
+         - If task is incomplete or code doesn't exist: proceed with normal task execution workflow (Steps 2-7).
+         - If task is complete and quality is acceptable: skip to Step 7 (Documentation Update) to ensure documentation is up to date.
+         - If task is complete but quality issues are critical: proceed with improvements following Steps 2-7.
+    - **This verification prevents**:
+      - Duplicate work on already completed tasks.
+      - Inconsistent task status in phase files.
+      - Missing updates to task status when code exists but status is incorrect.
+      - Proceeding with implementation without understanding existing codebase state.
+    - **Verification must be performed**:
+      - Before executing any task from `docs/implementation/mvp/tasks/phase_*.md`.
+      - Before executing any task block or group of tasks.
+      - When user requests work on a specific phase or task.
+      - When starting a new implementation phase.
+  - Study the task description and cross-reference with relevant sections:
+    - [`docs/MVP_SCOPE.md`](docs/MVP_SCOPE.md) - what is included and not included in MVP.
+    - [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md) - technical architecture of the project.
+    - [`docs/implementation/mvp/implementation_phases_list.md`](docs/implementation/mvp/implementation_phases_list.md) - MVP implementation plan.
+    - [`docs/implementation/mvp/tasks/`](docs/implementation/mvp/tasks/) - project task list by phases.
+    - [`docs/guidelines/react/`](docs/guidelines/react/) - guidelines for React components, hooks, utilities.
+    - [`amplify/data/schema.graphql`](amplify/data/schema.graphql) - GraphQL database schema.
+    - [`docs/database/GRAPHQL_SCHEMA.md`](docs/database/GRAPHQL_SCHEMA.md) - complete GraphQL API documentation.
+  - Determine task type:
+    - **Teacher component** → `components/teacher/`
+    - **Admin component** → `components/admin/`
+    - **Shared component** → `components/shared/`
+    - **Server Action** → `actions/`
+    - **Page** → `app/` (App Router)
+    - **Utility** → `lib/`
+  - Determine if Server Component (default) or Client Component (only for interactivity) is required.
+  - Check if the task requires database work (amplifyData via AppSync), authentication (AWS Cognito), or AWS S3 Storage.
+  - **Automatic Context7 MCP server usage**:
+    - **Mandatory rule**: If the task involves using libraries or frameworks (Next.js, React, AWS Amplify Gen 1, TypeScript, Zod, Shadcn UI, react-hook-form, AWS Cognito, Tailwind CSS, BlockNote, etc.), the CursorAI agent **must automatically** use Context7 to obtain up-to-date documentation.
+    - **Context7 automatic usage criteria**:
+      - Task involves Next.js (Server Actions, App Router, routing, middleware)
+      - Task involves React (components, hooks, patterns)
+      - Task involves AWS Amplify Gen 1 (amplifyData, AppSync, Cognito)
+      - Task involves validation (Zod, react-hook-form)
+      - Task involves UI libraries (Shadcn UI, Tailwind CSS)
+      - Task involves authentication (AWS Cognito, Amplify Auth)
+      - Task involves BlockNote (rich text editor for lessons)
+      - Task requires up-to-date documentation or code examples
+    - **CursorAI action**: When determining that the task meets the above criteria, **automatically** use the Context7 MCP server to obtain up-to-date documentation, **without requiring** explicit `use context7` indication from the user.
+    - This ensures obtaining up-to-date, version-specific documentation and code examples without requiring explicit indication from the user.
+  - The document should include:
+    - Step-by-step implementation instructions in English.
+    - Code examples with explanations, following the project structure.
+    - Links to architecture and guidelines.
+    - Architecture compliance details (file placement, imports).
+    - Alternative approaches with pros and cons.
+    - Justification for the chosen approach.
+    - Dependencies on other tasks or services.
+
+### Step 2: Code Implementation
+
+- **Goal**: Implement the task following project architecture and best practices.
+- **Actions**:
+  - Place code in the appropriate folder according to project structure:
+    - **`components/ui/`**: Shadcn UI components (separate folder, installed via `npx shadcn@latest add`).
+    - **`components/teacher/`**: Components for teachers (LessonForm, HomeworkCheckTable, PupilCard, LeaderboardTable, ScheduleCalendar).
+    - **`components/admin/`**: Components for admin panel (AdminSidebar, AdminBreadcrumbs, TeachersTable, PupilsTable, FamiliesTable, GradeSettingsForm).
+    - **`components/shared/`**: Shared components (Header, Footer, LoadingSpinner, ErrorMessage).
+    - **`actions/`**: Server Actions for CRUD operations (lessons.ts, homework.ts, pupils.ts, teachers.ts, grades.ts, academic-years.ts, golden-verses.ts, achievements.ts, families.ts, schedule.ts, admin.ts).
+    - **`app/`**: Next.js App Router pages (orchestration only).
+    - **`lib/`**: Utilities and helpers (db/amplify.ts for amplifyData, auth for Cognito, utils).
+  - Maintain strict TypeScript typing, prohibiting the use of `any` types. Define specific types in corresponding files.
+  - Use **Zod schemas as the single source of truth** for validation. Derive TypeScript types using `z.infer<typeof Schema>`.
+  - Implement **Server Components by default**. Add `'use client'` only when interactivity is required (useState, useEffect, event handlers).
+  - For Server Actions, follow patterns:
+    - Place in `actions/{entity}.ts` (e.g., `actions/lessons.ts`, `actions/homework.ts`, `actions/pupils.ts`).
+    - Include `'use server'` directive.
+    - Authentication check via AWS Cognito (only for admin actions and teacher actions).
+    - Input validation using Zod schemas.
+    - Business logic execution via amplifyData (GraphQL operations through AppSync).
+    - Return discriminated unions: `{ success: true, data?: T } | { success: false, error: string }`.
+  - For data operations, use **amplifyData** from `@/lib/db/amplify`:
+    - Use `amplifyData.create()`, `amplifyData.get()`, `amplifyData.list()`, `amplifyData.update()`, `amplifyData.delete()`.
+    - All operations go through AWS AppSync GraphQL API.
+    - Types are automatically generated from GraphQL schema.
+  - For UI components, follow [`docs/guidelines/react/ai_component_guidelines.md`](docs/guidelines/react/ai_component_guidelines.md):
+    - Use Shadcn UI components from `components/ui/`.
+    - Apply Atomic Design hierarchy: Atoms → Molecules → Organisms.
+    - Use Tailwind CSS 4 with semantic classes.
+    - Ensure WCAG 2.1 AA accessibility (keyboard navigation, ARIA labels, 4.5:1 contrast).
+  - For React hooks, follow [`docs/guidelines/react/ai_react_hooks_guidelines.md`](docs/guidelines/react/ai_react_hooks_guidelines.md):
+    - Place in `hooks/` directory.
+    - Use Zustand for client state (minimally, only when needed).
+    - Use Server Components for public pages (hooks not needed).
+  - For utility functions, follow [`docs/guidelines/react/ai_react_utilities_guidelines.md`](docs/guidelines/react/ai_react_utilities_guidelines.md):
+    - Place in `lib/` for global utilities.
+    - Ensure pure functions (no side effects).
+    - Use named exports for tree-shaking.
+  - Add JSDoc comments in English for complex logic.
+  - **Automatic Context7 usage when working with libraries**:
+    - **Mandatory rule**: When implementing code using libraries (Next.js, React, AWS Amplify Gen 1, Zod, Shadcn UI, BlockNote, etc.), the CursorAI agent **must automatically** use the Context7 MCP server to obtain up-to-date documentation.
+    - **Automatic necessity determination**:
+      - If code uses Next.js API → automatically use Context7
+      - If code uses React patterns → automatically use Context7
+      - If code uses AWS Amplify Gen 1 → automatically use Context7
+      - If code uses amplifyData/AppSync → automatically use Context7
+      - If code uses AWS Cognito → automatically use Context7
+      - If code uses Zod for validation → automatically use Context7
+      - If code uses Shadcn UI components → automatically use Context7
+      - If code uses react-hook-form → automatically use Context7
+      - If code uses BlockNote → automatically use Context7
+    - **CursorAI action**: When implementing code that meets the above criteria, **automatically** contact the Context7 MCP server to obtain up-to-date documentation, **without explicit indication** of `use context7` in the user's request.
+    - This ensures using up-to-date APIs, correct patterns, and best practices for specific library versions.
+    - **Important**: Context7 should be used automatically based on task type, not only when explicitly indicated by the user.
+  - **Important for MVP**: Focus on functionality, not perfect code. Can be simplified for quick launch.
+
+### Step 3: TypeScript Validation
+
+- **Goal**: Ensure type safety and eliminate TypeScript errors.
+- **Actions**:
+  - Run `npx tsc --noEmit` to check for TypeScript errors. Use this command at this step.
+  - If errors are found (e.g., `Unexpected any`, missing types):
+    - Fix errors by defining specific types in corresponding files.
+    - Ensure all types follow patterns from guidelines.
+    - Use `z.infer<typeof Schema>` for types derived from Zod schemas.
+    - Check types generated from GraphQL schema (via Amplify codegen).
+    - Re-run `npx tsc --noEmit` until errors are resolved.
+  - Document any type fixes in the task description.
+
+### Step 4: Linting
+
+- **Goal**: Ensure code compliance with linting standards.
+- **Actions**:
+  - Run `npm run lint` to detect linting issues, including warnings like `Unexpected any. Specify a different type`.
+  - If issues are found:
+    - Fix each issue (e.g., replace `any` with specific types, fix formatting).
+    - Ensure imports are correct.
+    - Re-run `npm run lint` until issues are resolved.
+  - Ensure all code complies with ESLint and Prettier standards.
+
+### Step 4.5: Browser UI Check (⭐ **MANDATORY for UI components**)
+
+- **Goal**: Ensure correct display of user interface components and absence of errors in the browser.
+- **Condition**: This step is **MANDATORY** if changes involved user interface components (UI components, pages, layouts).
+- **Important**: Browser console check is a **critically important** part of this step and **CANNOT** be skipped. Browser console errors may not appear during build but will be visible to users in production.
+- **Actions**:
+
+#### 4.5.1. Automatic Check (performed by CursorAI)
+
+- **Starting development server**:
+  - Run `npm run dev` to start the development server.
+  - Wait for successful server startup.
+
+- **Opening pages in browser**:
+  - Open corresponding pages in the browser built into CursorAI, using the browser navigation function.
+  - Ensure the page loaded without critical errors.
+
+- **Browser console error check** (⭐ **MANDATORY**):
+  > ⚠️ **CRITICALLY IMPORTANT**: Browser console check is a **mandatory** step when creating or modifying any UI component. This step **CANNOT** be skipped.
+  
+  - **Method 1: Using MCP tools (preferred)**:
+    - Use `mcp_console-ninja_runtime-errors` to get all runtime errors from the browser.
+    - Use `mcp_console-ninja_runtime-logs` to get all logs from the browser.
+    - Use `mcp_console-ninja_runtime-logs-and-errors` to get all errors and logs simultaneously.
+    - If the component is already open in the browser, use `mcp_console-ninja_runtime-logs-by-location` with file and line specification to check a specific component.
+    - **Check should include**:
+      - JavaScript errors (SyntaxError, TypeError, ReferenceError, etc.)
+      - React errors (hydration errors, render errors, hook errors)
+      - React warnings (deprecated API, missing keys, etc.)
+      - Serialization errors (e.g., "Only plain objects can be passed to Client Components")
+      - Module import errors
+      - Server Actions execution errors
+      - AppSync/GraphQL errors (if applicable)
+      - Zod validation errors (if applicable)
+      - Cognito authentication errors (if applicable)
+    - **If errors are found**:
+      1. Record all found errors with their types and messages.
+      2. Determine error source (which component, which line of code).
+      3. Fix errors in code according to their type:
+         - **Serialization errors**: Convert non-serializable types (Date, functions) to strings before passing to Client Components. AWS types (AWSDate, AWSDateTime) are already serializable.
+         - **React errors**: Check correct hook usage, check useEffect dependencies, check keys in lists.
+         - **TypeScript errors**: Ensure all types are defined correctly.
+         - **Import errors**: Check import paths, ensure files exist.
+         - **Validation errors**: Check Zod schemas and data compliance with schemas.
+         - **GraphQL/AppSync errors**: Check query structure, ensure fields match schema.
+         - **Cognito errors**: Check authentication configuration, ensure tokens are valid.
+      4. Save changes in files.
+      5. Wait for automatic page reload (Hot Module Replacement).
+      6. Re-check browser console using MCP tools.
+      7. Repeat steps 3-6 until all errors are resolved.
+    - **If no errors found**:
+      - Document successful check: "✅ Browser console checked via MCP tools - no errors found."
+      - Proceed to next check step.
+  
+  - **Method 2: Manual check via Developer Tools (if MCP unavailable)**:
+    - Open page in browser (if not already open).
+    - Open Developer Tools using one of the methods:
+      - Press `F12` on keyboard.
+      - Press `Ctrl+Shift+I` (Windows/Linux) or `Cmd+Option+I` (Mac).
+      - Right-click on page → "Inspect" or "Inspect Element".
+    - Go to **Console** tab.
+    - **Check console filters**:
+      - Ensure filters are enabled to display all message types:
+        - ✅ Errors - **mandatory**
+        - ✅ Warnings - **mandatory**
+        - ✅ Info - recommended
+        - ⚠️ Verbose - optional
+    - **Check for errors**:
+      - Errors are displayed in red with ❌ or ⚠️ icon.
+      - Pay attention to:
+        - **Red messages** - critical errors that block application functionality.
+        - **Yellow warnings** - warnings that may indicate potential issues.
+        - **Stack trace** - click on error to see where it occurred.
+    - **Check Network tab** (if applicable):
+      - Go to **Network** tab in Developer Tools.
+      - Refresh page (F5 or Ctrl+R).
+      - Check for failed requests (in red):
+        - Failed API requests to Server Actions
+        - Failed GraphQL requests to AppSync
+        - Failed requests to AWS Cognito
+        - Failed resource loads (images, styles, scripts)
+      - If failed requests found:
+        - Click on failed request to view details.
+        - Check status code (404, 500, etc.).
+        - Check Response to understand error cause.
+        - Fix issue in code.
+    - **Check React DevTools tab** (if installed):
+      - Install React Developer Tools browser extension (if not already installed).
+      - Open **Components** tab in React DevTools.
+      - Check components for warnings:
+        - Missing keys in lists
+        - Deprecated API usage
+        - Performance warnings
+    - **If errors found**:
+      1. Copy full error text (including stack trace).
+      2. Determine error source from stack trace:
+        - Find file and line where error occurred.
+        - Determine which component caused the error.
+      3. Fix error in code according to error type (see Method 1, step 3).
+      4. Save changes.
+      5. Refresh page in browser (F5 or Ctrl+R).
+      6. Re-check console.
+      7. Repeat steps 3-6 until all errors are resolved.
+    - **If no errors found**:
+      - Document successful check: "✅ Browser console checked manually via Developer Tools - no errors found."
+      - Proceed to next check step.
+  
+  - **Common errors and solutions**:
+    - **"Only plain objects can be passed to Client Components"**:
+      - **Cause**: Attempt to pass non-serializable object (Date, function) from Server Component to Client Component.
+      - **Solution**: Convert Date to ISO string (`.toISOString()`) before passing. AWS types (AWSDate, AWSDateTime) are already serializable as strings.
+      - **Example**: Create `serializeLesson()` function to convert Lesson with dates to serializable format.
+    
+    - **"Hydration failed"**:
+      - **Cause**: HTML mismatch between server and client (e.g., using `Date.now()` or `Math.random()` in render).
+      - **Solution**: Ensure Server and Client Components render identical HTML, use `useEffect` for client data.
+    
+    - **"Cannot read property 'X' of undefined"**:
+      - **Cause**: Attempt to access property of non-existent object.
+      - **Solution**: Add existence checks for object (`?.` optional chaining, `if` checks).
+    
+    - **"Invalid hook call"**:
+      - **Cause**: Using React hooks outside component or in wrong order.
+      - **Solution**: Ensure hooks are used only in functional components, follow hook rules.
+    
+    - **"Module not found"**:
+      - **Cause**: Incorrect import path or missing file.
+      - **Solution**: Check import paths, ensure files exist, check letter case in paths.
+    
+    - **"Zod validation error"**:
+      - **Cause**: Data does not match Zod schema.
+      - **Solution**: Check data structure, ensure all required fields are present, check data types.
+    
+    - **"GraphQL error" or "AppSync error"**:
+      - **Cause**: Incorrect GraphQL query structure or schema error.
+      - **Solution**: Check GraphQL query, ensure fields match schema in `amplify/data/schema.graphql`, check data types.
+    
+    - **"Cognito authentication error"**:
+      - **Cause**: Invalid or expired JWT token, incorrect Cognito configuration.
+      - **Solution**: Check Cognito configuration in `amplify/auth/resource.ts`, ensure tokens are updated correctly.
+  
+  - **Documenting results**:
+    - Document console check results:
+      - If no errors: "✅ Browser console checked - no errors found."
+      - If errors were found: "⚠️ Errors found in console: [error list]. Fixed: [fix description]."
+    - Specify check method (MCP tools or Developer Tools).
+    - Specify check time and component version.
+  
+  - **Successful check criteria**:
+    - ✅ Zero errors (Errors) in browser console.
+    - ✅ Zero critical warnings (Warnings) that may affect functionality.
+    - ✅ No failed requests in Network tab (if applicable).
+    - ✅ Page loads without errors.
+    - ✅ All interactive elements work correctly.
+  
+  - **Important**: 
+    - Browser console check is **MANDATORY** for all UI components.
+    - Cannot skip this step, even if TypeScript and linting passed successfully.
+    - Browser console errors may not appear during build but will be visible to users in production.
+    - All errors must be fixed **BEFORE** proceeding to next workflow step.
+
+- **Basic functionality check**:
+  - Check that page loads without errors.
+  - Check that basic interactive elements respond to clicks (buttons, links).
+  - Check that navigation works (links go to correct URLs).
+  - If basic functionality issues found:
+    - Fix component logic.
+    - Reload page and check again.
+    - Repeat until basic functionality works correctly.
+
+#### 4.5.2. Visual Check (requires human intervention)
+
+> ⚠️ **Important**: The following checks require visual evaluation by a human and cannot be fully automated. CursorAI should **indicate to the developer** the need to perform these checks.
+
+- **Visual design compliance**:
+  - Check visual compliance of components with design and requirements.
+  - Ensure colors, fonts, spacing match design system.
+  - **CursorAI action**: Indicate to developer the need for visual check.
+
+- **UX of interactive elements**:
+  - Check correct operation of interactive elements (buttons, forms, modals).
+  - Ensure animations and transitions work smoothly.
+  - Check feedback during interaction (hover, focus, active states).
+  - **CursorAI action**: Indicate to developer the need for UX check.
+
+- **Responsiveness on different screen sizes**:
+  - Check responsiveness on different screen sizes (mobile, tablet, desktop).
+  - Ensure components display correctly on all resolutions.
+  - Check that there is no horizontal scrolling on mobile devices.
+  - **CursorAI action**: Indicate to developer the need for responsiveness check.
+
+- **Documenting results**:
+  - Document automatic check results in task description.
+  - Indicate which visual checks require developer attention.
+
+- **Note**: 
+  - This step can be skipped **ONLY** if changes involved exclusively Server Actions, utilities, or other non-UI components that **DO NOT AFFECT** browser display.
+  - If changes in Server Actions or utilities may affect UI (e.g., changing data structure passed to components), browser console check is **MANDATORY**.
+  - In case of doubt - **always perform browser console check**.
+
+### Step 5: Build Validation
+
+- **Goal**: Ensure project builds successfully without errors.
+- **Actions**:
+  - Run `npm run build` to check for build errors.
+  - If errors found (e.g., missing imports, incorrect configurations):
+    - Fix errors and document fixes.
+    - Ensure all imports are correct.
+    - Check Amplify configuration (if changes involved schema or configuration):
+      - Ensure `amplify/data/schema.graphql` is syntactically correct.
+      - If schema changes were made, run `amplify codegen` to update types.
+      - If configuration changes were made, check `amplify/backend/` structure.
+    - Re-run `npm run build` until build passes successfully.
+  - If changes were made to GraphQL schema or Amplify configuration:
+    - Run `amplify push` to verify changes are correct (in dev environment).
+    - Ensure no errors when deploying schema to AWS.
+  - Document any build fixes in task description.
+
+### Step 6: Code Review Simulation
+
+- **Goal**: Ensure code quality and architecture compliance through self-review.
+- **Actions**:
+  - Simulate code review, checking:
+    - **Architecture compliance**: Correct file placement, correct imports.
+    - **TypeScript requirements**: Strict typing, Zod schemas as single source of truth, `z.infer<typeof Schema>`.
+    - **Server Actions**: `'use server'` directive, AWS Cognito check (for admin actions and teacher actions), Zod validation, discriminated unions.
+    - **Component architecture**: Server Components by default, Client Components only for interactivity, Atomic Design hierarchy.
+    - **Database integration**: Correct use of amplifyData, correct GraphQL queries via AppSync, error handling.
+    - **AWS S3 Storage**: Correct use for files (if applicable).
+    - **Accessibility**: WCAG 2.1 AA compliance, keyboard navigation, ARIA labels, 4.5:1 color contrast.
+    - **Performance**: SSG/ISR for public pages, image optimization (next/image), lazy loading.
+    - **Security**: Input validation, error handling. **Note**: Protection of admin panel and private pages via Cognito and middleware.
+    - **Code quality**: Clear JSDoc comments, consistent naming, proper error handling.
+    - **MVP approach**: Code works, even if not perfect. Can be simplified for quick launch.
+  - If issues found, review code and repeat Steps 3–5 if necessary.
+  - Document any reviews in task description.
+
+### Step 7: Documentation Update
+
+- **Goal**: Ensure comprehensive task documentation.
+- **Actions**:
+  - Update or complete task description with:
+    - Detailed implementation steps, following project structure.
+    - Code examples with explanations, demonstrating correct file placement.
+    - Validation results (TypeScript, linting, build).
+    - Any deviations from planned approach and their justification.
+    - Dependencies on other tasks or services.
+    - Links to relevant guidelines.
+  - If task affects project structure, update corresponding documents.
+  - If task affects database schema, update `amplify/data/schema.graphql` and run `amplify push` to apply changes.
+  - **Update task status in phase files** (if applicable):
+    - Find corresponding task in `docs/implementation/mvp/tasks/phase_*.md` files.
+    - Change task status from `- [ ]` to `- [x]` after successful completion of all workflow steps.
+    - Ensure task matches completed work.
+    - If task was split into subtasks, update status of all completed subtasks.
+  - If task affects development plan, update [`docs/implementation/mvp/implementation_phases_list.md`](docs/implementation/mvp/implementation_phases_list.md) with additional information.
+  - **⚠️ CRITICALLY IMPORTANT: Documentation Integration**:
+    - **Mandatory rule**: After creating or updating any documentation file (e.g., in `docs/infrastructure/`, `docs/architecture/`, `docs/api/`, etc.), the CursorAI agent **MUST** integrate it into the project documentation system.
+    - **Integration process**:
+      1. **Add references in phase task files**:
+         - Review all phase files in `docs/implementation/mvp/tasks/phase_*.md`.
+         - Identify tasks that are related to the new/updated documentation.
+         - Add links to the new documentation in the **Документация** section of relevant tasks.
+         - Use format: `- [DOCUMENT_NAME.md](../../../path/to/DOCUMENT_NAME.md) - description`
+      2. **Update main documentation index** (if exists):
+         - Add reference to new documentation in main documentation files (e.g., `README.md`, `docs/README.md`).
+      3. **Cross-reference with related documents**:
+         - Add links to new documentation in related documents (e.g., if creating AWS Amplify doc, add link in `ARCHITECTURE.md`, `DEPLOYMENT_GUIDE.md`).
+         - Ensure bidirectional links where appropriate.
+      4. **Update implementation phases list** (if applicable):
+         - If documentation affects implementation plan, update `docs/implementation/mvp/implementation_phases_list.md`.
+    - **This ensures**:
+      - New documentation is discoverable and accessible.
+      - Developers can easily find relevant documentation when working on tasks.
+      - Documentation system remains organized and comprehensive.
+      - No orphaned documentation files.
+    - **Example**:
+      - Created `docs/infrastructure/AMPLIFY_COMPATIBILITY.md`
+      - Added link in `docs/implementation/mvp/tasks/phase_01_setup.md` Task 01.07
+      - Added link in `docs/infrastructure/AWS_AMPLIFY.md` (if exists)
+      - Added link in `docs/deployment/DEPLOYMENT_GUIDE.md` (if exists)
+  - Ensure all documentation and code comments are in English.
+
+---
+
+## ⚠️ CRITICALLY IMPORTANT: Validation After Task Block
+
+**Mandatory rule**: After completing execution of **each task block** from [`docs/implementation/mvp/implementation_phases_list.md`](docs/implementation/mvp/implementation_phases_list.md) (e.g., "Dependency installation", "Shadcn UI", "Database", "Project structure", etc.), the CursorAI agent **MUST** execute the full validation chain:
+
+1. **TypeScript Validation** (`npx tsc --noEmit`)
+2. **Linting** (`npm run lint`)
+3. **Browser console check** (⭐ **MANDATORY for UI components**):
+   - If task block included creation or modification of UI components, **MANDATORY** to check browser console for errors.
+   - Use MCP tools (`mcp_console-ninja_runtime-errors`, `mcp_console-ninja_runtime-logs-and-errors`) or Developer Tools.
+   - Ensure no JavaScript errors, React errors, serialization errors, import errors, GraphQL/AppSync errors.
+   - All errors must be fixed **BEFORE** proceeding to next step.
+4. **Build validation** (`npm run build`) ⭐ **CRITICALLY IMPORTANT**
+5. **Amplify validation** (if schema or configuration changes were made):
+   - Run `amplify codegen` to update types (if GraphQL schema changes were made).
+   - Run `amplify push` to verify configuration (in dev environment, if applicable).
+
+**This rule applies:**
+- After completing each logical task block (section with `#####` header)
+- After completing a group of related tasks (e.g., all dependency installation tasks)
+- Before updating task statuses in phase files
+- Before proceeding to next task block
+
+**If build validation failed:**
+- DO NOT update task statuses as completed
+- Fix all build errors
+- Re-run full validation chain
+- Only after successful completion of all checks update statuses
+
+**Application example:**
+```
+Task block: "UI component creation" (lines 100-150)
+✅ Completed: All UI components created
+✅ TypeScript validation: passed
+✅ Linting: passed
+✅ Browser console check: passed ← MANDATORY for UI components!
+✅ Build validation: passed ← MANDATORY!
+✅ Statuses updated in phase_*.md
+→ Proceed to next task block
+```
+
+**Important**: Build validation (`npm run build`) is a **mandatory** step and cannot be skipped, even if previous validation steps passed successfully. This ensures the project builds without errors and is ready for deployment.
+
+---
+
+## Success Metrics
+
+- **Code quality**:
+  - Zero TypeScript errors (`npx tsc --noEmit`).
+  - Zero linting issues (`npm run lint`).
+  - Successful builds (`npm run build`).
+  - **Zero browser console errors** (⭐ **MANDATORY for UI components**).
+  - Project architecture compliance (correct file placement, correct imports).
+- **Architecture compliance**:
+  - Following project structure (components/ui, components/teacher, components/admin, actions).
+  - Integration with AWS Amplify Gen 1, AppSync and DynamoDB.
+  - Server Components by default, Client Components only when needed.
+  - Zod schemas as single source of truth for validation.
+  - Shadcn UI components in separate `components/ui/` folder.
+- **Documentation**: Task description completed, in English, and includes all required sections with links to guidelines.
+
+---
+
+## Error Handling and Recovery
+
+- **Error handling**:
+  - Implement comprehensive error handling in Server Actions with clear messages for users.
+  - Use discriminated unions for error responses: `{ success: false, error: string }`.
+  - Log errors to console for debugging (in production can add Sentry or CloudWatch).
+  - Validate all user input data using Zod schemas.
+  - Return meaningful error responses to client.
+  - Handle GraphQL/AppSync errors with clear messages.
+- **Recovery procedures**:
+  - If TypeScript, linting, or build errors persist after several attempts:
+    - Roll back to last working state using git.
+    - Document problem and solution attempts in task description.
+    - Check project architecture for alternative implementation approaches.
+    - Refer to guidelines for specific patterns (components, hooks, types, etc.).
+  - If errors are related to Amplify/AppSync:
+    - Check configuration in `amplify/backend/`.
+    - Ensure GraphQL schema is syntactically correct.
+    - Check logs in AWS CloudWatch.
+    - Run `amplify status` to check resource state.
+
+---
+
+## Example Task Execution
+
+**Task**: Implement lesson creation form for teacher.
+
+**Workflow**:
+1. **Task Analysis**:
+   - Study [`docs/MVP_SCOPE.md`](docs/MVP_SCOPE.md) to understand lesson form requirements.
+   - Check [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md) for project structure.
+   - Determine this as task `components/teacher/LessonForm.tsx` (Client Component) and `actions/lessons.ts` (Server Action).
+   - Reference [`docs/guidelines/react/ai_component_guidelines.md`](docs/guidelines/react/ai_component_guidelines.md) for component patterns.
+   - Check [`docs/database/GRAPHQL_SCHEMA.md`](docs/database/GRAPHQL_SCHEMA.md) for lesson data structure.
+   - **Automatically use Context7**: Task involves Next.js Server Actions, React, AWS Amplify Gen 1, Zod, react-hook-form, BlockNote - CursorAI agent **automatically** determines need to use Context7 and contacts it to obtain up-to-date documentation without explicit user indication.
+
+2. **Code Implementation**:
+   - **Automatic Context7 usage**: CursorAI agent **automatically** uses Context7 MCP server when implementing:
+     - Server Action (Next.js Server Actions, amplifyData, Zod validation)
+     - Form component (react-hook-form, Shadcn UI Dialog, BlockNote editor)
+   - Agent independently contacts Context7 to obtain up-to-date documentation on:
+     - Next.js Server Actions patterns
+     - AWS Amplify Gen 1 and amplifyData
+     - GraphQL queries via AppSync
+     - Zod validation
+     - react-hook-form usage
+     - Shadcn UI components
+     - BlockNote integration
+   - Create `components/teacher/LessonForm.tsx` using Dialog from `components/ui/`, BlockNote for lesson description and Tailwind CSS 4.
+   - Implement `actions/lessons.ts` with:
+     - `'use server'` directive
+     - Zod validation using `LessonSchema` (current patterns from Context7)
+     - Authentication check via AWS Cognito
+     - Access rights check (Teacher - only own group, Admin - all groups)
+     - Lesson creation operation via `amplifyData.create('Lesson', data)` (current patterns from Context7)
+     - Discriminated union return type
+   - Define types using `z.infer<typeof LessonSchema>`.
+   - Use react-hook-form for form management (current patterns from Context7).
+   - Integrate BlockNote for editing lesson description.
+
+3. **TypeScript Validation**:
+   - Run `npx tsc --noEmit` and fix any type errors.
+   - Ensure all types follow patterns from guidelines.
+   - Check types generated from GraphQL schema.
+   - Re-run until errors are resolved.
+
+4. **Linting**:
+   - Run `npm run lint` and resolve any issues.
+   - Ensure imports are correct.
+   - Re-run until issues are resolved.
+
+4.5. **Browser UI Check** (as this is a UI component):
+   - **Automatic check (CursorAI)**:
+     - Run `npm run dev`.
+     - Open page with lesson creation form in CursorAI browser.
+     - **Browser console check (MANDATORY)**:
+       - Use `mcp_console-ninja_runtime-errors` to check runtime errors.
+       - Use `mcp_console-ninja_runtime-logs-and-errors` for full check.
+       - Check for absence of serialization errors (Date, AWS types).
+       - Check for absence of React errors (hydration, hooks, render).
+       - Check for absence of module import errors.
+       - Check for absence of GraphQL/AppSync errors.
+       - Check BlockNote editor operation.
+       - If errors found - fix them and repeat check.
+       - Document results: "✅ Browser console checked - no errors found."
+     - Check basic functionality (buttons respond to clicks, form opens, BlockNote works).
+     - Check Network tab for absence of failed requests (GraphQL requests to AppSync).
+     - Fix any technical errors.
+   - **Visual check (requires developer)**:
+     - Indicate to developer need to check visual design compliance.
+     - Indicate to developer need to check UX of interactive elements.
+     - Indicate to developer need to check responsiveness.
+
+5. **Build Validation**:
+   - Run `npm run build` and fix any build errors.
+   - Check Amplify configuration (if changes were made).
+   - If GraphQL schema changes were made, run `amplify codegen` to update types.
+   - Re-run until build passes successfully.
+
+6. **Code Review Simulation**:
+   - Check architecture compliance, Server Actions patterns, amplifyData/AppSync integration, and accessibility.
+   - Check WCAG 2.1 AA compliance for form fields.
+   - Review code if issues found, and repeat Steps 3–5.
+
+7. **Documentation Update**:
+   - Update task documentation with implementation details and amplifyData/AppSync integration.
+   - Update task status in corresponding phase file `docs/implementation/mvp/tasks/phase_*.md`:
+     - Find task "Create `components/teacher/LessonForm.tsx`" and change status from `- [ ]` to `- [x]`.
+     - Find task "Create `actions/lessons.ts`" and change status from `- [ ]` to `- [x]`.
+     - Ensure all completed subtasks are also marked as completed.
+
+---
+
+## MVP Approach Features
+
+- **Focus on functionality**: Code should work, even if not perfect. Can be simplified for quick launch.
+- **No automated tests**: In MVP we don't write tests. Manual testing is sufficient.
+- **Minimal state management**: Use Zustand only when really needed. Server Components by default.
+- **Simple structure**: Don't overcomplicate. Follow simple project structure.
+- **Quick launch**: Priority on implementation speed, not perfect code.
+
+---
+
+## Project Structure (reminder)
+
+```
+sunday-school-app/
+├── app/                        # Next.js App Router
+│   ├── (auth)/                # Auth route group
+│   │   └── auth/              # Login page
+│   ├── (private)/              # Protected routes
+│   │   ├── grades/            # Grade management
+│   │   │   ├── [gradeId]/     # Grade pages
+│   │   │   └── my/            # Redirect for Teacher
+│   │   ├── lessons/           # Lessons
+│   │   ├── homework-check/    # Homework check
+│   │   ├── pupil-personal-data/ # Pupil personal cards
+│   │   ├── grade-leaderboard/  # Grade leaderboard
+│   │   └── golden-verses-library/ # Golden verses library
+│   ├── (admin)/               # Admin route group
+│   │   ├── grades-list/        # All grades list
+│   │   ├── teachers-management/ # Teachers management
+│   │   ├── pupils-management/  # Pupils management
+│   │   ├── families-management/ # Families management
+│   │   └── school-process-management/ # School process management
+│   └── middleware.ts          # Middleware for route protection
+├── actions/                    # Server Actions ⭐
+│   ├── lessons.ts
+│   ├── homework.ts
+│   ├── pupils.ts
+│   ├── teachers.ts
+│   ├── grades.ts
+│   ├── academic-years.ts
+│   ├── golden-verses.ts
+│   ├── achievements.ts
+│   ├── families.ts
+│   ├── schedule.ts
+│   └── admin.ts
+├── components/
+│   ├── ui/                     # Shadcn UI (separate folder!) ⭐
+│   ├── teacher/                # Components for teachers
+│   │   ├── LessonForm/
+│   │   ├── HomeworkCheckTable/
+│   │   ├── PupilCard/
+│   │   ├── LeaderboardTable/
+│   │   └── ScheduleCalendar/
+│   ├── admin/                  # Components for admin panel
+│   │   ├── AdminSidebar/
+│   │   ├── AdminBreadcrumbs/
+│   │   ├── TeachersTable/
+│   │   ├── PupilsTable/
+│   │   └── FamiliesTable/
+│   └── shared/                 # Shared components
+│       ├── Header/
+│       └── Footer/
+├── lib/
+│   ├── db/
+│   │   └── amplify.ts           # amplifyData (Data Access Layer) ⭐
+│   ├── auth/
+│   │   └── cognito.ts           # AWS Cognito helpers
+│   └── utils.ts                 # Utilities
+├── hooks/                       # Custom hooks (minimal)
+├── types/                       # TypeScript types
+└── amplify/                     # AWS Amplify Gen 1 configuration ⭐
+    ├── backend/
+    │   ├── api/
+    │   │   └── resource.ts      # AppSync/GraphQL configuration
+    │   └── auth/
+    │       └── resource.ts      # Cognito configuration
+    └── data/
+        └── schema.graphql        # GraphQL schema ⭐
+```
+
+---
+
+**Document version**: 1.0 (MVP)  
+**Last updated**: December 23, 2025  
+**Project**: Sunday School App (MVP)  
+**Architecture**: Next.js 15.5.9 App Router, AWS Amplify Gen 1, AWS AppSync, AWS DynamoDB, AWS Cognito, Shadcn UI, BlockNote
