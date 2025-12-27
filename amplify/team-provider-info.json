@@ -10,6 +10,14 @@
       "StackName": "amplify-sunsch-dev-f567d",
       "StackId": "arn:aws:cloudformation:us-east-1:707421297188:stack/amplify-sunsch-dev-f567d/0a12ff00-e255-11f0-b6d9-12c787dab1bf",
       "AmplifyAppId": "d2rgh6z0vn36x9"
+    },
+    "categories": {
+      "auth": {
+        "sunsche716d941": {}
+      },
+      "api": {
+        "sunsch": {}
+      }
     }
   },
   "prod": {

@@ -131,15 +131,15 @@ Phase 02: Настройка AWS Amplify Gen 1
 </thinking>
 
 **Действия:**
-- [ ] Запустить `amplify add api`
-- [ ] Выбрать опции:
+- [x] Запустить `amplify add api`
+- [x] Выбрать опции:
   - Please select from one of the below mentioned services: `GraphQL`
   - Provide API name: `sunschoolapi` (или другое имя)
   - Choose the default authorization type: `Amazon Cognito User Pool`
   - Do you want to configure advanced settings: `Yes`
   - Configure additional auth types: выбрать при необходимости
   - Configure conflict detection: `Yes` (для оптимистичной блокировки)
-- [ ] Дождаться завершения настройки
+- [x] Дождаться завершения настройки
 
 **Документация:**
 - <CRITICAL>[AWS_AMPLIFY.md](../../../infrastructure/AWS_AMPLIFY.md) - раздел API Setup</CRITICAL>
@@ -186,13 +186,29 @@ Phase 02: Настройка AWS Amplify Gen 1
 **Действия:**
 - [ ] Открыть файл `amplify/backend/api/[api-name]/schema.graphql`
 - [ ] Создать базовые типы согласно [GRAPHQL_SCHEMA.md](../../../database/GRAPHQL_SCHEMA.md):
-  - Тип `User` с полями из ERD
-  - Тип `Grade` с полями из ERD
-  - Тип `AcademicYear` с полями из ERD
-  - Тип `Lesson` с полями из ERD
-  - Тип `Pupil` с полями из ERD
-  - Тип `Family` с полями из ERD
-- [ ] Добавить все необходимые enum типы (Status, Role, EventType и др.)
+  - **Основные типы:**
+    - Тип `User` с полями из ERD (id, email, name, role, photo, active)
+    - Тип `Grade` с полями из ERD (id, name, description, minAge, maxAge, active)
+    - Тип `AcademicYear` с полями из ERD (id, gradeId, name, startDate, endDate, status)
+    - Тип `Lesson` с полями из ERD (id, academicYearId, gradeId, teacherId, title, content, lessonDate, order)
+    - Тип `Book` с полями из ERD (id, fullName, shortName, abbreviation, testament, order)
+    - Тип `GoldenVerse` с полями из ERD (id, reference, bookId, chapter, verseStart, verseEnd, text)
+    - Тип `Pupil` с полями из ERD (id, gradeId, firstName, lastName, middleName, dateOfBirth, photo, active)
+    - Тип `HomeworkCheck` с полями из ERD (id, lessonId, pupilId, gradeId, goldenVerse1Score, goldenVerse2Score, goldenVerse3Score, testScore, notebookScore, singing, points)
+    - Тип `Achievement` с полями из ERD (id, name, description, icon, criteria)
+    - Тип `Family` с полями из ERD (id, name, phone, email, address, motherFirstName, motherLastName, motherMiddleName, motherPhone, fatherFirstName, fatherLastName, fatherMiddleName, fatherPhone)
+    - Тип `GradeEvent` с полями из ERD (id, gradeId, eventType, title, description, eventDate)
+    - Тип `GradeSettings` с полями из ERD (id, gradeId, enableGoldenVerse, enableTest, enableNotebook, enableSinging, pointsGoldenVerse, pointsTest, pointsNotebook, pointsSinging, labelGoldenVerse, labelTest, labelNotebook, labelSinging)
+  - **Связующие типы (многие-ко-многим):**
+    - Тип `UserGrade` (связь User ↔ Grade)
+    - Тип `LessonGoldenVerse` (связь Lesson ↔ GoldenVerse)
+    - Тип `PupilAchievement` (связь Pupil ↔ Achievement)
+    - Тип `FamilyMember` (связь Family ↔ Pupil)
+    - Тип `UserFamily` (связь User ↔ Family)
+- [ ] Добавить все необходимые enum типы:
+  - `UserRole` (TEACHER, ADMIN, SUPERADMIN, PARENT, PUPIL)
+  - `AcademicYearStatus` (ACTIVE, FINISHED)
+  - `GradeEventType` (LESSON, OUTDOOR_EVENT, LESSON_SKIPPING)
 
 **Документация:**
 - <CRITICAL>[GRAPHQL_SCHEMA.md](../../../database/GRAPHQL_SCHEMA.md) - раздел Types</CRITICAL>
