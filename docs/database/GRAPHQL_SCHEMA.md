@@ -1,8 +1,8 @@
 # GraphQL Schema - Sunday School App
 
-## Версия документа: 1.0
+## Версия документа: 1.3
 **Дата создания:** 23 декабря 2025  
-**Последнее обновление:** 23 декабря 2025  
+**Последнее обновление:** 27 декабря 2025  
 **Проект:** Sunday School App  
 **Технологии:** AWS AppSync, GraphQL, AWS Amplify Gen 1, AWS Cognito  
 **Authorization:** Cognito User Pools + Groups
@@ -115,6 +115,26 @@ query GetLesson {
 
 **Amplify Gen 1 автоматически генерирует resolvers** для всех @model директив!
 
+### 1.4. Важное примечание о связях
+
+⚠️ **Критически важно:** В текущей схеме удалены директивы `@belongsTo` и `@hasMany` для устранения циклических зависимостей CloudFormation. Все связи доступны через GraphQL queries с использованием индексов.
+
+**Причина удаления:**
+- Циклические зависимости CloudFormation при генерации resolvers для связанных типов
+- Переиспользование auth resolver функций между моделями с идентичными @auth правилами
+- Подробности см. в [SCHEMA_DIFFERENCES.md](./SCHEMA_DIFFERENCES.md)
+
+**Как работать со связями:**
+- Используйте queries через индексы (GSI) для получения связанных данных
+- Создавайте batch queries для получения связанных данных в одном запросе
+- Кэшируйте результаты на клиенте для уменьшения количества запросов
+- Используйте Server Actions для объединения нескольких queries в один вызов
+
+**Примеры получения связанных данных:**
+- См. раздел "Примеры queries для связанных данных" ниже
+- См. [SCHEMA_DIFFERENCES.md](./SCHEMA_DIFFERENCES.md) для полного списка изменений и альтернативных способов получения данных
+- См. [DATA_MODELING.md](./DATA_MODELING.md) для примеров работы со связями через queries
+
 ---
 
 ## 2. Полная GraphQL Schema
@@ -176,8 +196,9 @@ type User
   active: Boolean! # Активен ли пользователь
   
   # Связи
-  userGrades: [UserGrade] @hasMany(indexName: "byUserId", fields: ["id"])
-  createdLessons: [Lesson] @hasMany(indexName: "byTeacherId", fields: ["id"])
+  # Примечание: @hasMany связи удалены для устранения циклических зависимостей CloudFormation
+  # Используйте queries через индексы byUserId и byTeacherId для получения связанных данных
+  # Примеры: userGradesByUserId, lessonsByTeacherId, userFamiliesByUserId
   
   createdAt: AWSDateTime!
   updatedAt: AWSDateTime!
@@ -204,11 +225,10 @@ type Grade
   active: Boolean! # Активна ли группа
   
   # Связи
-  teachers: [UserGrade] @hasMany(indexName: "byGradeId", fields: ["id"])
-  academicYears: [AcademicYear] @hasMany(indexName: "byGradeId", fields: ["id"])
-  pupils: [Pupil] @hasMany(indexName: "byGradeId", fields: ["id"])
-  events: [GradeEvent] @hasMany(indexName: "byGradeId", fields: ["id"])
-  settings: GradeSettings @hasOne(fields: ["id"])
+  # Примечание: @hasMany и @hasOne связи удалены для устранения циклических зависимостей CloudFormation
+  # Используйте queries через индексы byGradeId для получения связанных данных
+  # Примеры: userGradesByGradeId, academicYearsByGradeId, pupilsByGradeId, gradeEventsByGradeId
+  # Для settings используйте gradeSettingsByGradeId query
   
   createdAt: AWSDateTime!
   updatedAt: AWSDateTime!
@@ -228,8 +248,9 @@ type UserGrade
   gradeId: ID! @index(name: "byGradeId", sortKeyFields: ["userId"])
   
   # Связи
-  user: User @belongsTo(fields: ["userId"])
-  grade: Grade @belongsTo(fields: ["gradeId"])
+  # Примечание: @belongsTo связи удалены для устранения циклических зависимостей CloudFormation
+  # Используйте queries через индексы byUserId и byGradeId для получения связанных данных
+  # Примеры: getUser(id: userId), getGrade(id: gradeId)
   
   assignedAt: AWSDateTime!
   createdAt: AWSDateTime!
@@ -256,8 +277,9 @@ type AcademicYear
   status: AcademicYearStatus! # ACTIVE | FINISHED
   
   # Связи
-  grade: Grade @belongsTo(fields: ["gradeId"])
-  lessons: [Lesson] @hasMany(indexName: "byAcademicYearId", fields: ["id"])
+  # Примечание: @belongsTo и @hasMany связи удалены для устранения циклических зависимостей CloudFormation
+  # Используйте queries через индексы для получения связанных данных
+  # Примеры: getGrade(id: gradeId), lessonsByAcademicYearId(academicYearId: id)
   
   createdAt: AWSDateTime!
   updatedAt: AWSDateTime!
@@ -288,11 +310,39 @@ type Lesson
   order: Int! # Порядковый номер урока в году
   
   # Связи
-  academicYear: AcademicYear @belongsTo(fields: ["academicYearId"])
-  grade: Grade @belongsTo(fields: ["gradeId"])
-  teacher: User @belongsTo(fields: ["teacherId"])
-  goldenVerses: [LessonGoldenVerse] @hasMany(indexName: "byLessonId", fields: ["id"])
-  homeworkChecks: [HomeworkCheck] @hasMany(indexName: "byLessonId", fields: ["id"])
+  # Примечание: @belongsTo и @hasMany связи удалены для устранения циклических зависимостей CloudFormation
+  # Используйте queries через индексы для получения связанных данных
+  # Примеры: getAcademicYear(id: academicYearId), getGrade(id: gradeId), getUser(id: teacherId)
+  # Примеры: lessonGoldenVersesByLessonId(lessonId: id), homeworkChecksByLessonId(lessonId: id)
+  
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+}
+
+# ============================================
+# BOOK (КНИГИ БИБЛИИ)
+# ============================================
+
+# Книги Библии (Ветхий и Новый Завет)
+type Book
+  @model
+  @auth(rules: [
+    # Admin и Superadmin могут управлять книгами
+    { allow: groups, groups: ["ADMIN", "SUPERADMIN"], operations: [create, update, delete] },
+    # Все авторизованные могут читать книги
+    { allow: groups, groups: ["TEACHER", "ADMIN", "SUPERADMIN"], operations: [read] }
+  ]) {
+  id: ID!
+  fullName: String! # Полное название (например, "Евангелие от Иоанна")
+  shortName: String! @index(name: "byShortName") # Сокращенное название (например, "Иоанна")
+  abbreviation: String! # Аббревиатура (например, "Ин")
+  testament: String! @index(name: "byTestament", sortKeyFields: ["order"]) # Завет: "OLD" | "NEW"
+  order: Int! # Порядок в Библии (1-66)
+  
+  # Связи
+  # Примечание: @hasMany связи удалены для устранения циклических зависимостей CloudFormation
+  # Используйте queries через индекс byBookId для получения связанных стихов
+  # Пример: goldenVersesByBookId(bookId: id)
   
   createdAt: AWSDateTime!
   updatedAt: AWSDateTime!
@@ -313,14 +363,16 @@ type GoldenVerse
   ]) {
   id: ID!
   reference: String! # Ссылка (например, "Иоанна 3:16")
-  book: String! @index(name: "byBook", sortKeyFields: ["chapter"]) # Книга Библии
+  bookId: ID! @index(name: "byBookId", sortKeyFields: ["chapter"]) # ID книги Библии
   chapter: Int! # Номер главы
   verseStart: Int! # Начальный стих
   verseEnd: Int # Конечный стих (если диапазон)
   text: String! # Текст стиха
   
   # Связи
-  lessons: [LessonGoldenVerse] @hasMany(indexName: "byGoldenVerseId", fields: ["id"])
+  # Примечание: @belongsTo и @hasMany связи удалены для устранения циклических зависимостей CloudFormation
+  # Используйте queries через индексы для получения связанных данных
+  # Примеры: getBook(id: bookId), lessonGoldenVersesByGoldenVerseId(goldenVerseId: id)
   
   createdAt: AWSDateTime!
   updatedAt: AWSDateTime!
@@ -339,8 +391,9 @@ type LessonGoldenVerse
   order: Int! # Порядок стиха в уроке (1, 2, 3...)
   
   # Связи
-  lesson: Lesson @belongsTo(fields: ["lessonId"])
-  goldenVerse: GoldenVerse @belongsTo(fields: ["goldenVerseId"])
+  # Примечание: @belongsTo связи удалены для устранения циклических зависимостей CloudFormation
+  # Используйте queries через индексы для получения связанных данных
+  # Примеры: getLesson(id: lessonId), getGoldenVerse(id: goldenVerseId)
   
   createdAt: AWSDateTime!
 }
@@ -368,10 +421,9 @@ type Pupil
   active: Boolean! # Активен ли ученик
   
   # Связи
-  grade: Grade @belongsTo(fields: ["gradeId"])
-  homeworkChecks: [HomeworkCheck] @hasMany(indexName: "byPupilId", fields: ["id"])
-  achievements: [PupilAchievement] @hasMany(indexName: "byPupilId", fields: ["id"])
-  families: [FamilyMember] @hasMany(indexName: "byPupilId", fields: ["id"])
+  # Примечание: @belongsTo и @hasMany связи удалены для устранения циклических зависимостей CloudFormation
+  # Используйте queries через индексы для получения связанных данных
+  # Примеры: getGrade(id: gradeId), homeworkChecksByPupilId(pupilId: id), pupilAchievementsByPupilId(pupilId: id), familyMembersByPupilId(pupilId: id)
   
   createdAt: AWSDateTime!
   updatedAt: AWSDateTime!
@@ -391,20 +443,30 @@ type HomeworkCheck
   id: ID!
   lessonId: ID! @index(name: "byLessonId", sortKeyFields: ["pupilId"])
   pupilId: ID! @index(name: "byPupilId", sortKeyFields: ["createdAt"])
+  # Денормализация: gradeId хранится для поддержки GSI-3 (аналитика), хотя есть через Lesson.gradeId
+  gradeId: ID! @index(name: "byGradeId", sortKeyFields: ["createdAt"])
   
-  # Параметры проверки (настраиваются в GradeSettings)
-  goldenVerse: Boolean! # Выучил золотой стих
-  test: Boolean! # Сделал тест
-  notebook: Boolean! # Сделал тетрадь
+  # Оценки за золотые стихи (0-2 балла за каждый)
+  goldenVerse1Score: Int # Баллы за первый золотой стих (0-2)
+  goldenVerse2Score: Int # Баллы за второй золотой стих (0-2)
+  goldenVerse3Score: Int # Баллы за третий золотой стих (0-2)
+  
+  # Баллы за домашнее задание
+  testScore: Int # Баллы за тест (0-10)
+  notebookScore: Int # Баллы за тетрадь (0-10)
+  
+  # Посещение спевки
   singing: Boolean! # Был на спевке
   
-  # Результаты
-  points: Int! # Баллы за урок (рассчитываются на основе GradeSettings)
-  hasHouse: Boolean! # Получил домик (все параметры true)
+  # Результаты (вычисляются автоматически)
+  points: Int! # Баллы за урок (сумма всех компонентов)
+  # Примечание: Поле hasHouse устарело и будет удалено (заменено на систему кирпичиков)
   
   # Связи
-  lesson: Lesson @belongsTo(fields: ["lessonId"])
-  pupil: Pupil @belongsTo(fields: ["pupilId"])
+  # Примечание: @belongsTo связи удалены для устранения циклических зависимостей CloudFormation
+  # Используйте queries через индексы для получения связанных данных
+  # Примеры: getLesson(id: lessonId), getPupil(id: pupilId), getGrade(id: gradeId)
+  # Примечание: gradeId используется только для денормализации и GSI-3 (аналитика), связь с Grade через Lesson
   
   createdAt: AWSDateTime!
   updatedAt: AWSDateTime!
@@ -430,7 +492,9 @@ type Achievement
   criteria: String! # JSON критерии получения
   
   # Связи
-  pupils: [PupilAchievement] @hasMany(indexName: "byAchievementId", fields: ["id"])
+  # Примечание: @hasMany связи удалены для устранения циклических зависимостей CloudFormation
+  # Используйте queries через индекс byAchievementId для получения связанных учеников
+  # Пример: pupilAchievementsByAchievementId(achievementId: id)
   
   createdAt: AWSDateTime!
   updatedAt: AWSDateTime!
@@ -449,8 +513,9 @@ type PupilAchievement
   awardedAt: AWSDateTime! # Дата получения достижения
   
   # Связи
-  pupil: Pupil @belongsTo(fields: ["pupilId"])
-  achievement: Achievement @belongsTo(fields: ["achievementId"])
+  # Примечание: @belongsTo связи удалены для устранения циклических зависимостей CloudFormation
+  # Используйте queries через индексы для получения связанных данных
+  # Примеры: getPupil(id: pupilId), getAchievement(id: achievementId)
   
   createdAt: AWSDateTime!
 }
@@ -474,8 +539,22 @@ type Family
   email: AWSEmail # Email семьи
   address: String # Адрес (опционально)
   
+  # Информация о матери
+  motherFirstName: String # Имя матери
+  motherLastName: String # Фамилия матери
+  motherMiddleName: String # Отчество матери
+  motherPhone: String @index(name: "byMotherPhone") # Телефон матери (для связи с PARENT)
+  
+  # Информация об отце
+  fatherFirstName: String # Имя отца
+  fatherLastName: String # Фамилия отца
+  fatherMiddleName: String # Отчество отца
+  fatherPhone: String @index(name: "byFatherPhone") # Телефон отца (для связи с PARENT)
+  
   # Связи
-  members: [FamilyMember] @hasMany(indexName: "byFamilyId", fields: ["id"])
+  # Примечание: @hasMany связи удалены для устранения циклических зависимостей CloudFormation
+  # Используйте queries через индекс byFamilyId для получения связанных данных
+  # Примеры: familyMembersByFamilyId(familyId: id), userFamiliesByFamilyId(familyId: id)
   
   createdAt: AWSDateTime!
   updatedAt: AWSDateTime!
@@ -495,8 +574,31 @@ type FamilyMember
   pupilId: ID! @index(name: "byPupilId")
   
   # Связи
-  family: Family @belongsTo(fields: ["familyId"])
-  pupil: Pupil @belongsTo(fields: ["pupilId"])
+  # Примечание: @belongsTo связи удалены для устранения циклических зависимостей CloudFormation
+  # Используйте queries через индексы для получения связанных данных
+  # Примеры: getFamily(id: familyId), getPupil(id: pupilId)
+  
+  createdAt: AWSDateTime!
+}
+
+# Связь пользователей с ролью PARENT с семьями
+type UserFamily
+  @model(queries: null)
+  @auth(rules: [
+    # Admin и Superadmin могут управлять связью
+    { allow: groups, groups: ["ADMIN", "SUPERADMIN"] },
+    # PARENT может читать свои связи
+    { allow: owner, ownerField: "userId", operations: [read] }
+  ]) {
+  id: ID!
+  userId: ID! @index(name: "byUserId")
+  familyId: ID! @index(name: "byFamilyId")
+  phone: String! @index(name: "byPhone") # Номер телефона, использованный для связи
+  
+  # Связи
+  # Примечание: @belongsTo связи удалены для устранения циклических зависимостей CloudFormation
+  # Используйте queries через индексы для получения связанных данных
+  # Примеры: getUser(id: userId), getFamily(id: familyId)
   
   createdAt: AWSDateTime!
 }
@@ -520,7 +622,9 @@ type GradeEvent
   eventDate: AWSDate! # Дата события
   
   # Связи
-  grade: Grade @belongsTo(fields: ["gradeId"])
+  # Примечание: @belongsTo связи удалены для устранения циклических зависимостей CloudFormation
+  # Используйте queries через индекс byGradeId для получения связанной группы
+  # Пример: getGrade(id: gradeId)
   
   createdAt: AWSDateTime!
   updatedAt: AWSDateTime!
@@ -561,7 +665,9 @@ type GradeSettings
   labelSinging: String! # Метка для спевки (по умолчанию "Спевка")
   
   # Связи
-  grade: Grade @belongsTo(fields: ["gradeId"])
+  # Примечание: @belongsTo связи удалены для устранения циклических зависимостей CloudFormation
+  # Используйте queries через индекс byGradeId для получения связанной группы
+  # Пример: getGrade(id: gradeId)
   
   createdAt: AWSDateTime!
   updatedAt: AWSDateTime!
@@ -603,9 +709,10 @@ AppSync поддерживает специальные скалярные ти�
 - Поддерживает owner, groups, private, public стратегии
 
 **@hasMany / @belongsTo / @hasOne:**
-- Определяет связи между типами
-- Автоматически создает resolvers для связанных данных
-- Создает GSI для эффективных запросов
+- ⚠️ **Примечание:** В текущей схеме эти директивы удалены для устранения циклических зависимостей CloudFormation
+- Связи доступны через queries с использованием индексов (GSI)
+- См. раздел "Примеры queries для связанных данных" ниже
+- См. [SCHEMA_DIFFERENCES.md](./SCHEMA_DIFFERENCES.md) для полного списка изменений
 
 **@index:**
 - Создает Global Secondary Index (GSI) в DynamoDB
@@ -780,7 +887,7 @@ query HomeworkChecksByLesson {
       notebook
       singing
       points
-      hasHouse
+      # hasHouse устарело (заменено на систему кирпичиков)
     }
   }
 }
@@ -802,6 +909,394 @@ query HomeworkChecksByPupil {
     }
   }
 }
+
+# Книги по завету (GSI: byTestament)
+query BooksByTestament {
+  booksByTestament(
+    testament: "NEW"
+    sortDirection: ASC
+  ) {
+    items {
+      id
+      fullName
+      shortName
+      abbreviation
+      order
+    }
+  }
+}
+
+# Стихи из книги (GSI: byBookId)
+query GoldenVersesByBook {
+  goldenVersesByBookId(
+    bookId: "book-123"
+    sortDirection: ASC
+  ) {
+    items {
+      id
+      reference
+      chapter
+      verseStart
+      verseEnd
+      text
+      book {
+        shortName
+        fullName
+        abbreviation
+      }
+    }
+  }
+}
+
+# Золотые стихи группы за учебный год (AP-25)
+query GoldenVersesByAcademicYear {
+  lessonsByAcademicYearId(
+    academicYearId: "year-456"
+    sortDirection: ASC
+  ) {
+    items {
+      id
+      title
+      lessonDate
+      goldenVerses {
+        items {
+          order
+          goldenVerse {
+            id
+            reference
+            text
+            book {
+              shortName
+              fullName
+            }
+          }
+        }
+      }
+    }
+  }
+}
+# Примечание: На клиенте необходимо дедуплицировать стихи по goldenVerse.id
+
+---
+
+### 4.5. Примеры queries для связанных данных (без @belongsTo/@hasMany)
+
+⚠️ **Важно:** Поскольку директивы `@belongsTo` и `@hasMany` удалены из схемы, все связанные данные необходимо получать через отдельные queries с использованием индексов.
+
+**Паттерн работы со связями:**
+
+1. Получить основную сущность через `getX(id: ...)`
+2. Получить связанные данные через queries по индексам (например, `xByYId`)
+3. Объединить результаты на клиенте или в Server Action
+
+**Пример 1: Получить урок с золотыми стихами и проверками ДЗ**
+
+```graphql
+# Шаг 1: Получить урок
+query GetLesson($lessonId: ID!) {
+  getLesson(id: $lessonId) {
+    id
+    title
+    lessonDate
+    academicYearId
+    gradeId
+    teacherId
+  }
+}
+
+# Шаг 2: Получить золотые стихи урока через индекс
+query GetLessonGoldenVerses($lessonId: ID!) {
+  lessonGoldenVersesByLessonId(
+    lessonId: $lessonId
+    sortDirection: ASC
+  ) {
+    items {
+      id
+      goldenVerseId
+      order
+    }
+  }
+}
+
+# Шаг 3: Получить проверки ДЗ урока через индекс
+query GetLessonHomeworkChecks($lessonId: ID!) {
+  homeworkChecksByLessonId(
+    lessonId: $lessonId
+    sortDirection: ASC
+  ) {
+    items {
+      id
+      pupilId
+      points
+      goldenVerse1Score
+      goldenVerse2Score
+      goldenVerse3Score
+      testScore
+      notebookScore
+      singing
+    }
+  }
+}
+
+# Шаг 4: Получить связанные сущности (если нужно)
+query GetRelatedEntities($academicYearId: ID!, $gradeId: ID!, $teacherId: ID!) {
+  academicYear: getAcademicYear(id: $academicYearId) {
+    id
+    name
+    startDate
+    endDate
+  }
+  grade: getGrade(id: $gradeId) {
+    id
+    name
+  }
+  teacher: getUser(id: $teacherId) {
+    id
+    name
+    email
+  }
+}
+```
+
+**Альтернатива: Batch query (все в одном запросе)**
+
+```graphql
+query GetLessonComplete($lessonId: ID!, $academicYearId: ID!, $gradeId: ID!, $teacherId: ID!) {
+  # Основная информация об уроке
+  lesson: getLesson(id: $lessonId) {
+    id
+    title
+    lessonDate
+    order
+  }
+  
+  # Золотые стихи урока
+  goldenVerses: lessonGoldenVersesByLessonId(
+    lessonId: $lessonId
+    sortDirection: ASC
+  ) {
+    items {
+      id
+      goldenVerseId
+      order
+    }
+  }
+  
+  # Проверки ДЗ урока
+  homeworkChecks: homeworkChecksByLessonId(
+    lessonId: $lessonId
+    sortDirection: ASC
+  ) {
+    items {
+      id
+      pupilId
+      points
+      goldenVerse1Score
+      goldenVerse2Score
+      goldenVerse3Score
+      testScore
+      notebookScore
+      singing
+    }
+  }
+  
+  # Связанные сущности
+  academicYear: getAcademicYear(id: $academicYearId) {
+    id
+    name
+  }
+  grade: getGrade(id: $gradeId) {
+    id
+    name
+  }
+  teacher: getUser(id: $teacherId) {
+    id
+    name
+  }
+}
+```
+
+**Пример 2: Получить ученика с проверками ДЗ и достижениями**
+
+```graphql
+query GetPupilComplete($pupilId: ID!, $gradeId: ID!) {
+  # Основная информация об ученике
+  pupil: getPupil(id: $pupilId) {
+    id
+    firstName
+    lastName
+    gradeId
+    dateOfBirth
+    photo
+    active
+  }
+  
+  # Проверки ДЗ ученика
+  homeworkChecks: homeworkChecksByPupilId(
+    pupilId: $pupilId
+    sortDirection: DESC
+  ) {
+    items {
+      id
+      lessonId
+      points
+      createdAt
+    }
+  }
+  
+  # Достижения ученика
+  achievements: pupilAchievementsByPupilId(
+    pupilId: $pupilId
+    sortDirection: DESC
+  ) {
+    items {
+      id
+      achievementId
+      awardedAt
+    }
+  }
+  
+  # Группа ученика
+  grade: getGrade(id: $gradeId) {
+    id
+    name
+    description
+  }
+}
+```
+
+**Пример 3: Получить группу с событиями**
+
+```graphql
+query GetGradeWithEvents($gradeId: ID!) {
+  # Основная информация о группе
+  grade: getGrade(id: $gradeId) {
+    id
+    name
+    description
+    active
+  }
+  
+  # События группы
+  events: gradeEventsByGradeId(
+    gradeId: $gradeId
+    sortDirection: ASC
+  ) {
+    items {
+      id
+      eventType
+      title
+      description
+      eventDate
+    }
+  }
+}
+```
+
+**Рекомендации:**
+
+- Используйте **batch queries** (несколько queries в одном запросе) для уменьшения количества round trips
+- Используйте **Server Actions** для объединения нескольких queries в один вызов
+- **Кэшируйте результаты** на клиенте для уменьшения количества запросов
+- См. [SERVER_ACTIONS.md](../api/SERVER_ACTIONS.md) для примеров использования в Server Actions
+- См. [SCHEMA_DIFFERENCES.md](./SCHEMA_DIFFERENCES.md) для полного списка изменений и альтернативных способов получения данных
+
+---
+
+# Баллы ученика за учебный год с посещаемостью (AP-30)
+query PupilPerformanceByAcademicYear($pupilId: ID!, $startDate: AWSDateTime!, $endDate: AWSDateTime!) {
+  homeworkChecksByPupilId(
+    pupilId: $pupilId
+    createdAt: {
+      between: [$startDate, $endDate]
+    }
+    sortDirection: ASC
+  ) {
+    items {
+      id
+      lesson {
+        title
+        lessonDate
+      }
+      goldenVerse1Score
+      goldenVerse2Score
+      goldenVerse3Score
+      testScore
+      notebookScore
+      singing
+      points
+      createdAt
+    }
+  }
+}
+# Примечание: На клиенте необходимо агрегировать данные:
+# - totalPoints, averagePoints
+# - lessonsCount, lessonsAttended, attendanceRate
+# - goldenVerseTotal, testTotal, notebookTotal, singingCount
+
+# Баллы ученика за период дат с посещаемостью (AP-31)
+query PupilPerformanceByDateRange($pupilId: ID!, $startDate: AWSDateTime!, $endDate: AWSDateTime!) {
+  homeworkChecksByPupilId(
+    pupilId: $pupilId
+    createdAt: {
+      between: [$startDate, $endDate]
+    }
+    sortDirection: ASC
+  ) {
+    items {
+      id
+      lesson {
+        title
+        lessonDate
+      }
+      goldenVerse1Score
+      goldenVerse2Score
+      goldenVerse3Score
+      testScore
+      notebookScore
+      singing
+      points
+      createdAt
+    }
+  }
+}
+# Примечание: Аналогично AP-30, агрегация на клиенте
+
+# Аналитика сложности золотых стихов (AP-ANALYTICS-7)
+query GoldenVerseDifficultyAnalysis($gradeId: ID!, $startDate: AWSDateTime!, $endDate: AWSDateTime!) {
+  homeworkChecksByGradeId(
+    gradeId: $gradeId
+    createdAt: {
+      between: [$startDate, $endDate]
+    }
+    sortDirection: ASC
+  ) {
+    items {
+      id
+      lessonId
+      goldenVerse1Score
+      goldenVerse2Score
+      goldenVerse3Score
+      lesson {
+        id
+        goldenVerses {
+          items {
+            order
+            goldenVerse {
+              id
+              reference
+              text
+            }
+          }
+        }
+      }
+    }
+  }
+}
+# Примечание: На клиенте необходимо:
+# 1. Сопоставить goldenVerse1Score/2Score/3Score с соответствующими стихами по order
+# 2. Агрегировать статистику по goldenVerseId:
+#    - totalChecks, maxScoreCount, successRate, averageScore, difficultyLevel
 ```
 
 ---
@@ -856,11 +1351,45 @@ mutation CreateHomeworkCheck {
     notebook: true
     singing: false
     points: 30
-    hasHouse: false
+    # hasHouse устарело (заменено на систему кирпичиков)
   }) {
     id
     points
     hasHouse
+  }
+}
+
+# Создать книгу Библии
+mutation CreateBook {
+  createBook(input: {
+    fullName: "Евангелие от Иоанна"
+    shortName: "Иоанна"
+    abbreviation: "Ин"
+    testament: "NEW"
+    order: 43
+  }) {
+    id
+    fullName
+    shortName
+    abbreviation
+  }
+}
+
+# Создать золотой стих
+mutation CreateGoldenVerse {
+  createGoldenVerse(input: {
+    bookId: "book-123"
+    reference: "Иоанна 3:16"
+    chapter: 3
+    verseStart: 16
+    text: "Ибо так возлюбил Бог мир..."
+  }) {
+    id
+    reference
+    book {
+      shortName
+      fullName
+    }
   }
 }
 ```
@@ -949,7 +1478,7 @@ const results = await Promise.all(
       notebook: false,
       singing: false,
       points: 0,
-      hasHouse: false,
+      # hasHouse устарело (заменено на систему кирпичиков)
     })
   )
 );
@@ -1093,12 +1622,31 @@ input CreatePupilInput {
 input CreateHomeworkCheckInput {
   lessonId: ID!
   pupilId: ID!
-  goldenVerse: Boolean!
-  test: Boolean!
-  notebook: Boolean!
+  goldenVerse1Score: Int
+  goldenVerse2Score: Int
+  goldenVerse3Score: Int
+  testScore: Int
+  notebookScore: Int
   singing: Boolean!
   points: Int!
-  hasHouse: Boolean!
+  # hasHouse устарело (заменено на систему кирпичиков)
+}
+
+input CreateBookInput {
+  fullName: String!
+  shortName: String!
+  abbreviation: String!
+  testament: String! # "OLD" | "NEW"
+  order: Int!
+}
+
+input CreateGoldenVerseInput {
+  bookId: ID!
+  reference: String!
+  chapter: Int!
+  verseStart: Int!
+  verseEnd: Int
+  text: String!
 }
 ```
 
@@ -1122,6 +1670,25 @@ input UpdatePupilInput {
   dateOfBirth: AWSDate
   photo: String
   active: Boolean
+}
+
+input UpdateBookInput {
+  id: ID!
+  fullName: String
+  shortName: String
+  abbreviation: String
+  testament: String
+  order: Int
+}
+
+input UpdateGoldenVerseInput {
+  id: ID!
+  bookId: ID
+  reference: String
+  chapter: Int
+  verseStart: Int
+  verseEnd: Int
+  text: String
 }
 ```
 
@@ -1288,6 +1855,8 @@ type User @model @auth(rules: [
 | User | Users | id | — |
 | Grade | Grades | id | — |
 | Lesson | Lessons | id | — |
+| Book | Books | id | — |
+| GoldenVerse | GoldenVerses | id | — |
 | Pupil | Pupils | id | — |
 | HomeworkCheck | HomeworkChecks | id | — |
 
@@ -1379,6 +1948,11 @@ const client = generateClient<Schema>();
 const lesson = await client.models.Lesson.get({ id: 'lesson-789' });
 ```
 
+**Примечание о новых access patterns:**
+- Новые access patterns (AP-25, AP-26, AP-30, AP-31, AP-ANALYTICS-6, AP-ANALYTICS-7) используют существующие GSI
+- Для аналитики сложности стихов все необходимые индексы уже существуют в GraphQL schema
+- Опциональная оптимизация через денормализацию (GSI-3 в LessonGoldenVerses) может быть добавлена post-MVP при необходимости
+
 ---
 
 ## Cross-reference
@@ -1386,12 +1960,13 @@ const lesson = await client.models.Lesson.get({ id: 'lesson-789' });
 - См. также: [`docs/database/ERD.md`](../database/ERD.md) — визуализация сущностей
 - См. также: [`docs/database/DYNAMODB_SCHEMA.md`](../database/DYNAMODB_SCHEMA.md) — детальная схема DynamoDB
 - См. также: [`docs/database/DATA_MODELING.md`](../database/DATA_MODELING.md) — access patterns
+- См. также: [`docs/database/SCHEMA_DIFFERENCES.md`](../database/SCHEMA_DIFFERENCES.md) — различия между текущей и документированной схемой, причины удаления @belongsTo/@hasMany
 - См. также: [`docs/api/SERVER_ACTIONS.md`](../api/SERVER_ACTIONS.md) — использование в Next.js
 - См. также: [`docs/architecture/ARCHITECTURE.md`](../architecture/ARCHITECTURE.md) — общая архитектура
 
 ---
 
 **Версия:** 1.0  
-**Последнее обновление:** 23 декабря 2025  
+**Последнее обновление:** 27 декабря 2025  
 **Автор:** AI Documentation Team
 

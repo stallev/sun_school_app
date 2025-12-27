@@ -81,6 +81,8 @@ Phase 04: Настройка GraphQL API (AppSync)
 **Документация:**
 - <CRITICAL>[ARCHITECTURE.md](../../../architecture/ARCHITECTURE.md) - раздел 4.3 Data Access Layer</CRITICAL>
 - <CRITICAL>[AWS_AMPLIFY.md](../../../infrastructure/AWS_AMPLIFY.md) - раздел Data Access</CRITICAL>
+- <CRITICAL>[GRAPHQL_SCHEMA.md](../../../database/GRAPHQL_SCHEMA.md) - раздел 1.4 и раздел 4.5 для примеров queries через индексы</CRITICAL>
+- <CRITICAL>[SCHEMA_DIFFERENCES.md](../../../database/SCHEMA_DIFFERENCES.md) - причины удаления @belongsTo/@hasMany</CRITICAL>
 - <CRITICAL>AWS Amplify Data документация (через Context7)</CRITICAL>
 
 **Критерии приемки:**
@@ -97,27 +99,31 @@ Phase 04: Настройка GraphQL API (AppSync)
 ### Task 09.02: Создание утилит для GraphQL queries
 
 <context>
-Создание утилит для GraphQL queries критически важно для работы с данными. Все queries должны быть типизированы и использовать amplifyData для выполнения.
+Создание утилит для GraphQL queries критически важно для работы с данными. Все queries должны быть типизированы и использовать amplifyData для выполнения. ⚠️ **Важно:** Директивы `@belongsTo` и `@hasMany` удалены из схемы, все связи доступны через queries с использованием индексов.
 </context>
 
 <task>
-Создай утилиты для GraphQL queries в `lib/db/queries.ts`. Реализуй функции для всех основных queries согласно GRAPHQL_SCHEMA.md, используй amplifyData для выполнения queries и добавь типизацию для результатов.
+Создай утилиты для GraphQL queries в `lib/db/queries.ts`. Реализуй функции для всех основных queries согласно GRAPHQL_SCHEMA.md, используй amplifyData для выполнения queries и добавь типизацию для результатов. ⚠️ **Важно:** Для получения связанных данных используй queries через индексы (например, `lessonsByAcademicYearId`, `homeworkChecksByLessonId`), а не прямые связи `@belongsTo` и `@hasMany`. Создай batch query функции для получения связанных данных в одном вызове.
 </task>
 
 <constraints>
 - Утилиты для queries должны быть созданы в `lib/db/queries.ts`
 - Все основные queries должны быть реализованы согласно GRAPHQL_SCHEMA.md
+- ⚠️ **Критически важно:** Для связанных данных используй queries через индексы, а не прямые связи
+- Создай batch query функции для получения связанных данных
 - Типизация должна работать корректно
 - Используй amplifyData для выполнения queries
 </constraints>
 
 <thinking>
 Прежде чем приступить к реализации:
-1. Изучи GRAPHQL_SCHEMA.md раздел Queries детально
-2. Изучи SERVER_ACTIONS.md для понимания использования queries
-3. Используй Context7 для получения актуальной документации AWS Amplify Data Queries
-4. Определи все queries, которые нужно реализовать
-5. Только после этого создавай утилиты
+1. Изучи GRAPHQL_SCHEMA.md раздел 1.4, раздел 4.5 и раздел Queries детально
+2. Изучи SCHEMA_DIFFERENCES.md для понимания причин удаления связей
+3. Изучи SERVER_ACTIONS.md раздел 6 для примеров работы со связанными данными
+4. Изучи DATA_MODELING.md раздел 8 для примеров batch queries
+5. Используй Context7 для получения актуальной документации AWS Amplify Data Queries
+6. Определи все queries, которые нужно реализовать, включая queries для связанных данных
+7. Только после этого создавай утилиты
 </thinking>
 
 **Действия:**
@@ -128,12 +134,19 @@ Phase 04: Настройка GraphQL API (AppSync)
   - `getLesson(id: string)`
   - `listLessons(gradeId: string)`
   - И другие queries согласно [GRAPHQL_SCHEMA.md](../../../database/GRAPHQL_SCHEMA.md)
+- [ ] Реализовать функции для получения связанных данных через индексы:
+  - `getLessonWithRelations(lessonId: string)` - урок с золотыми стихами и проверками ДЗ
+  - `getPupilComplete(pupilId: string)` - ученик с проверками ДЗ и достижениями
+  - `getGradeWithRelations(gradeId: string)` - группа с учениками, годами и событиями
+  - Использовать `Promise.all()` для параллельных запросов (batch queries)
 - [ ] Использовать amplifyData для выполнения queries
 - [ ] Добавить типизацию для результатов queries
 
 **Документация:**
-- <CRITICAL>[GRAPHQL_SCHEMA.md](../../../database/GRAPHQL_SCHEMA.md) - раздел Queries</CRITICAL>
-- [SERVER_ACTIONS.md](../../../api/SERVER_ACTIONS.md) - использование queries
+- <CRITICAL>[GRAPHQL_SCHEMA.md](../../../database/GRAPHQL_SCHEMA.md) - раздел 1.4, раздел 4.5 и раздел Queries</CRITICAL>
+- <CRITICAL>[SCHEMA_DIFFERENCES.md](../../../database/SCHEMA_DIFFERENCES.md) - причины удаления @belongsTo/@hasMany</CRITICAL>
+- <CRITICAL>[SERVER_ACTIONS.md](../../../api/SERVER_ACTIONS.md) - раздел 6 "Working with Related Data via Indexes"</CRITICAL>
+- [DATA_MODELING.md](../../../database/DATA_MODELING.md) - раздел 8 для примеров batch queries
 - AWS Amplify Data Queries документация (через Context7)
 
 **Критерии приемки:**

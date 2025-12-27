@@ -1,10 +1,10 @@
 # Project Documentation Plan - Sunday School App
 
-## Document Version: 2.3
+## Document Version: 2.4
 **Creation Date:** 23 December 2025  
-**Last Update:** 24 December 2025  
+**Last Update:** 25 December 2025  
 **Project:** Sunday School App  
-**Status:** 58 of 58+ Documents Completed (99%)
+**Status:** 59 of 59+ Documents Completed (99%)
 
 ---
 
@@ -14,11 +14,11 @@ This master plan provides a comprehensive overview of all technical documentatio
 
 ### Current Status
 
-- **Total Planned Documents:** 58+ (21 core + 26 implementation + 8 guidelines + 2 user flows + 1 infrastructure)
-- **Completed Documents:** 58 (99%)
+- **Total Planned Documents:** 59+ (21 core + 26 implementation + 8 guidelines + 2 user flows + 1 infrastructure + 1 analytics)
+- **Completed Documents:** 59 (99%)
 - **Must-have Documents:** 45/45 (100% ✅ COMPLETE) (11 core + 26 implementation + 8 guidelines)
 - **Should-have Documents:** 7/7 (100% ✅ COMPLETE)
-- **Could-have Documents:** 6/6+ (100% ✅ COMPLETE)
+- **Could-have Documents:** 7/7+ (100% ✅ COMPLETE) (включая ANALYTICS.md - Post-MVP функционал)
 
 ### Purpose of This Document
 
@@ -39,6 +39,7 @@ This master plan serves as:
 | 3 | DYNAMODB_SCHEMA.md | Database | Must-have | ✅ | docs/database/ |
 | 4 | GRAPHQL_SCHEMA.md | Database | Must-have | ✅ | docs/database/ |
 | 5 | DATA_MODELING.md | Database | Must-have | ✅ | docs/database/ |
+| 5a | ANALYTICS.md | Database | Could-have (Post-MVP) | ✅ | docs/database/ |
 | 6 | USER_FLOW.md | User Experience | Must-have | ✅ | docs/user_flows/ |
 | 6a | TEACHER_FLOWS.md | User Experience | Could-have | ✅ | docs/user_flows/ |
 | 6b | ADMIN_FLOWS.md | User Experience | Could-have | ✅ | docs/user_flows/ |
@@ -95,7 +96,8 @@ docs/
 │   ├── ERD.md ✅
 │   ├── DYNAMODB_SCHEMA.md ✅
 │   ├── GRAPHQL_SCHEMA.md ✅
-│   └── DATA_MODELING.md ✅
+│   ├── DATA_MODELING.md ✅
+│   └── ANALYTICS.md ✅ (Post-MVP функционал, структура БД создается на этапе MVP)
 │
 ├── deployment/ ✅
 │   ├── DEPLOYMENT_GUIDE.md ✅
@@ -725,7 +727,7 @@ graph TD
 |----------|-------|-----------|---------|-----------------|
 | **Must-have** | 45 | 45 | 0 | 100% ✅ |
 | **Should-have** | 7 | 7 | 0 | 100% ✅ |
-| **Could-have** | 6+ | 6 | 0+ | 100% ✅ |
+| **Could-have** | 7+ | 7 | 0+ | 100% ✅ |
 | **Post-MVP** | 2+ | 0 | 2+ | N/A ⏸️ |
 | **Overall** | 58+ | 58 | 0+ | 99% |
 
@@ -837,6 +839,7 @@ All **Must-have** and **Should-have** documents are now complete. All **Could-ha
 - [DYNAMODB_SCHEMA.md](database/DYNAMODB_SCHEMA.md) - DynamoDB table design
 - [GRAPHQL_SCHEMA.md](database/GRAPHQL_SCHEMA.md) - GraphQL schema for AppSync
 - [DATA_MODELING.md](database/DATA_MODELING.md) - Data modeling strategies
+- [ANALYTICS.md](database/ANALYTICS.md) - Analytics for academic process (Post-MVP, DB structure created at MVP stage)
 
 #### User Experience
 - [USER_FLOW.md](user_flows/USER_FLOW.md) - User flows and scenarios
@@ -977,12 +980,13 @@ All **Must-have** and **Should-have** documents are now complete. All **Could-ha
 | 2.1 | 2025-12-23 | Added TEACHER_FLOWS.md and ADMIN_FLOWS.md. Updated statuses and completion statistics. Total: 56/57+ documents completed (98%) | AI Documentation Team |
 | 2.2 | 2025-12-23 | Added ERROR_HANDLING.md. Updated statuses and completion statistics. Total: 57/57+ documents completed (99%). All Could-have documents now complete. | AI Documentation Team |
 | 2.3 | 2025-12-24 | Added AMPLIFY_COMPATIBILITY.md. Updated statuses and completion statistics. Total: 58/58+ documents completed (99%). Should-have documents now 7/7 complete. | AI Documentation Team |
+| 2.4 | 2025-12-25 | Added ANALYTICS.md (Post-MVP функционал, структура БД создается на этапе MVP). Updated statuses and completion statistics. Total: 59/59+ documents completed (99%). Could-have documents now 7/7+ complete. | AI Documentation Team |
 
 ---
 
 ## 14. Conclusion
 
-The Sunday School App documentation is **99% complete** with all **Must-have (45/45)**, **Should-have (7/7)**, and **Could-have (6/6)** documents finished. This includes comprehensive error handling documentation (ERROR_HANDLING.md), detailed user flow documentation for Teacher and Admin roles, Next.js compatibility verification (AMPLIFY_COMPATIBILITY.md), and all other planned documentation. The documentation foundation is comprehensive, covering architecture, database design, user experience, API specifications, component libraries, infrastructure, implementation phases, and development guidelines. This enables development to proceed with full confidence and clear guidance.
+The Sunday School App documentation is **99% complete** with all **Must-have (45/45)**, **Should-have (7/7)**, and **Could-have (7/7+)** documents finished. This includes comprehensive error handling documentation (ERROR_HANDLING.md), detailed user flow documentation for Teacher and Admin roles, Next.js compatibility verification (AMPLIFY_COMPATIBILITY.md), analytics documentation for academic process (ANALYTICS.md - Post-MVP функционал), and all other planned documentation. The documentation foundation is comprehensive, covering architecture, database design, user experience, API specifications, component libraries, infrastructure, implementation phases, development guidelines, and analytics. This enables development to proceed with full confidence and clear guidance.
 
 ### Key Achievements
 
@@ -1000,7 +1004,8 @@ The Sunday School App documentation is **99% complete** with all **Must-have (45
 ✅ Comprehensive development guidelines (React, Next.js, Prompts)  
 ✅ Detailed user flow documentation for Teacher and Admin roles (TEACHER_FLOWS.md, ADMIN_FLOWS.md)  
 ✅ Comprehensive error handling documentation (ERROR_HANDLING.md)  
-✅ Next.js 15.5.9 compatibility verification with AWS Amplify Hosting (AMPLIFY_COMPATIBILITY.md)
+✅ Next.js 15.5.9 compatibility verification with AWS Amplify Hosting (AMPLIFY_COMPATIBILITY.md)  
+✅ Analytics documentation for academic process (ANALYTICS.md - Post-MVP функционал, структура БД создается на этапе MVP)
 
 ### Remaining Work
 

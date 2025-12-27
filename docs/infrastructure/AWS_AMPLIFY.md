@@ -1319,6 +1319,91 @@ aws amplify update-branch \
   --region <region>
 ```
 
+#### Issue 6: Circular Dependency Between Resources in CloudFormation
+
+**Симптомы:**
+
+- `amplify push` завершается с ошибкой: `Circular dependency between resources: [PupilAchievement, CustomResourcesjson, HomeworkCheck, LessonGoldenVerse, GradeEvent]`
+- Стек CloudFormation находится в состоянии `UPDATE_ROLLBACK_COMPLETE`
+- Ошибка повторяется при каждом деплое
+
+**Причина:**
+
+AWS Amplify GraphQL Transformer переиспользует auth resolver функции между моделями с **идентичными @auth правилами**. Когда несколько моделей имеют одинаковые правила авторизации:
+
+```graphql
+@auth(rules: [
+  { allow: groups, groups: ["TEACHER", "ADMIN", "SUPERADMIN"] }
+])
+```
+
+Transformer пытается создать общие auth функции, что приводит к циклическим зависимостям между CloudFormation стеками.
+
+**Проблемные модели:**
+
+- `LessonGoldenVerse`
+- `HomeworkCheck`
+- `PupilAchievement`
+- `GradeEvent`
+
+**Решение:**
+
+Разделить @auth правила на уникальные записи для каждой модели, чтобы предотвратить переиспользование auth функций:
+
+**До (вызывает циклическую зависимость):**
+
+```graphql
+type HomeworkCheck
+  @model
+  @auth(rules: [
+    { allow: groups, groups: ["TEACHER", "ADMIN", "SUPERADMIN"] }
+  ]) {
+  # ...
+}
+```
+
+**После (устраняет циклическую зависимость):**
+
+```graphql
+type HomeworkCheck
+  @model
+  @auth(rules: [
+    { allow: groups, groups: ["TEACHER"] },
+    { allow: groups, groups: ["ADMIN"] },
+    { allow: groups, groups: ["SUPERADMIN"] }
+  ]) {
+  # ...
+}
+```
+
+**Альтернативные подходы:**
+
+1. Разделение групп на отдельные правила (рекомендуется)
+2. Изменение порядка групп в правилах
+3. Добавление `operations` для создания уникальных правил
+
+**Важные замечания:**
+
+- Функциональность авторизации не изменяется - все группы сохраняют те же права доступа
+- Это только изменение структуры правил для предотвращения переиспользования функций
+- После исправления необходимо удалить кэш: `Remove-Item -Path "amplify\backend\api\<api-name>\build" -Recurse -Force`
+- Перегенерировать стеки: `amplify api gql-compile`
+- Выполнить деплой: `amplify push --force --yes`
+
+**Проверка решения:**
+
+```bash
+# Проверить отсутствие циклических ссылок
+grep -r "referencetotransformerroot.*HomeworkCheck\|referencetotransformerroot.*LessonGoldenVerse" amplify/backend/api/<api-name>/build/stacks/
+
+# Должно вернуть пустой результат
+```
+
+**Связанные ресурсы:**
+
+- AWS Amplify GraphQL Transformer Documentation
+- CloudFormation Circular Dependency Resolution
+
 ---
 
 ## 10. Best Practices
@@ -1350,6 +1435,7 @@ aws amplify update-branch \
 -   **→ [DYNAMODB_SCHEMA.md](../database/DYNAMODB_SCHEMA.md):** DynamoDB table design and access patterns.
 -   **→ [SECURITY.md](SECURITY.md):** Authentication and authorization details with Cognito.
 -   **→ [DEPLOYMENT_GUIDE.md](../deployment/DEPLOYMENT_GUIDE.md):** Comprehensive deployment strategies.
+-   **→ [AWS_COST_ESTIMATION.md](AWS_COST_ESTIMATION.md):** Monthly cost estimation for AWS infrastructure.
 
 ---
 
