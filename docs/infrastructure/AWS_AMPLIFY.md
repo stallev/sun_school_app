@@ -1439,7 +1439,34 @@ grep -r "referencetotransformerroot.*HomeworkCheck\|referencetotransformerroot.*
 
 ---
 
-## 12. Resources
+## 12. Related Documentation
+
+### 12.1. Incident Management
+
+- **[DUPLICATE_RESOURCES_INCIDENT.md](./DUPLICATE_RESOURCES_INCIDENT.md)** - Описание инцидента с дублированием ресурсов, причины и шаги предотвращения
+
+### 12.2. Branch Setup
+
+- **[BRANCH_SETUP_CHECKLIST.md](./BRANCH_SETUP_CHECKLIST.md)** - Чек-лист для правильного подключения Git веток к AWS Amplify App
+
+### 12.3. Monitoring Scripts
+
+- **`scripts/check-duplicate-resources.sh`** - Bash скрипт для проверки дублирующих AWS ресурсов
+- **`scripts/check-duplicate-resources.ps1`** - PowerShell скрипт для проверки дублирующих AWS ресурсов
+
+**Использование скриптов:**
+
+```bash
+# Bash (Linux/Mac)
+./scripts/check-duplicate-resources.sh eu-west-1
+
+# PowerShell (Windows)
+.\scripts\check-duplicate-resources.ps1 eu-west-1
+```
+
+---
+
+## 13. Resources
 
 -   **Amplify Gen 1 Documentation:** https://docs.amplify.aws/gen1/
 -   **Amplify CLI Reference:** https://docs.amplify.aws/cli/

@@ -572,6 +572,29 @@ Phase 06: Настройка UI библиотеки (Shadcn UI)
 
 ---
 
+## ⚠️ Важно: Проверка дублирующих ресурсов
+
+**После завершения фазы обязательно выполните проверку на наличие дублирующих AWS ресурсов:**
+
+```bash
+# Linux/Mac
+./scripts/check-duplicate-resources.sh eu-west-1
+
+# Windows
+.\scripts\check-duplicate-resources.ps1 eu-west-1
+```
+
+**Почему это важно:**
+- Предотвращает создание дублирующих ресурсов (AppSync API, Cognito User Pools, DynamoDB таблицы, CloudFormation стеки)
+- Помогает обнаружить проблемы на раннем этапе
+- Снижает неожиданные затраты на AWS
+
+**Если обнаружены дублирующие ресурсы:**
+- См. [DUPLICATE_RESOURCES_INCIDENT.md](../../../infrastructure/DUPLICATE_RESOURCES_INCIDENT.md) для инструкций по устранению
+- Следуйте [BRANCH_SETUP_CHECKLIST.md](../../../infrastructure/BRANCH_SETUP_CHECKLIST.md) при подключении новых веток
+
+---
+
 **Версия:** 1.0  
 **Последнее обновление:** 23 декабря 2025
 

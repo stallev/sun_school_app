@@ -1,4 +1,16 @@
 version: 1
+backend:
+  phases:
+    build:
+      commands:
+        - |
+          if [ "$AWS_BRANCH" = "master" ]; then
+            amplifyPush --simple --environment prod
+          elif [ "$AWS_BRANCH" = "dev" ]; then
+            amplifyPush --simple --environment dev
+          else
+            amplifyPush --simple --environment dev
+          fi
 frontend:
   phases:
     preBuild:
