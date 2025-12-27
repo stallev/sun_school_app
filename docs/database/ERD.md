@@ -1,8 +1,8 @@
 # Entity Relationship Diagram (ERD) - Sunday School App
 
-## Версия документа: 1.0
+## Версия документа: 1.2
 **Дата создания:** 23 декабря 2025  
-**Последнее обновление:** 23 декабря 2025  
+**Последнее обновление:** 25 декабря 2025  
 **Проект:** Sunday School App  
 **Технологии:** AWS DynamoDB, AWS AppSync (GraphQL), AWS Cognito  
 **База данных:** AWS DynamoDB
@@ -108,11 +108,23 @@ erDiagram
         datetime updatedAt
     }
     
+    Book ||--o{ GoldenVerse : "has verses"
+    Book {
+        string id PK
+        string fullName
+        string shortName
+        string abbreviation
+        string testament
+        int order
+        datetime createdAt
+        datetime updatedAt
+    }
+    
     GoldenVerse ||--o{ LessonGoldenVerse : "used in lessons"
     GoldenVerse {
         string id PK
         string reference
-        string book
+        string bookId FK
         int chapter
         int verseStart
         int verseEnd
@@ -149,9 +161,11 @@ erDiagram
         string id PK
         string lessonId FK
         string pupilId FK
-        boolean goldenVerse
-        boolean test
-        boolean notebook
+        int goldenVerse1Score
+        int goldenVerse2Score
+        int goldenVerse3Score
+        int testScore
+        int notebookScore
         boolean singing
         int points
         boolean hasHouse
@@ -178,13 +192,23 @@ erDiagram
         datetime createdAt
     }
     
+    User ||--o{ UserFamily : "has families"
     Family ||--o{ FamilyMember : "has members"
+    Family ||--o{ UserFamily : "has parent users"
     Family {
         string id PK
         string name
         string phone
         string email
         string address
+        string motherFirstName
+        string motherLastName
+        string motherMiddleName
+        string motherPhone
+        string fatherFirstName
+        string fatherLastName
+        string fatherMiddleName
+        string fatherPhone
         datetime createdAt
         datetime updatedAt
     }
@@ -193,6 +217,14 @@ erDiagram
         string id PK
         string familyId FK
         string pupilId FK
+        datetime createdAt
+    }
+    
+    UserFamily {
+        string id PK
+        string userId FK
+        string familyId FK
+        string phone
         datetime createdAt
     }
     
@@ -430,7 +462,48 @@ erDiagram
 
 ---
 
-### 3.6. GoldenVerse (Золотые стихи)
+### 3.6. Book (Книги Библии)
+
+**Назначение:** Книги Библии (Ветхий и Новый Завет)
+
+**Таблица DynamoDB:** `Books`
+
+| Поле | Тип | Описание | Ограничения |
+|------|-----|----------|-------------|
+| id | String (UUID) | Уникальный идентификатор | PK |
+| fullName | String | Полное название (например, "Евангелие от Иоанна") | NOT NULL |
+| shortName | String | Сокращенное название (например, "Иоанна") | NOT NULL, UNIQUE |
+| abbreviation | String | Аббревиатура (например, "Ин") | NOT NULL |
+| testament | String (Enum) | Завет: OLD \| NEW | NOT NULL |
+| order | Number | Порядок в Библии (1-66) | NOT NULL |
+| createdAt | String (ISO 8601) | Дата создания | Auto-generated |
+| updatedAt | String (ISO 8601) | Дата обновления | Auto-updated |
+
+**DynamoDB Keys:**
+- **Partition Key (PK):** `id`
+- **Sort Key (SK):** Нет
+
+**Global Secondary Indexes (GSI):**
+- **GSI-1:** shortName (PK: shortName) — для поиска по сокращенному названию
+- **GSI-2:** testament-order (PK: testament, SK: order) — для списка книг по завету
+
+**Enum Testament:**
+- `OLD` — Ветхий Завет (39 книг)
+- `NEW` — Новый Завет (27 книг)
+
+**Связи:**
+- `goldenVerses` → GoldenVerse[] (один ко многим)
+
+**Бизнес-правила:**
+- Всего 66 книг Библии (39 Ветхий Завет + 27 Новый Завет)
+- shortName должен быть уникальным
+- order определяет порядок книг в Библии (1-66)
+- Таблица заполняется один раз при инициализации базы данных
+- Книги не удаляются после создания (только чтение)
+
+---
+
+### 3.7. GoldenVerse (Золотые стихи)
 
 **Назначение:** Библейские стихи для запоминания
 
@@ -440,7 +513,7 @@ erDiagram
 |------|-----|----------|-------------|
 | id | String (UUID) | Уникальный идентификатор | PK |
 | reference | String | Ссылка (например, "Иоанна 3:16") | UNIQUE, NOT NULL |
-| book | String | Книга Библии (например, "Иоанна") | NOT NULL |
+| bookId | String (UUID) | ID книги Библии | FK → Books.id, NOT NULL |
 | chapter | Number | Номер главы | NOT NULL |
 | verseStart | Number | Начальный стих | NOT NULL |
 | verseEnd | Number | Конечный стих (если диапазон) | Nullable |
@@ -454,9 +527,10 @@ erDiagram
 
 **Global Secondary Indexes (GSI):**
 - **GSI-1:** reference (PK: reference) — для поиска по ссылке
-- **GSI-2:** book-chapter (PK: book, SK: chapter) — для фильтрации по книге
+- **GSI-2:** bookId-chapter (PK: bookId, SK: chapter) — для фильтрации по книге
 
 **Связи:**
+- `book` → Book (многие к одному)
 - `lessons` → Lesson[] (многие ко многим через LessonGoldenVerse)
 
 **Бизнес-правила:**
@@ -466,7 +540,7 @@ erDiagram
 
 ---
 
-### 3.7. LessonGoldenVerse (Связь уроков и стихов)
+### 3.8. LessonGoldenVerse (Связь уроков и стихов)
 
 **Назначение:** Таблица связи многие-ко-многим между Lesson и GoldenVerse
 
@@ -486,12 +560,17 @@ erDiagram
 
 **Global Secondary Indexes (GSI):**
 - **GSI-1:** lessonId-order (PK: lessonId, SK: order) — для списка стихов урока
-- **GSI-2:** goldenVerseId (PK: goldenVerseId) — для статистики использования стиха
+- **GSI-2:** goldenVerseId (PK: goldenVerseId) — для статистики использования стиха, аналитики сложности стихов
+- **Опционально (Post-MVP): GSI-3:** academicYearId-goldenVerseId (PK: academicYearId, SK: goldenVerseId) — оптимизация для получения списка стихов группы за учебный год (требует денормализации academicYearId)
 
 **Бизнес-правила:**
 - Уникальная пара (lessonId, goldenVerseId) — один стих не может быть добавлен в урок дважды
 - order начинается с 1 для каждого урока
 - При удалении урока или стиха, связи удаляются (CASCADE)
+
+**Использование для аналитики:**
+- GSI-2 используется для получения всех использований конкретного стиха (аналитика сложности)
+- GSI-1 используется для получения стихов урока при анализе проверок ДЗ
 
 ---
 
@@ -547,12 +626,15 @@ erDiagram
 | id | String (UUID) | Уникальный идентификатор | PK |
 | lessonId | String | ID урока | FK → Lessons.id |
 | pupilId | String | ID ученика | FK → Pupils.id |
-| goldenVerse | Boolean | Выучил золотой стих | DEFAULT false |
-| test | Boolean | Сделал тест | DEFAULT false |
-| notebook | Boolean | Сделал тетрадь | DEFAULT false |
+| gradeId | String | ID группы (денормализация) | FK → Grades.id, NOT NULL |
+| goldenVerse1Score | Number | Баллы за первый золотой стих (0-2) | Nullable |
+| goldenVerse2Score | Number | Баллы за второй золотой стих (0-2) | Nullable |
+| goldenVerse3Score | Number | Баллы за третий золотой стих (0-2) | Nullable |
+| testScore | Number | Баллы за тест (0-10) | Nullable |
+| notebookScore | Number | Баллы за тетрадь (0-10) | Nullable |
 | singing | Boolean | Был на спевке | DEFAULT false |
-| points | Number | Баллы за урок | DEFAULT 0 |
-| hasHouse | Boolean | Получил домик (все параметры true) | AUTO |
+| points | Number | Баллы за урок (вычисляется автоматически) | DEFAULT 0 |
+| hasHouse | Boolean | Получил домик (вычисляется автоматически) | AUTO |
 | createdAt | String (ISO 8601) | Дата создания | Auto-generated |
 | updatedAt | String (ISO 8601) | Дата обновления | Auto-updated |
 
@@ -563,24 +645,32 @@ erDiagram
 **Global Secondary Indexes (GSI):**
 - **GSI-1:** lessonId-pupilId (PK: lessonId, SK: pupilId) — для проверок урока
 - **GSI-2:** pupilId-createdAt (PK: pupilId, SK: createdAt) — для истории ученика
+- **GSI-3:** gradeId-createdAt (PK: gradeId, SK: createdAt) — для аналитики группы (Post-MVP, создается на этапе MVP)
+
+**Денормализация:**
+- Поле `gradeId` хранится в HomeworkCheck для поддержки GSI-3 (аналитика), хотя есть через Lesson.gradeId. Это позволяет эффективно запрашивать историю успеваемости группы без дополнительных запросов к таблице Lessons.
 
 **Связи:**
 - `lesson` → Lesson (многие к одному)
 - `pupil` → Pupil (многие к одному)
+- `grade` → Grade (многие к одному, через денормализованное поле gradeId)
 
 **Бизнес-правила:**
 - ✅ **КРИТИЧНО:** Уникальная пара (lessonId, pupilId) — одна проверка на ученика за урок
-- hasHouse вычисляется автоматически: `hasHouse = goldenVerse && test && notebook && singing`
-- points рассчитываются на основе GradeSettings группы
+- `points` рассчитываются автоматически как сумма всех компонентов
+- Если ученик отсутствовал на уроке, все баллы = 0, `points = 0`
 - При удалении урока или ученика, проверки удаляются (CASCADE)
+- **Примечание:** Поле `hasHouse` устарело и будет удалено (заменено на систему кирпичиков)
 
 **Расчет баллов:**
 ```typescript
 points = 
-  (goldenVerse ? settings.pointsGoldenVerse : 0) +
-  (test ? settings.pointsTest : 0) +
-  (notebook ? settings.pointsNotebook : 0) +
-  (singing ? settings.pointsSinging : 0);
+  (goldenVerse1Score || 0) + 
+  (goldenVerse2Score || 0) + 
+  (goldenVerse3Score || 0) + 
+  (testScore || 0) + 
+  (notebookScore || 0) + 
+  (singing ? gradeSettings.pointsSinging : 0);
 ```
 
 ---
@@ -652,7 +742,7 @@ points =
 
 ### 3.12. Family (Семьи)
 
-**Назначение:** Семьи учеников для связи и контактов
+**Назначение:** Семьи учеников с информацией о родителях
 
 **Таблица DynamoDB:** `Families`
 
@@ -663,6 +753,14 @@ points =
 | phone | String | Телефон контактного лица | Nullable |
 | email | String | Email семьи | Nullable |
 | address | String | Адрес (опционально) | Nullable |
+| motherFirstName | String | Имя матери | Nullable |
+| motherLastName | String | Фамилия матери | Nullable |
+| motherMiddleName | String | Отчество матери | Nullable |
+| motherPhone | String | Телефон матери | Nullable |
+| fatherFirstName | String | Имя отца | Nullable |
+| fatherLastName | String | Фамилия отца | Nullable |
+| fatherMiddleName | String | Отчество отца | Nullable |
+| fatherPhone | String | Телефон отца | Nullable |
 | createdAt | String (ISO 8601) | Дата создания | Auto-generated |
 | updatedAt | String (ISO 8601) | Дата обновления | Auto-updated |
 
@@ -670,12 +768,18 @@ points =
 - **Partition Key (PK):** `id`
 - **Sort Key (SK):** Нет
 
+**Global Secondary Indexes (GSI):**
+- **GSI-1:** motherPhone (PK: motherPhone) — для поиска семьи по телефону матери (для связи с PARENT)
+- **GSI-2:** fatherPhone (PK: fatherPhone) — для поиска семьи по телефону отца (для связи с PARENT)
+
 **Связи:**
 - `members` → Pupil[] (многие ко многим через FamilyMember)
+- `userFamilies` → UserFamily[] (многие ко многим через UserFamily)
 
 **Бизнес-правила:**
-- Семья может включать несколько учеников
-- Один ученик может принадлежать нескольким семьям (например, приемные семьи)
+- Ученик может принадлежать только одной семье (через FamilyMember)
+- Телефоны матери и отца используются для связи с пользователями с ролью PARENT (Post-MVP функционал)
+- При регистрации пользователя PARENT вводится номер телефона, и система ищет соответствующую семью по полям motherPhone или fatherPhone
 
 ---
 
@@ -702,6 +806,44 @@ points =
 
 **Бизнес-правила:**
 - Уникальная пара (familyId, pupilId) — ученик не может быть добавлен в семью дважды
+
+---
+
+### 3.13a. UserFamily (Связь пользователей PARENT с семьями)
+
+**Назначение:** Связь пользователей с ролью PARENT с семьями учеников
+
+**Таблица DynamoDB:** `UserFamilies`
+
+| Поле | Тип | Описание | Ограничения |
+|------|-----|----------|-------------|
+| id | String (UUID) | Уникальный идентификатор | PK |
+| userId | String | ID пользователя (PARENT) | FK → Users.id |
+| familyId | String | ID семьи | FK → Families.id |
+| phone | String | Номер телефона, использованный для связи | NOT NULL |
+| createdAt | String (ISO 8601) | Дата создания | Auto-generated |
+
+**DynamoDB Keys:**
+- **Partition Key (PK):** `id`
+- **Sort Key (SK):** Нет
+
+**Global Secondary Indexes (GSI):**
+- **GSI-1:** userId (PK: userId) — для получения всех семей пользователя PARENT
+- **GSI-2:** familyId (PK: familyId) — для получения всех пользователей PARENT, связанных с семьей
+- **GSI-3:** phone (PK: phone) — для поиска связи по номеру телефона (для проверки при регистрации)
+
+**Связи:**
+- `user` → User (многие к одному)
+- `family` → Family (многие к одному)
+
+**Бизнес-правила:**
+- Связь создается при регистрации пользователя с ролью PARENT
+- При регистрации пользователь вводит номер телефона
+- Система ищет семью, где `motherPhone` или `fatherPhone` совпадает с введенным номером
+- Если семья найдена, создается связь UserFamily
+- Один пользователь PARENT может быть связан с несколькими семьями (если у него несколько детей в разных семьях)
+- Одна семья может быть связана с несколькими пользователями PARENT (мать и отец)
+- **Важно:** Это Post-MVP функционал, но структура базы данных создается на этапе MVP для будущей реализации
 
 ---
 
@@ -821,6 +963,7 @@ erDiagram
     Grade ||--o{ AcademicYear : "has"
     AcademicYear ||--o{ Lesson : "contains"
     Lesson ||--o{ LessonGoldenVerse : "has verses"
+    Book ||--o{ GoldenVerse : "has verses"
     GoldenVerse ||--o{ LessonGoldenVerse : "used in"
     
     AcademicYear {
@@ -836,8 +979,16 @@ erDiagram
         date lessonDate
     }
     
+    Book {
+        string id PK
+        string fullName
+        string shortName
+        string abbreviation
+    }
+    
     GoldenVerse {
         string id PK
+        string bookId FK
         string reference
         string text
     }
@@ -848,6 +999,7 @@ erDiagram
 ```mermaid
 erDiagram
     Grade ||--o{ Pupil : "contains"
+    Grade ||--o{ HomeworkCheck : "has checks"
     Pupil ||--o{ HomeworkCheck : "has checks"
     Lesson ||--o{ HomeworkCheck : "has checks"
     
@@ -862,6 +1014,7 @@ erDiagram
         string id PK
         string lessonId FK
         string pupilId FK
+        string gradeId FK
         boolean goldenVerse
         boolean test
         boolean notebook
@@ -982,6 +1135,26 @@ GSI: pupilId-createdAt на таблице HomeworkChecks
 GSI: lessonId-pupilId на таблице HomeworkChecks
 ```
 
+**История успеваемости группы (аналитика):**
+```
+GSI-3: gradeId-createdAt на таблице HomeworkChecks
+```
+
+**Золотые стихи группы за учебный год:**
+```
+GSI-1: academicYearId-lessonDate на таблице Lessons
+GSI-1: lessonId-order на таблице LessonGoldenVerses
+Batch Get для GoldenVerses
+```
+
+**Аналитика сложности золотых стихов:**
+```
+GSI-3: gradeId-createdAt на таблице HomeworkChecks
+GSI-1: lessonId-order на таблице LessonGoldenVerses
+GSI-2: goldenVerseId на таблице LessonGoldenVerses
+Агрегация на клиенте
+```
+
 ### 6.2. Стратегии для быстрых запросов
 
 1. **Использовать Query вместо Scan:**
@@ -990,11 +1163,85 @@ GSI: lessonId-pupilId на таблице HomeworkChecks
 
 2. **Денормализация где нужно:**
    - gradeId в Lesson (хотя есть через AcademicYear)
-   - Имя ученика можно добавить в HomeworkCheck для быстрого отображения
+   - gradeId в HomeworkCheck (хотя есть через Lesson, необходимо для GSI-3 аналитики)
+   - Имя ученика можно добавить в HomeworkCheck для быстрого отображения (не реализовано в MVP)
 
 3. **Batch операции:**
    - BatchGetItem для загрузки нескольких учеников
    - BatchWriteItem для массовой проверки ДЗ
+   - BatchGetItem для получения золотых стихов (AP-25)
+
+### 6.3. Access Patterns для аналитики
+
+#### 6.3.1. Золотые стихи группы за учебный год (AP-25)
+
+**Описание:** Получить список всех золотых стихов с ссылками на места в Библии и текстом стиха, которые учили в конкретной группе в конкретном учебном году.
+
+**Используемые таблицы и GSI:**
+- `Lessons` — GSI-1: academicYearId-lessonDate (получение уроков года)
+- `LessonGoldenVerses` — GSI-1: lessonId-order (получение стихов каждого урока)
+- `GoldenVerses` — Batch Get (получение данных стихов)
+
+**Алгоритм:**
+1. Query Lessons по academicYearId (GSI-1)
+2. Для каждого урока Query LessonGoldenVerses (GSI-1)
+3. Дедупликация goldenVerseId
+4. Batch Get GoldenVerses
+
+**Результат:** Список уникальных стихов с reference, text, bookId
+
+#### 6.3.2. Баллы ученика за учебный год (AP-30)
+
+**Описание:** Получить все баллы по каждому показателю за конкретный учебный год, отчет должен включать информацию о посещаемости занятий и спевок.
+
+**Используемые таблицы и GSI:**
+- `HomeworkChecks` — GSI-2: pupilId-createdAt (история ученика)
+- `AcademicYears` — получение startDate и endDate
+
+**Алгоритм:**
+1. Получить AcademicYear для получения дат
+2. Query HomeworkChecks по pupilId с фильтрацией по датам учебного года (GSI-2)
+3. Агрегация на клиенте: totalPoints, lessonsCount, lessonsAttended, attendanceRate, goldenVerseTotal, testTotal, notebookTotal, singingCount
+
+**Результат:** Агрегированная статистика с посещаемостью и спевками
+
+#### 6.3.3. Баллы ученика за период дат (AP-31)
+
+**Описание:** Получить все баллы по каждому показателю за указанный период дат, отчет должен включать информацию о посещаемости занятий и спевок.
+
+**Используемые таблицы и GSI:**
+- `HomeworkChecks` — GSI-2: pupilId-createdAt (история ученика)
+
+**Алгоритм:**
+1. Query HomeworkChecks по pupilId с фильтрацией по указанным датам (GSI-2)
+2. Агрегация на клиенте (аналогично AP-30)
+
+**Результат:** Агрегированная статистика за период с посещаемостью и спевками
+
+#### 6.3.4. Аналитика сложности золотых стихов (AP-ANALYTICS-7)
+
+**Описание:** Определить, какие стихи легкие для детей (больше детей получило максимальное количество баллов), а какие сложные.
+
+**Используемые таблицы и GSI:**
+- `HomeworkChecks` — GSI-3: gradeId-createdAt (получение всех проверок группы)
+- `Lessons` — получение уроков (опционально, если фильтруем по учебному году)
+- `LessonGoldenVerses` — GSI-1: lessonId-order (получение стихов урока)
+- `LessonGoldenVerses` — GSI-2: goldenVerseId (статистика использования стиха)
+
+**Алгоритм:**
+1. Query HomeworkChecks по gradeId за период (GSI-3)
+2. Для каждой проверки получить Lesson
+3. Для каждого Lesson получить LessonGoldenVerses (GSI-1)
+4. Сопоставить баллы:
+   - goldenVerse1Score с LessonGoldenVerse где order=1
+   - goldenVerse2Score с LessonGoldenVerse где order=2
+   - goldenVerse3Score с LessonGoldenVerse где order=3
+5. Агрегировать статистику по goldenVerseId:
+   - totalChecks, maxScoreCount, successRate, averageScore, difficultyLevel
+
+**Результат:** Список стихов с метриками сложности (легкий/средний/сложный)
+
+**Важно:** Все необходимые GSI для аналитики сложности стихов уже существуют, дополнительные индексы не требуются.
 
 ---
 

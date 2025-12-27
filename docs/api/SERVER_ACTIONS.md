@@ -675,9 +675,11 @@ type CreateAcademicYearOutput = {
 
 ```typescript
 const CreateGoldenVerseSchema = z.object({
-  book: z.string().min(1).max(50), // e.g., "Матфея"
+  bookId: z.string().uuid(), // ID книги из таблицы Books
+  reference: z.string().min(1).max(100), // e.g., "Иоанна 3:16"
   chapter: z.number().int().min(1),
-  verse: z.number().int().min(1),
+  verseStart: z.number().int().min(1),
+  verseEnd: z.number().int().min(1).optional(),
   text: z.string().min(1).max(1000),
 })
 
@@ -689,9 +691,17 @@ type CreateGoldenVerseInput = z.infer<typeof CreateGoldenVerseSchema>
 ```typescript
 type CreateGoldenVerseOutput = {
   id: string
-  book: string
+  bookId: string
+  book: {
+    id: string
+    fullName: string
+    shortName: string
+    abbreviation: string
+  }
+  reference: string
   chapter: number
-  verse: number
+  verseStart: number
+  verseEnd?: number
   text: string
   createdAt: string
   updatedAt: string
@@ -722,16 +732,151 @@ type SearchGoldenVersesInput = z.infer<typeof SearchGoldenVersesSchema>
 ```typescript
 type SearchGoldenVersesOutput = Array<{
   id: string
-  book: string
+  bookId: string
+  book: {
+    shortName: string
+    fullName: string
+  }
+  reference: string
   chapter: number
-  verse: number
+  verseStart: number
+  verseEnd?: number
   text: string
 }>
 ```
 
 ---
 
-### 6.7. Users (`actions/users.ts`)
+### 6.7. Books (`actions/books.ts`)
+
+#### 6.7.1. `listBooks`
+
+**Description:** Returns a list of all Bible books, optionally filtered by testament.
+
+**Authorization:** `TEACHER`, `ADMIN`, `SUPERADMIN`
+
+**Input Schema:**
+
+```typescript
+const ListBooksSchema = z.object({
+  testament: z.enum(['OLD', 'NEW']).optional(),
+  limit: z.number().int().min(1).max(100).default(66),
+})
+
+type ListBooksInput = z.infer<typeof ListBooksSchema>
+```
+
+**Output:**
+
+```typescript
+type ListBooksOutput = Array<{
+  id: string
+  fullName: string
+  shortName: string
+  abbreviation: string
+  testament: 'OLD' | 'NEW'
+  order: number
+  createdAt: string
+  updatedAt: string
+}>
+```
+
+---
+
+#### 6.7.2. `getBook`
+
+**Description:** Gets a single book by ID.
+
+**Authorization:** `TEACHER`, `ADMIN`, `SUPERADMIN`
+
+**Input Schema:**
+
+```typescript
+const GetBookSchema = z.object({
+  id: z.string().uuid(),
+})
+
+type GetBookInput = z.infer<typeof GetBookSchema>
+```
+
+**Output:**
+
+```typescript
+type GetBookOutput = {
+  id: string
+  fullName: string
+  shortName: string
+  abbreviation: string
+  testament: 'OLD' | 'NEW'
+  order: number
+  createdAt: string
+  updatedAt: string
+}
+```
+
+---
+
+#### 6.7.3. `searchBooks`
+
+**Description:** Searches books by name (fullName, shortName, or abbreviation).
+
+**Authorization:** `TEACHER`, `ADMIN`, `SUPERADMIN`
+
+**Input Schema:**
+
+```typescript
+const SearchBooksSchema = z.object({
+  query: z.string().min(1).max(100),
+  limit: z.number().int().min(1).max(66).default(10),
+})
+
+type SearchBooksInput = z.infer<typeof SearchBooksSchema>
+```
+
+**Output:**
+
+```typescript
+type SearchBooksOutput = Array<{
+  id: string
+  fullName: string
+  shortName: string
+  abbreviation: string
+  testament: 'OLD' | 'NEW'
+  order: number
+}>
+```
+
+---
+
+#### 6.7.4. `seedBooks` (Admin only)
+
+**Description:** Fills the Books table with all 66 Bible books. Should be executed once during database initialization.
+
+**Authorization:** `ADMIN`, `SUPERADMIN`
+
+**Input Schema:**
+
+```typescript
+// No input required - uses predefined data from scripts/seed-books-data.ts
+```
+
+**Output:**
+
+```typescript
+type SeedBooksOutput = {
+  success: true
+  data: {
+    created: number // Number of books created (should be 66)
+  }
+} | {
+  success: false
+  error: string
+}
+```
+
+---
+
+### 6.8. Users (`actions/users.ts`)
 
 #### 6.7.1. `createUser`
 

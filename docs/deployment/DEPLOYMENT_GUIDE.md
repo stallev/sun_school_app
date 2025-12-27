@@ -786,6 +786,7 @@ ANALYZE=true npm run build
 -   **→ [AWS_AMPLIFY.md](../infrastructure/AWS_AMPLIFY.md):** Backend infrastructure and Amplify CLI commands.
 -   **→ [SECURITY.md](../infrastructure/SECURITY.md):** Authentication, authorization, and security policies.
 -   **→ [ARCHITECTURE.md](../architecture/ARCHITECTURE.md):** System architecture overview.
+-   **→ [AWS_COST_ESTIMATION.md](../infrastructure/AWS_COST_ESTIMATION.md):** Monthly cost estimation for AWS infrastructure.
 
 ---
 

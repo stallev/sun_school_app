@@ -1,8 +1,8 @@
 # GraphQL Schema - Sunday School App
 
-## Версия документа: 1.0
+## Версия документа: 1.2
 **Дата создания:** 23 декабря 2025  
-**Последнее обновление:** 23 декабря 2025  
+**Последнее обновление:** 25 декабря 2025  
 **Проект:** Sunday School App  
 **Технологии:** AWS AppSync, GraphQL, AWS Amplify Gen 1, AWS Cognito  
 **Authorization:** Cognito User Pools + Groups
@@ -178,6 +178,7 @@ type User
   # Связи
   userGrades: [UserGrade] @hasMany(indexName: "byUserId", fields: ["id"])
   createdLessons: [Lesson] @hasMany(indexName: "byTeacherId", fields: ["id"])
+  userFamilies: [UserFamily] @hasMany(indexName: "byUserId", fields: ["id"])
   
   createdAt: AWSDateTime!
   updatedAt: AWSDateTime!
@@ -299,6 +300,33 @@ type Lesson
 }
 
 # ============================================
+# BOOK (КНИГИ БИБЛИИ)
+# ============================================
+
+# Книги Библии (Ветхий и Новый Завет)
+type Book
+  @model
+  @auth(rules: [
+    # Admin и Superadmin могут управлять книгами
+    { allow: groups, groups: ["ADMIN", "SUPERADMIN"], operations: [create, update, delete] },
+    # Все авторизованные могут читать книги
+    { allow: groups, groups: ["TEACHER", "ADMIN", "SUPERADMIN"], operations: [read] }
+  ]) {
+  id: ID!
+  fullName: String! # Полное название (например, "Евангелие от Иоанна")
+  shortName: String! @index(name: "byShortName") # Сокращенное название (например, "Иоанна")
+  abbreviation: String! # Аббревиатура (например, "Ин")
+  testament: String! @index(name: "byTestament", sortKeyFields: ["order"]) # Завет: "OLD" | "NEW"
+  order: Int! # Порядок в Библии (1-66)
+  
+  # Связи
+  goldenVerses: [GoldenVerse] @hasMany(indexName: "byBookId", fields: ["id"])
+  
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+}
+
+# ============================================
 # GOLDEN VERSE (ЗОЛОТЫЕ СТИХИ)
 # ============================================
 
@@ -313,13 +341,14 @@ type GoldenVerse
   ]) {
   id: ID!
   reference: String! # Ссылка (например, "Иоанна 3:16")
-  book: String! @index(name: "byBook", sortKeyFields: ["chapter"]) # Книга Библии
+  bookId: ID! @index(name: "byBookId", sortKeyFields: ["chapter"]) # ID книги Библии
   chapter: Int! # Номер главы
   verseStart: Int! # Начальный стих
   verseEnd: Int # Конечный стих (если диапазон)
   text: String! # Текст стиха
   
   # Связи
+  book: Book @belongsTo(fields: ["bookId"])
   lessons: [LessonGoldenVerse] @hasMany(indexName: "byGoldenVerseId", fields: ["id"])
   
   createdAt: AWSDateTime!
@@ -391,20 +420,29 @@ type HomeworkCheck
   id: ID!
   lessonId: ID! @index(name: "byLessonId", sortKeyFields: ["pupilId"])
   pupilId: ID! @index(name: "byPupilId", sortKeyFields: ["createdAt"])
+  # Денормализация: gradeId хранится для поддержки GSI-3 (аналитика), хотя есть через Lesson.gradeId
+  gradeId: ID! @index(name: "byGradeId", sortKeyFields: ["createdAt"])
   
-  # Параметры проверки (настраиваются в GradeSettings)
-  goldenVerse: Boolean! # Выучил золотой стих
-  test: Boolean! # Сделал тест
-  notebook: Boolean! # Сделал тетрадь
+  # Оценки за золотые стихи (0-2 балла за каждый)
+  goldenVerse1Score: Int # Баллы за первый золотой стих (0-2)
+  goldenVerse2Score: Int # Баллы за второй золотой стих (0-2)
+  goldenVerse3Score: Int # Баллы за третий золотой стих (0-2)
+  
+  # Баллы за домашнее задание
+  testScore: Int # Баллы за тест (0-10)
+  notebookScore: Int # Баллы за тетрадь (0-10)
+  
+  # Посещение спевки
   singing: Boolean! # Был на спевке
   
-  # Результаты
-  points: Int! # Баллы за урок (рассчитываются на основе GradeSettings)
-  hasHouse: Boolean! # Получил домик (все параметры true)
+  # Результаты (вычисляются автоматически)
+  points: Int! # Баллы за урок (сумма всех компонентов)
+  # Примечание: Поле hasHouse устарело и будет удалено (заменено на систему кирпичиков)
   
   # Связи
   lesson: Lesson @belongsTo(fields: ["lessonId"])
   pupil: Pupil @belongsTo(fields: ["pupilId"])
+  grade: Grade @belongsTo(fields: ["gradeId"])
   
   createdAt: AWSDateTime!
   updatedAt: AWSDateTime!
@@ -474,8 +512,21 @@ type Family
   email: AWSEmail # Email семьи
   address: String # Адрес (опционально)
   
+  # Информация о матери
+  motherFirstName: String # Имя матери
+  motherLastName: String # Фамилия матери
+  motherMiddleName: String # Отчество матери
+  motherPhone: String @index(name: "byMotherPhone") # Телефон матери (для связи с PARENT)
+  
+  # Информация об отце
+  fatherFirstName: String # Имя отца
+  fatherLastName: String # Фамилия отца
+  fatherMiddleName: String # Отчество отца
+  fatherPhone: String @index(name: "byFatherPhone") # Телефон отца (для связи с PARENT)
+  
   # Связи
   members: [FamilyMember] @hasMany(indexName: "byFamilyId", fields: ["id"])
+  userFamilies: [UserFamily] @hasMany(indexName: "byFamilyId", fields: ["id"])
   
   createdAt: AWSDateTime!
   updatedAt: AWSDateTime!
@@ -497,6 +548,27 @@ type FamilyMember
   # Связи
   family: Family @belongsTo(fields: ["familyId"])
   pupil: Pupil @belongsTo(fields: ["pupilId"])
+  
+  createdAt: AWSDateTime!
+}
+
+# Связь пользователей с ролью PARENT с семьями
+type UserFamily
+  @model(queries: null)
+  @auth(rules: [
+    # Admin и Superadmin могут управлять связью
+    { allow: groups, groups: ["ADMIN", "SUPERADMIN"] },
+    # PARENT может читать свои связи
+    { allow: owner, ownerField: "userId", operations: [read] }
+  ]) {
+  id: ID!
+  userId: ID! @index(name: "byUserId")
+  familyId: ID! @index(name: "byFamilyId")
+  phone: String! @index(name: "byPhone") # Номер телефона, использованный для связи
+  
+  # Связи
+  user: User @belongsTo(fields: ["userId"])
+  family: Family @belongsTo(fields: ["familyId"])
   
   createdAt: AWSDateTime!
 }
@@ -780,7 +852,7 @@ query HomeworkChecksByLesson {
       notebook
       singing
       points
-      hasHouse
+      # hasHouse устарело (заменено на систему кирпичиков)
     }
   }
 }
@@ -802,6 +874,168 @@ query HomeworkChecksByPupil {
     }
   }
 }
+
+# Книги по завету (GSI: byTestament)
+query BooksByTestament {
+  booksByTestament(
+    testament: "NEW"
+    sortDirection: ASC
+  ) {
+    items {
+      id
+      fullName
+      shortName
+      abbreviation
+      order
+    }
+  }
+}
+
+# Стихи из книги (GSI: byBookId)
+query GoldenVersesByBook {
+  goldenVersesByBookId(
+    bookId: "book-123"
+    sortDirection: ASC
+  ) {
+    items {
+      id
+      reference
+      chapter
+      verseStart
+      verseEnd
+      text
+      book {
+        shortName
+        fullName
+        abbreviation
+      }
+    }
+  }
+}
+
+# Золотые стихи группы за учебный год (AP-25)
+query GoldenVersesByAcademicYear {
+  lessonsByAcademicYearId(
+    academicYearId: "year-456"
+    sortDirection: ASC
+  ) {
+    items {
+      id
+      title
+      lessonDate
+      goldenVerses {
+        items {
+          order
+          goldenVerse {
+            id
+            reference
+            text
+            book {
+              shortName
+              fullName
+            }
+          }
+        }
+      }
+    }
+  }
+}
+# Примечание: На клиенте необходимо дедуплицировать стихи по goldenVerse.id
+
+# Баллы ученика за учебный год с посещаемостью (AP-30)
+query PupilPerformanceByAcademicYear($pupilId: ID!, $startDate: AWSDateTime!, $endDate: AWSDateTime!) {
+  homeworkChecksByPupilId(
+    pupilId: $pupilId
+    createdAt: {
+      between: [$startDate, $endDate]
+    }
+    sortDirection: ASC
+  ) {
+    items {
+      id
+      lesson {
+        title
+        lessonDate
+      }
+      goldenVerse1Score
+      goldenVerse2Score
+      goldenVerse3Score
+      testScore
+      notebookScore
+      singing
+      points
+      createdAt
+    }
+  }
+}
+# Примечание: На клиенте необходимо агрегировать данные:
+# - totalPoints, averagePoints
+# - lessonsCount, lessonsAttended, attendanceRate
+# - goldenVerseTotal, testTotal, notebookTotal, singingCount
+
+# Баллы ученика за период дат с посещаемостью (AP-31)
+query PupilPerformanceByDateRange($pupilId: ID!, $startDate: AWSDateTime!, $endDate: AWSDateTime!) {
+  homeworkChecksByPupilId(
+    pupilId: $pupilId
+    createdAt: {
+      between: [$startDate, $endDate]
+    }
+    sortDirection: ASC
+  ) {
+    items {
+      id
+      lesson {
+        title
+        lessonDate
+      }
+      goldenVerse1Score
+      goldenVerse2Score
+      goldenVerse3Score
+      testScore
+      notebookScore
+      singing
+      points
+      createdAt
+    }
+  }
+}
+# Примечание: Аналогично AP-30, агрегация на клиенте
+
+# Аналитика сложности золотых стихов (AP-ANALYTICS-7)
+query GoldenVerseDifficultyAnalysis($gradeId: ID!, $startDate: AWSDateTime!, $endDate: AWSDateTime!) {
+  homeworkChecksByGradeId(
+    gradeId: $gradeId
+    createdAt: {
+      between: [$startDate, $endDate]
+    }
+    sortDirection: ASC
+  ) {
+    items {
+      id
+      lessonId
+      goldenVerse1Score
+      goldenVerse2Score
+      goldenVerse3Score
+      lesson {
+        id
+        goldenVerses {
+          items {
+            order
+            goldenVerse {
+              id
+              reference
+              text
+            }
+          }
+        }
+      }
+    }
+  }
+}
+# Примечание: На клиенте необходимо:
+# 1. Сопоставить goldenVerse1Score/2Score/3Score с соответствующими стихами по order
+# 2. Агрегировать статистику по goldenVerseId:
+#    - totalChecks, maxScoreCount, successRate, averageScore, difficultyLevel
 ```
 
 ---
@@ -856,11 +1090,45 @@ mutation CreateHomeworkCheck {
     notebook: true
     singing: false
     points: 30
-    hasHouse: false
+    # hasHouse устарело (заменено на систему кирпичиков)
   }) {
     id
     points
     hasHouse
+  }
+}
+
+# Создать книгу Библии
+mutation CreateBook {
+  createBook(input: {
+    fullName: "Евангелие от Иоанна"
+    shortName: "Иоанна"
+    abbreviation: "Ин"
+    testament: "NEW"
+    order: 43
+  }) {
+    id
+    fullName
+    shortName
+    abbreviation
+  }
+}
+
+# Создать золотой стих
+mutation CreateGoldenVerse {
+  createGoldenVerse(input: {
+    bookId: "book-123"
+    reference: "Иоанна 3:16"
+    chapter: 3
+    verseStart: 16
+    text: "Ибо так возлюбил Бог мир..."
+  }) {
+    id
+    reference
+    book {
+      shortName
+      fullName
+    }
   }
 }
 ```
@@ -949,7 +1217,7 @@ const results = await Promise.all(
       notebook: false,
       singing: false,
       points: 0,
-      hasHouse: false,
+      # hasHouse устарело (заменено на систему кирпичиков)
     })
   )
 );
@@ -1093,12 +1361,31 @@ input CreatePupilInput {
 input CreateHomeworkCheckInput {
   lessonId: ID!
   pupilId: ID!
-  goldenVerse: Boolean!
-  test: Boolean!
-  notebook: Boolean!
+  goldenVerse1Score: Int
+  goldenVerse2Score: Int
+  goldenVerse3Score: Int
+  testScore: Int
+  notebookScore: Int
   singing: Boolean!
   points: Int!
-  hasHouse: Boolean!
+  # hasHouse устарело (заменено на систему кирпичиков)
+}
+
+input CreateBookInput {
+  fullName: String!
+  shortName: String!
+  abbreviation: String!
+  testament: String! # "OLD" | "NEW"
+  order: Int!
+}
+
+input CreateGoldenVerseInput {
+  bookId: ID!
+  reference: String!
+  chapter: Int!
+  verseStart: Int!
+  verseEnd: Int
+  text: String!
 }
 ```
 
@@ -1122,6 +1409,25 @@ input UpdatePupilInput {
   dateOfBirth: AWSDate
   photo: String
   active: Boolean
+}
+
+input UpdateBookInput {
+  id: ID!
+  fullName: String
+  shortName: String
+  abbreviation: String
+  testament: String
+  order: Int
+}
+
+input UpdateGoldenVerseInput {
+  id: ID!
+  bookId: ID
+  reference: String
+  chapter: Int
+  verseStart: Int
+  verseEnd: Int
+  text: String
 }
 ```
 
@@ -1288,6 +1594,8 @@ type User @model @auth(rules: [
 | User | Users | id | — |
 | Grade | Grades | id | — |
 | Lesson | Lessons | id | — |
+| Book | Books | id | — |
+| GoldenVerse | GoldenVerses | id | — |
 | Pupil | Pupils | id | — |
 | HomeworkCheck | HomeworkChecks | id | — |
 
@@ -1379,6 +1687,11 @@ const client = generateClient<Schema>();
 const lesson = await client.models.Lesson.get({ id: 'lesson-789' });
 ```
 
+**Примечание о новых access patterns:**
+- Новые access patterns (AP-25, AP-26, AP-30, AP-31, AP-ANALYTICS-6, AP-ANALYTICS-7) используют существующие GSI
+- Для аналитики сложности стихов все необходимые индексы уже существуют в GraphQL schema
+- Опциональная оптимизация через денормализацию (GSI-3 в LessonGoldenVerses) может быть добавлена post-MVP при необходимости
+
 ---
 
 ## Cross-reference
@@ -1392,6 +1705,6 @@ const lesson = await client.models.Lesson.get({ id: 'lesson-789' });
 ---
 
 **Версия:** 1.0  
-**Последнее обновление:** 23 декабря 2025  
+**Последнее обновление:** 27 декабря 2025  
 **Автор:** AI Documentation Team
 

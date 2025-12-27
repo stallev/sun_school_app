@@ -1350,6 +1350,7 @@ aws amplify update-branch \
 -   **→ [DYNAMODB_SCHEMA.md](../database/DYNAMODB_SCHEMA.md):** DynamoDB table design and access patterns.
 -   **→ [SECURITY.md](SECURITY.md):** Authentication and authorization details with Cognito.
 -   **→ [DEPLOYMENT_GUIDE.md](../deployment/DEPLOYMENT_GUIDE.md):** Comprehensive deployment strategies.
+-   **→ [AWS_COST_ESTIMATION.md](AWS_COST_ESTIMATION.md):** Monthly cost estimation for AWS infrastructure.
 
 ---
 

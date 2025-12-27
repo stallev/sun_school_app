@@ -75,11 +75,12 @@ Phase 13: Управление уроками (Lessons)
 
 **Действия:**
 - [ ] Создать `actions/goldenVerses.ts` с директивой `'use server'`
-- [ ] Реализовать `getGoldenVerse(id)` - получение стиха
-- [ ] Реализовать `listGoldenVerses(filters)` - список стихов с фильтрацией по книге и главе
+- [ ] Реализовать `getGoldenVerse(id)` - получение стиха с загрузкой связанного Book
+- [ ] Реализовать `listGoldenVerses(filters)` - список стихов с фильтрацией по bookId и главе
 - [ ] Реализовать `searchGoldenVerses(query)` - поиск по тексту стиха
 - [ ] Реализовать `getGoldenVerseStats(verseId)` - статистика использования (количество использований в уроках)
 - [ ] Использовать amplifyData для работы с базой данных
+- [ ] Использовать bookId вместо book в схемах валидации
 
 **Документация:**
 - <CRITICAL>[SERVER_ACTIONS.md](../../../api/SERVER_ACTIONS.md) - раздел Golden Verses</CRITICAL>
@@ -98,7 +99,60 @@ Phase 13: Управление уроками (Lessons)
 
 ---
 
-### Task 19.02: Создание UI для списка стихов
+### Task 19.02: Создание Server Actions для Books
+
+<context>
+<CRITICAL>Это критически важная задача!</CRITICAL> Server Actions для Books необходимы для работы с таблицей книг Библии. Эти действия используются в фильтрации и отображении золотых стихов.
+</context>
+
+<task>
+Создай Server Actions для работы с книгами Библии в файле `actions/books.ts`. Реализуй получение книги, список книг с фильтрацией по завету, поиск по названию и функцию заполнения таблицы при инициализации.
+</task>
+
+<constraints>
+- Фильтрация должна работать по завету (OLD/NEW)
+- Поиск должен работать по fullName, shortName или abbreviation
+- Функция seedBooks должна использовать данные из scripts/seed-books-data.ts
+- Используй amplifyData для работы с базой данных
+- Все функции должны возвращать discriminated unions: `{ success: true, data?: T } | { success: false, error: string }`
+</constraints>
+
+<thinking>
+Прежде чем приступить к реализации:
+1. Изучи SERVER_ACTIONS.md раздел Books для понимания требований к API
+2. Изучи DYNAMODB_SCHEMA.md раздел 3.16 Таблица Books для понимания структуры
+3. Используй Context7 для получения актуальной документации Next.js 15.5.9 Server Actions
+4. Определи структуру каждой функции
+5. Только после этого создавай Server Actions
+</thinking>
+
+**Действия:**
+- [ ] Создать `actions/books.ts` с директивой `'use server'`
+- [ ] Реализовать `getBook(id)` - получение книги по ID
+- [ ] Реализовать `listBooks(filters?)` - список книг с фильтрацией по завету
+- [ ] Реализовать `searchBooks(query)` - поиск книги по названию
+- [ ] Реализовать `seedBooks()` - заполнение таблицы Books (66 книг) - только для ADMIN/SUPERADMIN
+- [ ] Использовать amplifyData для работы с базой данных
+- [ ] Использовать данные из scripts/seed-books-data.ts для seedBooks
+
+**Документация:**
+- <CRITICAL>[SERVER_ACTIONS.md](../../../api/SERVER_ACTIONS.md) - раздел Books</CRITICAL>
+- <CRITICAL>[DYNAMODB_SCHEMA.md](../../../database/DYNAMODB_SCHEMA.md) - раздел 3.16 Таблица Books</CRITICAL>
+- Context7: Next.js 15.5.9 Server Actions документация
+
+**Критерии приемки:**
+- Все Server Actions созданы
+- Фильтрация работает корректно
+- Поиск работает корректно
+- seedBooks заполняет все 66 книг
+
+<output_format>
+После выполнения задачи должны быть созданы все Server Actions для работы с книгами Библии. Фильтрация и поиск должны работать корректно. Код должен быть готов к использованию в компонентах.
+</output_format>
+
+---
+
+### Task 19.03: Создание UI для списка стихов
 
 <context>
 Страница списка золотых стихов является основной точкой входа для работы с библиотекой золотых стихов. Правильная реализация с отображением всех данных стиха и пагинацией критически важна для удобства работы пользователей.
@@ -129,7 +183,8 @@ Phase 13: Управление уроками (Lessons)
 - [ ] Создать `app/(private)/golden-verses/page.tsx`
 - [ ] Реализовать Server Component для загрузки данных через Server Action
 - [ ] Реализовать таблицу/карточки со списком стихов
-- [ ] Отобразить: текст стиха, книгу, главу, стих
+- [ ] Отобразить: текст стиха, книгу (book.shortName), главу, стих
+- [ ] Загружать связанный Book при отображении стиха
 - [ ] Добавить пагинацию для больших списков
 - [ ] Использовать компоненты Shadcn UI (Table, Card, Pagination)
 
@@ -150,7 +205,7 @@ Phase 13: Управление уроками (Lessons)
 
 ---
 
-### Task 19.03: Реализация поиска по тексту
+### Task 19.04: Реализация поиска по тексту
 
 <context>
 Поиск по тексту стиха является критически важной функцией для работы с библиотекой золотых стихов. Правильная реализация с debounce для оптимизации критически важна для производительности системы.
@@ -200,7 +255,7 @@ Phase 13: Управление уроками (Lessons)
 
 ---
 
-### Task 19.04: Реализация фильтрации
+### Task 19.05: Реализация фильтрации
 
 <context>
 Фильтрация по книге и главе необходима для удобной работы с библиотекой золотых стихов. Правильная реализация с применением фильтров к списку стихов критически важна для удобства работы пользователей.
@@ -228,9 +283,9 @@ Phase 13: Управление уроками (Lessons)
 
 **Действия:**
 - [ ] Создать компонент фильтров `components/shared/golden-verse-filters.tsx`
-- [ ] Реализовать фильтрацию по книге через Select или Combobox
+- [ ] Реализовать фильтрацию по книге через Select или Combobox с загрузкой книг из `listBooks()` Server Action
 - [ ] Реализовать фильтрацию по главе через Select или Combobox
-- [ ] Применить фильтры к списку стихов через Server Action `listGoldenVerses(filters)`
+- [ ] Применить фильтры к списку стихов через Server Action `listGoldenVerses(filters)` с bookId
 - [ ] Интегрировать компонент фильтров со страницей списка стихов
 - [ ] Добавить обработку ошибок
 
@@ -249,7 +304,7 @@ Phase 13: Управление уроками (Lessons)
 
 ---
 
-### Task 19.05: Реализация статистики использования
+### Task 19.06: Реализация статистики использования
 
 <context>
 Статистика использования золотых стихов необходима для понимания популярности стихов. Правильное отображение статистики критически важно для аналитики использования стихов в уроках.
@@ -297,7 +352,7 @@ Phase 13: Управление уроками (Lessons)
 
 ---
 
-### Task 19.06: Интеграция с выбором стихов в уроках
+### Task 19.07: Интеграция с выбором стихов в уроках
 
 <context>
 Интеграция библиотеки золотых стихов с выбором стихов в уроках необходима для использования библиотеки при создании уроков. Правильная интеграция критически важна для удобства работы пользователей.
@@ -345,7 +400,7 @@ Phase 13: Управление уроками (Lessons)
 
 ---
 
-### Task 19.07: Тестирование функционала библиотеки стихов
+### Task 19.08: Тестирование функционала библиотеки стихов
 
 <context>
 Тестирование функционала библиотеки золотых стихов является финальным этапом фазы. Комплексное тестирование всех функций, просмотра списка, поиска, фильтрации и статистики критически важно для обеспечения качества системы.
@@ -402,10 +457,130 @@ Phase 13: Управление уроками (Lessons)
 
 ---
 
+### Task 19.09: Получение списка золотых стихов группы за учебный год (Post-MVP)
+
+<context>
+<CRITICAL>Это post-MVP функционал!</CRITICAL> Реализация получения списка всех золотых стихов, которые учили в конкретной группе в конкретном учебном году. Используется для аналитики и отчетов.
+
+</context>
+
+<task>
+Реализуй Server Action для получения списка всех золотых стихов группы за учебный год. Используй существующие GSI (GSI-1 в Lessons и LessonGoldenVerses) и Batch Get для получения стихов.
+
+</task>
+
+<constraints>
+- Используй GSI-1 в Lessons (academicYearId-lessonDate) для получения уроков года
+- Используй GSI-1 в LessonGoldenVerses (lessonId-order) для получения стихов каждого урока
+- Используй Batch Get для получения данных стихов
+- Дедуплицируй стихи по goldenVerseId
+- Возвращай список уникальных стихов с reference, text, bookId
+- Используй amplifyData для работы с базой данных
+- Функция должна возвращать discriminated union: `{ success: true, data?: T } | { success: false, error: string }`
+</constraints>
+
+<thinking>
+Прежде чем приступить к реализации:
+1. Изучи DATA_MODELING.md раздел 2.4 Golden Verses, access pattern AP-25
+2. Изучи ANALYTICS.md раздел 4.4, access pattern AP-ANALYTICS-6
+3. Пойми алгоритм: Lessons → LessonGoldenVerses → Batch Get GoldenVerses
+4. Продумай дедупликацию стихов
+5. Только после этого реализуй Server Action
+</thinking>
+
+**Действия:**
+- [ ] Добавить функцию `getGoldenVersesByAcademicYear(academicYearId)` в `actions/goldenVerses.ts`
+- [ ] Реализовать получение уроков года через GSI-1 (academicYearId-lessonDate)
+- [ ] Для каждого урока получить стихи через GSI-1 (lessonId-order)
+- [ ] Дедуплицировать стихи по goldenVerseId
+- [ ] Использовать Batch Get для получения данных стихов
+- [ ] Вернуть список уникальных стихов с reference, text, bookId
+
+**Документация:**
+- <CRITICAL>[DATA_MODELING.md](../../../database/DATA_MODELING.md) - раздел 2.4 Golden Verses, AP-25</CRITICAL>
+- <CRITICAL>[ANALYTICS.md](../../../database/ANALYTICS.md) - раздел 4.4, AP-ANALYTICS-6</CRITICAL>
+- [DYNAMODB_SCHEMA.md](../../../database/DYNAMODB_SCHEMA.md) - раздел 3.7 LessonGoldenVerses
+
+**Критерии приемки:**
+- Функция возвращает список уникальных стихов группы за учебный год
+- Дедупликация работает корректно
+- Все стихи содержат reference, text, bookId
+- Используются существующие GSI (дополнительные индексы не требуются)
+
+<output_format>
+После выполнения задачи должна быть создана функция для получения списка золотых стихов группы за учебный год. Функция должна использовать существующие GSI и возвращать дедуплицированный список стихов.
+</output_format>
+
+---
+
+### Task 19.10: Аналитика сложности золотых стихов (Post-MVP)
+
+<context>
+<CRITICAL>Это post-MVP функционал!</CRITICAL> Реализация аналитики для определения, какие стихи легкие для детей (больше детей получило максимальное количество баллов), а какие сложные. Помогает учителям понять, какие стихи требуют дополнительного внимания.
+
+</context>
+
+<task>
+Реализуй Server Action для аналитики сложности золотых стихов. Используй существующие GSI (GSI-3 в HomeworkChecks, GSI-1 в Lessons, GSI-1 и GSI-2 в LessonGoldenVerses) и агрегацию на клиенте.
+
+</task>
+
+<constraints>
+- Используй GSI-3 в HomeworkChecks (gradeId-createdAt) для получения всех проверок группы за период
+- Для каждой проверки получи Lesson и LessonGoldenVerses
+- Сопоставь goldenVerse1Score/2Score/3Score с соответствующими стихами по order
+- Агрегируй статистику по goldenVerseId: totalChecks, maxScoreCount, successRate, averageScore, difficultyLevel
+- Используй amplifyData для работы с базой данных
+- Функция должна возвращать discriminated union: `{ success: true, data?: T } | { success: false, error: string }`
+</constraints>
+
+<thinking>
+Прежде чем приступить к реализации:
+1. Изучи DATA_MODELING.md раздел 2.4 Golden Verses, access pattern AP-26
+2. Изучи ANALYTICS.md раздел 2.5.2 Аналитика сложности золотых стихов и раздел 4.4, access pattern AP-ANALYTICS-7
+3. Пойми алгоритм сопоставления баллов со стихами по order
+4. Продумай алгоритм агрегации статистики
+5. Только после этого реализуй Server Action
+</thinking>
+
+**Действия:**
+- [ ] Добавить функцию `getGoldenVerseDifficultyAnalysis(gradeId, startDate, endDate)` в `actions/goldenVerses.ts`
+- [ ] Реализовать получение всех проверок группы за период через GSI-3 (gradeId-createdAt)
+- [ ] Для каждой проверки получить Lesson и LessonGoldenVerses
+- [ ] Сопоставить баллы со стихами:
+  - goldenVerse1Score с LessonGoldenVerse где order=1
+  - goldenVerse2Score с LessonGoldenVerse где order=2
+  - goldenVerse3Score с LessonGoldenVerse где order=3
+- [ ] Агрегировать статистику по goldenVerseId
+- [ ] Рассчитать метрики: totalChecks, maxScoreCount, successRate, averageScore, difficultyLevel
+- [ ] Вернуть список стихов с метриками сложности
+
+**Документация:**
+- <CRITICAL>[DATA_MODELING.md](../../../database/DATA_MODELING.md) - раздел 2.4 Golden Verses, AP-26</CRITICAL>
+- <CRITICAL>[ANALYTICS.md](../../../database/ANALYTICS.md) - раздел 2.5.2 Аналитика сложности и раздел 4.4, AP-ANALYTICS-7</CRITICAL>
+- [DYNAMODB_SCHEMA.md](../../../database/DYNAMODB_SCHEMA.md) - раздел 3.7 LessonGoldenVerses и раздел 3.9 HomeworkChecks
+
+**Критерии приемки:**
+- Функция возвращает список стихов с метриками сложности
+- Сопоставление баллов со стихами работает корректно
+- Агрегация статистики работает правильно
+- Метрики рассчитываются корректно (totalChecks, maxScoreCount, successRate, averageScore, difficultyLevel)
+- Используются существующие GSI (дополнительные индексы не требуются)
+
+<output_format>
+После выполнения задачи должна быть создана функция для аналитики сложности золотых стихов. Функция должна использовать существующие GSI, корректно сопоставлять баллы со стихами и возвращать метрики сложности для каждого стиха.
+</output_format>
+
+---
+
 ## Ссылки на документацию проекта
 
-- [SERVER_ACTIONS.md](../../../api/SERVER_ACTIONS.md) - Golden Verses Actions
+- [SERVER_ACTIONS.md](../../../api/SERVER_ACTIONS.md) - Golden Verses Actions и Books Actions
 - [MVP_SCOPE.md](../../../MVP_SCOPE.md) - раздел 2.9
+- [DYNAMODB_SCHEMA.md](../../../database/DYNAMODB_SCHEMA.md) - раздел 3.16 Таблица Books, раздел 3.7 LessonGoldenVerses
+- [GRAPHQL_SCHEMA.md](../../../database/GRAPHQL_SCHEMA.md) - тип Book
+- [DATA_MODELING.md](../../../database/DATA_MODELING.md) - раздел 2.4 Golden Verses, access patterns AP-25, AP-26
+- [ANALYTICS.md](../../../database/ANALYTICS.md) - раздел 2.5 Золотые стихи, раздел 4.4 Access Patterns AP-ANALYTICS-6, AP-ANALYTICS-7
 
 ---
 

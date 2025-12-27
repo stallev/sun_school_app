@@ -946,6 +946,7 @@ graph TB
 - См. также: [`docs/database/GRAPHQL_SCHEMA.md`](../database/GRAPHQL_SCHEMA.md) — GraphQL API
 - См. также: [`docs/api/SERVER_ACTIONS.md`](../api/SERVER_ACTIONS.md) — API контракты
 - См. также: [`docs/infrastructure/AWS_AMPLIFY.md`](../infrastructure/AWS_AMPLIFY.md) — конфигурация Amplify
+- См. также: [`docs/infrastructure/AWS_COST_ESTIMATION.md`](../infrastructure/AWS_COST_ESTIMATION.md) — расчет стоимости AWS инфраструктуры
 - См. также: [`docs/architecture/SECURITY.md`](../architecture/SECURITY.md) — детальная безопасность
 - См. также: [`docs/architecture/DATA_FLOW.md`](../architecture/DATA_FLOW.md) — детальные потоки данных
 

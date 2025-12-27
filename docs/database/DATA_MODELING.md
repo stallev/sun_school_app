@@ -1,8 +1,8 @@
 # Data Modeling - Sunday School App
 
-## Версия документа: 1.0
+## Версия документа: 1.1
 **Дата создания:** 23 декабря 2025  
-**Последнее обновление:** 23 декабря 2025  
+**Последнее обновление:** 24 декабря 2025  
 **Проект:** Sunday School App  
 **Технологии:** AWS DynamoDB, AWS AppSync, AWS Amplify Gen 1  
 **Modeling Strategy:** Access Patterns First
@@ -235,10 +235,12 @@ await client.query({
 |---|---------|---------|---------|-------|----------|
 | AP-19 | Получить стих по ID | Высокая | GoldenVerses | PK: id | Query |
 | AP-20 | Поиск стиха по ссылке | Средняя | GoldenVerses | GSI: reference | Query |
-| AP-21 | Стихи из книги | Низкая | GoldenVerses | GSI: book-chapter | Query |
+| AP-21 | Стихи из книги | Низкая | GoldenVerses | GSI: bookId-chapter | Query |
 | AP-22 | Все стихи (библиотека) | Низкая | GoldenVerses | — | Scan |
 | AP-23 | Стихи урока | Очень высокая | LessonGoldenVerses | GSI: lessonId-order | Query |
 | AP-24 | Статистика стиха | Низкая | LessonGoldenVerses | GSI: goldenVerseId + count | Query |
+| AP-25 | Список стихов группы за учебный год | Средняя | Lessons + LessonGoldenVerses + GoldenVerses | GSI-1 (Lessons) + GSI-1 (LessonGoldenVerses) + Batch Get | Query |
+| AP-26 | Аналитика сложности стихов | Средняя | HomeworkChecks + Lessons + LessonGoldenVerses | GSI-3 (HomeworkChecks) + GSI-1 (Lessons) + GSI-1 (LessonGoldenVerses) + GSI-2 (LessonGoldenVerses) | Query |
 
 **Примеры запросов:**
 
@@ -249,6 +251,17 @@ await client.query({
   IndexName: 'reference-index',
   KeyConditionExpression: 'reference = :ref',
   ExpressionAttributeValues: { ':ref': 'Иоанна 3:16' }
+});
+```
+
+**AP-21: Стихи из книги**
+```typescript
+await client.query({
+  TableName: 'GoldenVerses',
+  IndexName: 'bookId-chapter-index',
+  KeyConditionExpression: 'bookId = :bookId',
+  ExpressionAttributeValues: { ':bookId': 'book-123' },
+  ScanIndexForward: true // ASC по главе
 });
 ```
 
@@ -263,9 +276,146 @@ await client.query({
 });
 ```
 
+**AP-25: Список стихов группы за учебный год**
+```typescript
+// 1. Получить все уроки учебного года
+const lessons = await client.query({
+  TableName: 'Lessons',
+  IndexName: 'academicYearId-lessonDate-index',
+  KeyConditionExpression: 'academicYearId = :yearId',
+  ExpressionAttributeValues: { ':yearId': 'year-456' },
+  ScanIndexForward: true // ASC по дате
+});
+
+// 2. Для каждого урока получить стихи
+const lessonVerseIds = [];
+for (const lesson of lessons.Items) {
+  const lessonVerses = await client.query({
+    TableName: 'LessonGoldenVerses',
+    IndexName: 'lessonId-order-index',
+    KeyConditionExpression: 'lessonId = :lessonId',
+    ExpressionAttributeValues: { ':lessonId': lesson.id }
+  });
+  lessonVerseIds.push(...lessonVerses.Items.map(lv => lv.goldenVerseId));
+}
+
+// 3. Дедупликация и Batch Get стихов
+const uniqueVerseIds = [...new Set(lessonVerseIds)];
+const verses = await client.batchGet({
+  RequestItems: {
+    'GoldenVerses': {
+      Keys: uniqueVerseIds.map(id => ({ id }))
+    }
+  }
+});
+
+// Результат: список уникальных стихов с reference и text
+```
+
+**AP-26: Аналитика сложности стихов**
+```typescript
+// 1. Получить все проверки группы за учебный год
+const checks = await client.query({
+  TableName: 'HomeworkChecks',
+  IndexName: 'gradeId-createdAt-index',
+  KeyConditionExpression: 'gradeId = :gradeId AND createdAt BETWEEN :start AND :end',
+  ExpressionAttributeValues: {
+    ':gradeId': 'grade-123',
+    ':start': '2024-09-01T00:00:00Z',
+    ':end': '2025-05-31T23:59:59Z'
+  }
+});
+
+// 2. Для каждой проверки получить урок и стихи урока
+const verseStats = new Map<string, { totalChecks: number; maxScoreCount: number; totalScore: number }>();
+
+for (const check of checks.Items) {
+  // Получить урок
+  const lesson = await amplifyData.get('Lesson', { id: check.lessonId });
+  
+  // Получить стихи урока
+  const lessonVerses = await client.query({
+    TableName: 'LessonGoldenVerses',
+    IndexName: 'lessonId-order-index',
+    KeyConditionExpression: 'lessonId = :lessonId',
+    ExpressionAttributeValues: { ':lessonId': check.lessonId },
+    ScanIndexForward: true // ASC по order
+  });
+  
+  // Сопоставить баллы со стихами
+  lessonVerses.Items.forEach((lv, index) => {
+    const score = index === 0 ? check.goldenVerse1Score : 
+                  index === 1 ? check.goldenVerse2Score : 
+                  check.goldenVerse3Score;
+    
+    if (!verseStats.has(lv.goldenVerseId)) {
+      verseStats.set(lv.goldenVerseId, { totalChecks: 0, maxScoreCount: 0, totalScore: 0 });
+    }
+    
+    const stats = verseStats.get(lv.goldenVerseId)!;
+    stats.totalChecks++;
+    stats.totalScore += score || 0;
+    if (score === 2) stats.maxScoreCount++;
+  });
+}
+
+// 3. Агрегация результатов
+const difficultyAnalysis = Array.from(verseStats.entries()).map(([verseId, stats]) => ({
+  goldenVerseId: verseId,
+  totalChecks: stats.totalChecks,
+  maxScoreCount: stats.maxScoreCount,
+  successRate: (stats.maxScoreCount / stats.totalChecks) * 100,
+  averageScore: stats.totalScore / stats.totalChecks,
+  difficultyLevel: stats.maxScoreCount / stats.totalChecks > 0.8 ? 'легкий' :
+                    stats.maxScoreCount / stats.totalChecks > 0.5 ? 'средний' : 'сложный'
+}));
+
+// Результат: список стихов с метриками сложности
+```
+
 ---
 
-### 2.5. Pupils
+### 2.5. Books (Книги Библии)
+
+| # | Pattern | Частота | Таблица | Index | Операция |
+|---|---------|---------|---------|-------|----------|
+| AP-48 | Получить книгу по ID | Высокая | Books | PK: id | Query |
+| AP-49 | Список всех книг | Средняя | Books | — | Scan |
+| AP-50 | Книги по завету | Средняя | Books | GSI: testament-order | Query |
+| AP-51 | Поиск книги по названию | Средняя | Books | GSI: shortName | Query |
+| AP-52 | Книги в порядке Библии | Средняя | Books | GSI: testament-order | Query |
+
+**Примеры запросов:**
+
+**AP-48: Получить книгу по ID**
+```typescript
+await amplifyData.get('Book', { id: 'book-123' });
+```
+
+**AP-50: Книги по завету**
+```typescript
+await client.query({
+  TableName: 'Books',
+  IndexName: 'testament-order-index',
+  KeyConditionExpression: 'testament = :testament',
+  ExpressionAttributeValues: { ':testament': 'NEW' },
+  ScanIndexForward: true // ASC по order
+});
+```
+
+**AP-51: Поиск книги по названию**
+```typescript
+await client.query({
+  TableName: 'Books',
+  IndexName: 'shortName-index',
+  KeyConditionExpression: 'shortName = :name',
+  ExpressionAttributeValues: { ':name': 'Иоанна' }
+});
+```
+
+---
+
+### 2.7. Pupils
 
 | # | Pattern | Частота | Таблица | Index | Операция |
 |---|---------|---------|---------|-------|----------|
@@ -274,6 +424,8 @@ await client.query({
 | AP-27 | Активные ученики группы | Очень высокая | Pupils | GSI: active-gradeId + filter | Query |
 | AP-28 | Все ученики (админ) | Низкая | Pupils | — | Scan |
 | AP-29 | Поиск ученика по имени | Средняя | Pupils | Scan + filter | Scan |
+| AP-30 | Баллы по показателям за учебный год | Высокая | HomeworkChecks | GSI-2: pupilId-createdAt | Query |
+| AP-31 | Баллы по показателям за период дат | Высокая | HomeworkChecks | GSI-2: pupilId-createdAt | Query |
 
 **Примеры запросов:**
 
@@ -302,9 +454,99 @@ await client.query({
 });
 ```
 
+**AP-30: Баллы по показателям за учебный год**
+```typescript
+// 1. Получить учебный год
+const academicYear = await amplifyData.get('AcademicYear', { id: 'year-456' });
+
+// 2. Получить все проверки ученика за период учебного года
+const checks = await client.query({
+  TableName: 'HomeworkChecks',
+  IndexName: 'pupilId-createdAt-index',
+  KeyConditionExpression: 'pupilId = :pupilId AND createdAt BETWEEN :start AND :end',
+  ExpressionAttributeValues: {
+    ':pupilId': 'pupil-222',
+    ':start': academicYear.startDate + 'T00:00:00Z',
+    ':end': academicYear.endDate + 'T23:59:59Z'
+  },
+  ScanIndexForward: true // ASC по дате
+});
+
+// 3. Агрегация показателей
+const stats = {
+  totalPoints: 0,
+  lessonsCount: checks.Items.length,
+  lessonsAttended: checks.Items.filter(c => c.points > 0).length,
+  goldenVerseTotal: 0,
+  testTotal: 0,
+  notebookTotal: 0,
+  singingCount: 0,
+  attendanceRate: 0
+};
+
+checks.Items.forEach(check => {
+  stats.totalPoints += check.points || 0;
+  stats.goldenVerseTotal += (check.goldenVerse1Score || 0) + 
+                            (check.goldenVerse2Score || 0) + 
+                            (check.goldenVerse3Score || 0);
+  stats.testTotal += check.testScore || 0;
+  stats.notebookTotal += check.notebookScore || 0;
+  if (check.singing) stats.singingCount++;
+});
+
+stats.attendanceRate = (stats.lessonsAttended / stats.lessonsCount) * 100;
+
+// Результат: агрегированная статистика с посещаемостью и спевками
+```
+
+**AP-31: Баллы по показателям за период дат**
+```typescript
+// 1. Получить все проверки ученика за указанный период
+const checks = await client.query({
+  TableName: 'HomeworkChecks',
+  IndexName: 'pupilId-createdAt-index',
+  KeyConditionExpression: 'pupilId = :pupilId AND createdAt BETWEEN :start AND :end',
+  ExpressionAttributeValues: {
+    ':pupilId': 'pupil-222',
+    ':start': '2024-09-01T00:00:00Z',
+    ':end': '2024-12-31T23:59:59Z'
+  },
+  ScanIndexForward: true // ASC по дате
+});
+
+// 2. Агрегация показателей (аналогично AP-30)
+const stats = {
+  totalPoints: 0,
+  lessonsCount: checks.Items.length,
+  lessonsAttended: checks.Items.filter(c => c.points > 0).length,
+  goldenVerseTotal: 0,
+  testTotal: 0,
+  notebookTotal: 0,
+  singingCount: 0,
+  attendanceRate: 0
+};
+
+checks.Items.forEach(check => {
+  stats.totalPoints += check.points || 0;
+  stats.goldenVerseTotal += (check.goldenVerse1Score || 0) + 
+                            (check.goldenVerse2Score || 0) + 
+                            (check.goldenVerse3Score || 0);
+  stats.testTotal += check.testScore || 0;
+  stats.notebookTotal += check.notebookScore || 0;
+  if (check.singing) stats.singingCount++;
+});
+
+stats.attendanceRate = (stats.lessonsAttended / stats.lessonsCount) * 100;
+
+// Результат: агрегированная статистика за период с посещаемостью и спевками
+```
+
 ---
 
-### 2.6. Homework Checks
+### 2.8. Homework Checks
+
+> [!IMPORTANT]
+> **Критически важно:** Для поддержки аналитики (AP-ANALYTICS-3, AP-ANALYTICS-4) в таблице HomeworkChecks необходимо поле `gradeId` (денормализация из Lesson.gradeId) и GSI-3 (gradeId-createdAt-index). Это должно быть реализовано на этапе MVP, даже если сам функционал аналитики будет реализован post-MVP.
 
 | # | Pattern | Частота | Таблица | Index | Операция |
 |---|---------|---------|---------|-------|----------|
@@ -313,7 +555,7 @@ await client.query({
 | AP-32 | История ученика | Очень высокая | HomeworkChecks | GSI: pupilId-createdAt | Query |
 | AP-33 | Проверка существования | Высокая | HomeworkChecks | GSI: lessonId-pupilId + filter | Query |
 | AP-34 | Статистика ученика (баллы) | Высокая | HomeworkChecks | GSI: pupilId + aggregate | Query |
-| AP-35 | Домики ученика | Средняя | HomeworkChecks | GSI: pupilId + filter hasHouse=true + count | Query |
+| AP-35 | Статистика баллов ученика | Средняя | HomeworkChecks | GSI: pupilId + aggregate | Query |
 
 **Примеры запросов:**
 
@@ -350,26 +592,43 @@ const checks = await client.query({
 
 // Агрегация на стороне приложения
 const totalPoints = checks.Items.reduce((sum, check) => sum + check.points, 0);
-const totalHouses = checks.Items.filter(check => check.hasHouse).length;
+const averagePoints = totalPoints / checks.Items.length;
+const pointsByCategory = {
+  goldenVerses: checks.Items.reduce((sum, check) => 
+    sum + (check.goldenVerse1Score || 0) + (check.goldenVerse2Score || 0) + (check.goldenVerse3Score || 0), 0),
+  test: checks.Items.reduce((sum, check) => sum + (check.testScore || 0), 0),
+  notebook: checks.Items.reduce((sum, check) => sum + (check.notebookScore || 0), 0),
+  singing: checks.Items.filter(check => check.singing).length * gradeSettings.pointsSinging
+};
 ```
 
-**AP-35: Домики ученика**
+**AP-35: Статистика баллов ученика**
 ```typescript
-await client.query({
+const checks = await client.query({
   TableName: 'HomeworkChecks',
   IndexName: 'pupilId-createdAt-index',
   KeyConditionExpression: 'pupilId = :pupilId',
-  FilterExpression: 'hasHouse = :true',
   ExpressionAttributeValues: {
-    ':pupilId': 'pupil-222',
-    ':true': true
+    ':pupilId': 'pupil-222'
   }
 });
+
+// Агрегация баллов по категориям для отображения разбивки
+const stats = {
+  totalPoints: checks.Items.reduce((sum, check) => sum + check.points, 0),
+  pointsByCategory: {
+    goldenVerses: checks.Items.reduce((sum, check) => 
+      sum + (check.goldenVerse1Score || 0) + (check.goldenVerse2Score || 0) + (check.goldenVerse3Score || 0), 0),
+    test: checks.Items.reduce((sum, check) => sum + (check.testScore || 0), 0),
+    notebook: checks.Items.reduce((sum, check) => sum + (check.notebookScore || 0), 0),
+    singing: checks.Items.filter(check => check.singing).length * gradeSettings.pointsSinging
+  }
+};
 ```
 
 ---
 
-### 2.7. Achievements
+### 2.9. Achievements
 
 | # | Pattern | Частота | Таблица | Index | Операция |
 |---|---------|---------|---------|-------|----------|
@@ -394,7 +653,7 @@ await client.query({
 
 ---
 
-### 2.8. Families
+### 2.10. Families
 
 | # | Pattern | Частота | Таблица | Index | Операция |
 |---|---------|---------|---------|-------|----------|
@@ -405,7 +664,7 @@ await client.query({
 
 ---
 
-### 2.9. Grade Events & Settings
+### 2.11. Grade Events & Settings
 
 | # | Pattern | Частота | Таблица | Index | Операция |
 |---|---------|---------|---------|-------|----------|
@@ -428,6 +687,145 @@ await client.query({
   }
 });
 ```
+
+---
+
+### 2.12. Analytics Access Patterns (Post-MVP функционал)
+
+> [!IMPORTANT]
+> **Критически важно:** Access patterns для аналитики определяют дизайн базы данных. GSI-3 для HomeworkChecks (gradeId-createdAt-index) должен быть создан на этапе MVP, даже если сам функционал аналитики будет реализован post-MVP. См. [ANALYTICS.md](ANALYTICS.md) для полной документации.
+
+**Назначение:** Access patterns для генерации аналитических отчетов и графиков успеваемости учеников и групп.
+
+| # | Pattern | Частота | Таблица | Index | Операция |
+|---|---------|---------|---------|-------|----------|
+| AP-ANALYTICS-1 | История успеваемости ученика за период | Высокая | HomeworkChecks | GSI-2: pupilId-createdAt | Query |
+| AP-ANALYTICS-2 | Агрегированная статистика ученика | Высокая | HomeworkChecks | GSI-2 + агрегация | Query |
+| AP-ANALYTICS-3 | История успеваемости группы за период | Высокая | HomeworkChecks | GSI-3: gradeId-createdAt | Query |
+| AP-ANALYTICS-4 | Топ учеников группы | Средняя | HomeworkChecks | GSI-3 + сортировка | Query |
+| AP-ANALYTICS-5 | Сравнительная статистика групп | Низкая | HomeworkChecks + Grades | Multiple queries | Query |
+
+**Примеры запросов:**
+
+**AP-ANALYTICS-1: История успеваемости ученика за период**
+```typescript
+await client.query({
+  TableName: 'HomeworkChecks',
+  IndexName: 'pupilId-createdAt-index',
+  KeyConditionExpression: 'pupilId = :pupilId AND createdAt BETWEEN :start AND :end',
+  ExpressionAttributeValues: {
+    ':pupilId': 'pupil-123',
+    ':start': '2024-09-01T00:00:00Z',
+    ':end': '2024-12-31T23:59:59Z'
+  },
+  ScanIndexForward: true // ASC по дате
+});
+```
+
+**AP-ANALYTICS-2: Агрегированная статистика ученика**
+```typescript
+// 1. Получить все проверки
+const checks = await client.query({
+  TableName: 'HomeworkChecks',
+  IndexName: 'pupilId-createdAt-index',
+  KeyConditionExpression: 'pupilId = :pupilId AND createdAt BETWEEN :start AND :end',
+  ExpressionAttributeValues: {
+    ':pupilId': 'pupil-123',
+    ':start': '2024-09-01T00:00:00Z',
+    ':end': '2024-12-31T23:59:59Z'
+  }
+});
+
+// 2. Агрегация на клиенте
+const stats = {
+  totalPoints: checks.Items.reduce((sum, check) => sum + check.points, 0),
+  averagePoints: checks.Items.reduce((sum, check) => sum + check.points, 0) / checks.Items.length,
+  lessonsCount: checks.Items.length,
+  // ... другие метрики
+};
+```
+
+**AP-ANALYTICS-3: История успеваемости группы за период** ⭐ **Требует GSI-3**
+```typescript
+await client.query({
+  TableName: 'HomeworkChecks',
+  IndexName: 'gradeId-createdAt-index', // GSI-3 (должен быть создан на этапе MVP)
+  KeyConditionExpression: 'gradeId = :gradeId AND createdAt BETWEEN :start AND :end',
+  ExpressionAttributeValues: {
+    ':gradeId': 'grade-123',
+    ':start': '2024-09-01T00:00:00Z',
+    ':end': '2024-12-31T23:59:59Z'
+  },
+  ScanIndexForward: true
+});
+```
+
+**AP-ANALYTICS-4: Топ учеников группы**
+```typescript
+// 1. Получить все проверки группы
+const checks = await client.query({
+  TableName: 'HomeworkChecks',
+  IndexName: 'gradeId-createdAt-index',
+  KeyConditionExpression: 'gradeId = :gradeId AND createdAt BETWEEN :start AND :end',
+  ExpressionAttributeValues: {
+    ':gradeId': 'grade-123',
+    ':start': '2024-09-01T00:00:00Z',
+    ':end': '2024-12-31T23:59:59Z'
+  }
+});
+
+// 2. Агрегация по ученикам и сортировка
+const pupilStats = checks.Items.reduce((acc, check) => {
+  if (!acc[check.pupilId]) {
+    acc[check.pupilId] = { pupilId: check.pupilId, totalPoints: 0, lessonsCount: 0 };
+  }
+  acc[check.pupilId].totalPoints += check.points;
+  acc[check.pupilId].lessonsCount += 1;
+  return acc;
+}, {});
+
+// 3. Сортировка и топ-10
+const topPupils = Object.values(pupilStats)
+  .sort((a, b) => b.totalPoints - a.totalPoints)
+  .slice(0, 10);
+```
+
+**AP-ANALYTICS-5: Сравнительная статистика групп**
+```typescript
+// Параллельные запросы для нескольких групп
+const [group1Stats, group2Stats, group3Stats] = await Promise.all([
+  getGroupStats('grade-123', startDate, endDate),
+  getGroupStats('grade-456', startDate, endDate),
+  getGroupStats('grade-789', startDate, endDate)
+]);
+
+// Сравнение
+const comparison = {
+  group1: group1Stats,
+  group2: group2Stats,
+  group3: group3Stats,
+  average: calculateAverage([group1Stats, group2Stats, group3Stats])
+};
+```
+
+**Стратегия агрегации:**
+
+1. **Для небольших периодов (< 1 месяца):**
+   - Агрегация на клиенте после Query
+   - Не требуется дополнительная таблица
+
+2. **Для больших периодов (> 3 месяцев):**
+   - Использовать опциональную таблицу `AnalyticsAggregates` (кэширование)
+   - Обновлять агрегаты при изменении данных
+   - См. [ANALYTICS.md](ANALYTICS.md) для деталей
+
+**Оптимизация производительности:**
+
+- Ограничивать период запросов (максимум 1 год за раз)
+- Использовать параллельные запросы для нескольких групп (Promise.all)
+- Для часто запрашиваемых данных использовать кэширование (AnalyticsAggregates)
+
+**Подробнее:** См. [ANALYTICS.md](ANALYTICS.md) для полной документации по аналитике, включая все показатели успеваемости, формулы расчета и примеры визуализации.
 
 ---
 
@@ -600,10 +998,24 @@ SK: pupilId#lastName
 **HomeworkChecks:**
 - GSI-1: lessonId-pupilId (проверки урока)
 - GSI-2: pupilId-createdAt (история ученика)
+- GSI-3: gradeId-createdAt (аналитика группы, история успеваемости, аналитика сложности стихов)
 
 **Pupils:**
 - GSI-1: gradeId-lastName (ученики группы)
 - GSI-2: active-gradeId (активные ученики)
+
+**Books:**
+- GSI-1: shortName (поиск по сокращенному названию)
+- GSI-2: testament-order (книги по завету, отсортированные)
+
+**GoldenVerses:**
+- GSI-1: reference (поиск по ссылке)
+- GSI-2: bookId-chapter (стихи из книги, отсортированные по главе)
+
+**LessonGoldenVerses:**
+- GSI-1: lessonId-order (стихи урока, отсортированные)
+- GSI-2: goldenVerseId (статистика использования стиха, аналитика сложности)
+- **Опционально (post-MVP):** GSI-3: academicYearId-goldenVerseId (оптимизация для AP-25, требует денормализации academicYearId)
 
 ---
 
@@ -769,6 +1181,13 @@ async function getGradeSettings(gradeId: string) {
 - **Плюс:** Один Query вместо двух
 - **Минус:** Нужно обновлять при переносе урока (редко)
 
+**HomeworkCheck.gradeId:**
+- Хотя есть `HomeworkCheck → Lesson → Grade`
+- Храним gradeId в HomeworkCheck для поддержки GSI-3 (аналитика)
+- **Плюс:** Эффективные запросы истории успеваемости группы без дополнительных запросов к Lessons
+- **Минус:** Нужно обновлять при изменении группы урока (редко)
+- **Критически важно:** GSI-3 (gradeId-createdAt-index) необходим для аналитики и должен быть создан на этапе MVP
+
 **HomeworkCheck (возможная денормализация):**
 ```typescript
 type HomeworkCheck {
@@ -811,6 +1230,7 @@ type HomeworkCheck {
 
 **✅ Денормализуем:**
 - `Lesson.gradeId` (хотя есть через AcademicYear)
+- `HomeworkCheck.gradeId` (хотя есть через Lesson, необходимо для GSI-3 аналитики)
 
 **❌ НЕ денормализуем (в MVP):**
 - Имена учеников в HomeworkCheck
@@ -973,15 +1393,16 @@ const lesson = {
 
 ## Cross-reference
 
-- См. также: [`docs/database/DYNAMODB_SCHEMA.md`](../database/DYNAMODB_SCHEMA.md) — детальная схема таблиц
-- См. также: [`docs/database/GRAPHQL_SCHEMA.md`](../database/GRAPHQL_SCHEMA.md) — GraphQL типы и queries
-- См. также: [`docs/database/ERD.md`](../database/ERD.md) — визуализация сущностей
+- См. также: [`docs/database/DYNAMODB_SCHEMA.md`](DYNAMODB_SCHEMA.md) — детальная схема таблиц
+- См. также: [`docs/database/GRAPHQL_SCHEMA.md`](GRAPHQL_SCHEMA.md) — GraphQL типы и queries
+- См. также: [`docs/database/ERD.md`](ERD.md) — визуализация сущностей
+- См. также: [`docs/database/ANALYTICS.md`](ANALYTICS.md) — аналитика учебного процесса (Post-MVP)
 - См. также: [`docs/architecture/ARCHITECTURE.md`](../architecture/ARCHITECTURE.md) — общая архитектура
 - См. также: [`docs/api/SERVER_ACTIONS.md`](../api/SERVER_ACTIONS.md) — использование в Next.js
 
 ---
 
 **Версия:** 1.0  
-**Последнее обновление:** 23 декабря 2025  
+**Последнее обновление:** 27 декабря 2025  
 **Автор:** AI Documentation Team
 
