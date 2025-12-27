@@ -142,7 +142,8 @@ Phase 13: Управление уроками (Lessons)
 - [ ] Добавить обработку ошибок
 
 **Документация:**
-- <CRITICAL>[SERVER_ACTIONS.md](../../../api/SERVER_ACTIONS.md) - раздел Grade Events</CRITICAL>
+- <CRITICAL>[SERVER_ACTIONS.md](../../../api/SERVER_ACTIONS.md) - раздел Grade Events и раздел 6 "Working with Related Data via Indexes"</CRITICAL>
+- ⚠️ **Важно:** Для получения связанных данных (группа, урок) используй queries через индексы, а не прямые связи `@belongsTo` и `@hasMany`. См. [SCHEMA_DIFFERENCES.md](../../../database/SCHEMA_DIFFERENCES.md)
 - <CRITICAL>[VALIDATION.md](../../../api/VALIDATION.md) - раздел Grade Event Schemas</CRITICAL>
 - <CRITICAL>[MVP_SCOPE.md](../../../MVP_SCOPE.md) - раздел 2.8.2 Управление событиями</CRITICAL>
 - Context7: Next.js Server Actions документация

@@ -83,7 +83,8 @@ Phase 05: Настройка аутентификации (Cognito), Phase 11: �
 - [ ] Использовать валидацию через Zod схемы
 
 **Документация:**
-- <CRITICAL>[SERVER_ACTIONS.md](../../../api/SERVER_ACTIONS.md) - раздел Users/Teachers</CRITICAL>
+- <CRITICAL>[SERVER_ACTIONS.md](../../../api/SERVER_ACTIONS.md) - раздел Users/Teachers и раздел 6 "Working with Related Data via Indexes"</CRITICAL>
+- ⚠️ **Важно:** Для получения связанных данных (группы, уроки) используй queries через индексы, а не прямые связи `@belongsTo` и `@hasMany`. См. [SCHEMA_DIFFERENCES.md](../../../database/SCHEMA_DIFFERENCES.md)
 - <CRITICAL>[SECURITY.md](../../../infrastructure/SECURITY.md) - раздел Cognito User Management</CRITICAL>
 - <CRITICAL>[MVP_SCOPE.md](../../../MVP_SCOPE.md) - раздел 2.10.1 Управление преподавателями</CRITICAL>
 - Context7: Next.js 15.5.9 Server Actions документация

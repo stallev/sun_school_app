@@ -1,0 +1,534 @@
+# ============================================
+# GRAPHQL SCHEMA - Sunday School App
+# Версия: 1.0
+# Дата: 23 декабря 2025
+# База данных: AWS DynamoDB (через AppSync)
+# Authorization: AWS Cognito User Pools
+# ============================================
+
+# ============================================
+# ENUMS
+# ============================================
+
+enum UserRole {
+  TEACHER      # Преподаватель - ведет группы, проверяет ДЗ
+  ADMIN        # Администратор - управление школой, пользователями
+  SUPERADMIN   # Главный администратор - полный доступ (в MVP = Admin)
+  PARENT       # Родитель - просмотр данных детей (Post-MVP)
+  PUPIL        # Ученик - просмотр своих данных (Post-MVP)
+}
+
+enum AcademicYearStatus {
+  ACTIVE     # Активный (текущий учебный год) - в этом году создаются уроки
+  FINISHED   # Завершен - уроки больше не создаются
+}
+
+enum GradeEventType {
+  LESSON          # Обычный урок (🔵 Синий цвет в календаре)
+  OUTDOOR_EVENT   # Выездное мероприятие (🟢 Зеленый цвет)
+  LESSON_SKIPPING # Отмена урока (🔴 Красный цвет)
+}
+
+# ============================================
+# USER & AUTHENTICATION
+# ============================================
+
+# Пользователи системы (преподаватели, администраторы)
+# Основные данные хранятся в Cognito User Pool
+# Метаданные хранятся в DynamoDB
+type User
+  @model
+  @auth(rules: [
+    # Owner может читать и редактировать свой профиль
+    { allow: owner, ownerField: "id", operations: [read, update] },
+    # Admin и Superadmin могут управлять всеми пользователями
+    { allow: groups, groups: ["ADMIN", "SUPERADMIN"], operations: [create, read, update, delete] },
+    # Teacher может читать других пользователей (для списков преподавателей)
+    { allow: groups, groups: ["TEACHER"], operations: [read] }
+  ]) {
+  id: ID! # Cognito sub (уникальный ID)
+  email: AWSEmail! @index(name: "byEmail") # Email из Cognito
+  name: String! # Полное имя
+  role: UserRole! @index(name: "byRole", sortKeyFields: ["createdAt"]) # Роль в системе
+  photo: String # S3 URL фото
+  active: Boolean! # Активен ли пользователь
+  
+  # Связи
+  userGrades: [UserGrade] @hasMany(indexName: "byUserId", fields: ["id"])
+  createdLessons: [Lesson] @hasMany(indexName: "byTeacherId", fields: ["id"])
+  userFamilies: [UserFamily] @hasMany(indexName: "byUserId", fields: ["id"])
+  
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+}
+
+# ============================================
+# GRADE (ГРУППЫ)
+# ============================================
+
+# Группы учеников воскресной школы
+type Grade
+  @model
+  @auth(rules: [
+    # Admin и Superadmin могут управлять группами
+    { allow: groups, groups: ["ADMIN", "SUPERADMIN"] },
+    # Teacher может читать группы
+    { allow: groups, groups: ["TEACHER"], operations: [read] }
+  ]) {
+  id: ID!
+  name: String! # Название группы (например, "Младшая группа")
+  description: String
+  minAge: Int
+  maxAge: Int
+  active: Boolean! # Активна ли группа
+  # Примечание: Индекс по active не создается через @index (Boolean не поддерживается), используется фильтрация в queries
+  
+  # Связи
+  teachers: [UserGrade] @hasMany(indexName: "byGradeId", fields: ["id"])
+  academicYears: [AcademicYear] @hasMany(indexName: "byGradeId", fields: ["id"])
+  pupils: [Pupil] @hasMany(indexName: "byGradeId", fields: ["id"])
+  # Примечание: events убрано из @hasMany для устранения циклической зависимости
+  # Используйте queries через индекс byGradeId для получения событий группы
+  settings: GradeSettings @hasOne(fields: ["id"])
+  
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+}
+
+# Связь многие-ко-многим между User и Grade
+type UserGrade
+  @model(queries: null) # Не создаем отдельные queries для этой таблицы
+  @auth(rules: [
+    # Admin и Superadmin могут управлять назначениями
+    { allow: groups, groups: ["ADMIN", "SUPERADMIN"] },
+    # Teacher может читать свои назначения
+    { allow: groups, groups: ["TEACHER"], operations: [read] }
+  ]) {
+  id: ID!
+  userId: ID! @index(name: "byUserId", sortKeyFields: ["gradeId"])
+  gradeId: ID! @index(name: "byGradeId", sortKeyFields: ["userId"])
+  
+  # Связи
+  # Примечание: user @belongsTo и grade @belongsTo убраны для устранения циклической зависимости
+  # Используйте queries через индексы byUserId и byGradeId для получения связанных данных
+  
+  assignedAt: AWSDateTime!
+  createdAt: AWSDateTime!
+}
+
+# ============================================
+# ACADEMIC YEAR (УЧЕБНЫЕ ГОДЫ)
+# ============================================
+
+# Учебные годы для каждой группы
+type AcademicYear
+  @model
+  @auth(rules: [
+    # Admin и Superadmin могут управлять учебными годами
+    { allow: groups, groups: ["ADMIN", "SUPERADMIN"] },
+    # Teacher может читать годы
+    { allow: groups, groups: ["TEACHER"], operations: [read] }
+  ]) {
+  id: ID!
+  gradeId: ID! @index(name: "byGradeId", sortKeyFields: ["startDate"])
+  name: String! # Название года (например, "2024-2025")
+  startDate: AWSDate! # Дата начала
+  endDate: AWSDate! # Дата окончания
+  status: AcademicYearStatus! @index(name: "byStatus", sortKeyFields: ["gradeId"]) # ACTIVE | FINISHED
+  
+  # Связи
+  # Примечание: grade @belongsTo убрано для устранения циклической зависимости
+  # Используйте queries через индекс byGradeId для получения связанной группы
+  lessons: [Lesson] @hasMany(indexName: "byAcademicYearId", fields: ["id"])
+  
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+}
+
+# ============================================
+# LESSON (УРОКИ)
+# ============================================
+
+# Уроки в рамках учебного года
+type Lesson
+  @model
+  @auth(rules: [
+    # Admin и Superadmin могут управлять всеми уроками
+    { allow: groups, groups: ["ADMIN", "SUPERADMIN"] },
+    # Teacher может создавать уроки в своих группах
+    { allow: owner, ownerField: "teacherId", operations: [create, update, delete] },
+    # Teacher может читать уроки
+    { allow: groups, groups: ["TEACHER"], operations: [read] }
+  ]) {
+  id: ID!
+  academicYearId: ID! @index(name: "byAcademicYearId", sortKeyFields: ["lessonDate"])
+  gradeId: ID! @index(name: "byGradeId", sortKeyFields: ["lessonDate"]) # Денормализация
+  teacherId: ID! @index(name: "byTeacherId", sortKeyFields: ["createdAt"])
+  title: String! # Тема урока
+  content: String # JSON от BlockNote редактора
+  lessonDate: AWSDate! # Дата проведения урока
+  order: Int! # Порядковый номер урока в году
+  
+  # Связи
+  # Примечание: academicYear @belongsTo и teacher @belongsTo убраны для устранения циклической зависимости
+  # Используйте queries через индексы byAcademicYearId и byTeacherId для получения связанных данных
+  # Примечание: gradeId используется только для денормализации и индекса, связь с Grade через AcademicYear
+  # Примечание: goldenVerses и homeworkChecks убраны из @hasMany для устранения циклической зависимости
+  # Используйте queries через индексы byLessonId для получения связанных данных
+  
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+}
+
+# ============================================
+# BOOK (КНИГИ БИБЛИИ)
+# ============================================
+
+# Книги Библии (Ветхий и Новый Завет)
+type Book
+  @model
+  @auth(rules: [
+    # Admin и Superadmin могут управлять книгами
+    { allow: groups, groups: ["ADMIN", "SUPERADMIN"] },
+    # Teacher может читать книги
+    { allow: groups, groups: ["TEACHER"], operations: [read] }
+  ]) {
+  id: ID!
+  fullName: String! # Полное название (например, "Евангелие от Иоанна")
+  shortName: String! @index(name: "byShortName") # Сокращенное название (например, "Иоанна")
+  abbreviation: String! # Аббревиатура (например, "Ин")
+  testament: String! @index(name: "byTestament", sortKeyFields: ["order"]) # Завет: "OLD" | "NEW"
+  order: Int! # Порядок в Библии (1-66)
+  
+  # Связи
+  goldenVerses: [GoldenVerse] @hasMany(indexName: "byBookId", fields: ["id"])
+  
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+}
+
+# ============================================
+# GOLDEN VERSE (ЗОЛОТЫЕ СТИХИ)
+# ============================================
+
+# Библейские стихи для запоминания
+type GoldenVerse
+  @model
+  @auth(rules: [
+    # Admin и Superadmin могут управлять стихами
+    { allow: groups, groups: ["ADMIN", "SUPERADMIN"] },
+    # Teacher может читать стихи
+    { allow: groups, groups: ["TEACHER"], operations: [read] }
+  ]) {
+  id: ID!
+  reference: String! @index(name: "byReference") # Ссылка (например, "Иоанна 3:16")
+  bookId: ID! @index(name: "byBookId", sortKeyFields: ["chapter"]) # ID книги Библии
+  chapter: Int! # Номер главы
+  verseStart: Int! # Начальный стих
+  verseEnd: Int # Конечный стих (если диапазон)
+  text: String! # Текст стиха
+  
+  # Связи
+  # Примечание: book @belongsTo убрано для устранения циклической зависимости
+  # Используйте queries через индекс byBookId для получения связанной книги
+  # Примечание: lessons убрано из @hasMany для устранения циклической зависимости
+  # Используйте queries через индекс byGoldenVerseId для получения связанных уроков
+  
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+}
+
+# Связь многие-ко-многим между Lesson и GoldenVerse
+type LessonGoldenVerse
+  @model(queries: null)
+  @auth(rules: [
+    # Разделенные правила для предотвращения циклических зависимостей CloudFormation
+    { allow: groups, groups: ["ADMIN"], operations: [create, read, update, delete] },
+    { allow: groups, groups: ["SUPERADMIN"], operations: [create, read, update, delete] },
+    { allow: groups, groups: ["TEACHER"], operations: [create, read, update, delete] }
+  ]) {
+  id: ID!
+  lessonId: ID! @index(name: "byLessonId", sortKeyFields: ["order"])
+  goldenVerseId: ID! @index(name: "byGoldenVerseId")
+  order: Int! # Порядок стиха в уроке (1, 2, 3...)
+  
+  # Связи
+  # Примечание: @belongsTo убраны для устранения циклической зависимости
+  # Используйте queries через индексы byLessonId и byGoldenVerseId для получения связанных данных
+  
+  createdAt: AWSDateTime!
+}
+
+# ============================================
+# PUPIL (УЧЕНИКИ)
+# ============================================
+
+# Ученики воскресной школы
+type Pupil
+  @model
+  @auth(rules: [
+    # Admin и Superadmin могут управлять учениками
+    { allow: groups, groups: ["ADMIN", "SUPERADMIN"] },
+    # Teacher может читать учеников
+    { allow: groups, groups: ["TEACHER"], operations: [read] }
+  ]) {
+  id: ID!
+  gradeId: ID! @index(name: "byGradeId", sortKeyFields: ["lastName"])
+  firstName: String!
+  lastName: String!
+  middleName: String
+  dateOfBirth: AWSDate!
+  photo: String # S3 URL фото
+  active: Boolean! # Активен ли ученик
+  # Примечание: Индекс по active не создается через @index (Boolean не поддерживается), используется фильтрация в queries
+  
+  # Связи
+  # Примечание: grade @belongsTo убрано для устранения циклической зависимости
+  # Используйте queries через индекс byGradeId для получения связанной группы
+  # Примечание: homeworkChecks и achievements убраны из @hasMany для устранения циклической зависимости
+  # Используйте queries через индексы byPupilId для получения связанных данных
+  families: [FamilyMember] @hasMany(indexName: "byPupilId", fields: ["id"])
+  
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+}
+
+# ============================================
+# HOMEWORK CHECK (ПРОВЕРКА ДЗ)
+# ============================================
+
+# Результаты проверки домашних заданий учеников за урок
+type HomeworkCheck
+  @model
+  @auth(rules: [
+    # Разделенные правила для предотвращения циклических зависимостей CloudFormation
+    { allow: groups, groups: ["TEACHER"] },
+    { allow: groups, groups: ["ADMIN"] },
+    { allow: groups, groups: ["SUPERADMIN"] }
+  ]) {
+  id: ID!
+  lessonId: ID! @index(name: "byLessonId", sortKeyFields: ["pupilId"])
+  pupilId: ID! @index(name: "byPupilId", sortKeyFields: ["createdAt"])
+  # Денормализация: gradeId хранится для поддержки GSI-3 (аналитика), хотя есть через Lesson.gradeId
+  gradeId: ID! @index(name: "byGradeId", sortKeyFields: ["createdAt"]) # GSI-3 для аналитики
+  
+  # Оценки за золотые стихи (0-2 балла за каждый)
+  goldenVerse1Score: Int # Баллы за первый золотой стих (0-2)
+  goldenVerse2Score: Int # Баллы за второй золотой стих (0-2)
+  goldenVerse3Score: Int # Баллы за третий золотой стих (0-2)
+  
+  # Баллы за домашнее задание
+  testScore: Int # Баллы за тест (0-10)
+  notebookScore: Int # Баллы за тетрадь (0-10)
+  
+  # Посещение спевки
+  singing: Boolean! # Был на спевке
+  
+  # Результаты (вычисляются автоматически)
+  points: Int! # Баллы за урок (сумма всех компонентов)
+  
+  # Связи
+  # Примечание: @belongsTo убраны для устранения циклической зависимости
+  # Используйте queries через индексы byLessonId и byPupilId для получения связанных данных
+  # Примечание: gradeId используется только для денормализации и GSI-3 (аналитика), связь с Grade через Lesson
+  
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+}
+
+# ============================================
+# ACHIEVEMENT (ДОСТИЖЕНИЯ)
+# ============================================
+
+# Достижения (badges) для учеников
+type Achievement
+  @model
+  @auth(rules: [
+    # Admin и Superadmin могут управлять достижениями
+    { allow: groups, groups: ["ADMIN", "SUPERADMIN"] },
+    # Teacher может читать достижения
+    { allow: groups, groups: ["TEACHER"], operations: [read] }
+  ]) {
+  id: ID!
+  name: String! @index(name: "byName") # Название достижения (например, "Отличник")
+  description: String! # Описание
+  icon: String # Emoji или URL иконки
+  criteria: String! # JSON критерии получения
+  
+  # Связи
+  # Примечание: pupils убрано из @hasMany для устранения циклической зависимости
+  # Используйте queries через индекс byAchievementId для получения связанных учеников
+  
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+}
+
+# Связь многие-ко-многим между Pupil и Achievement
+type PupilAchievement
+  @model(queries: null)
+  @auth(rules: [
+    # Разделенные правила для предотвращения циклических зависимостей CloudFormation
+    { allow: groups, groups: ["SUPERADMIN"] },
+    { allow: groups, groups: ["ADMIN"] },
+    { allow: groups, groups: ["TEACHER"] }
+  ]) {
+  id: ID!
+  pupilId: ID! @index(name: "byPupilId", sortKeyFields: ["awardedAt"])
+  achievementId: ID! @index(name: "byAchievementId")
+  awardedAt: AWSDateTime! # Дата получения достижения
+  
+  # Связи
+  # Примечание: @belongsTo убраны для устранения циклической зависимости
+  # Используйте queries через индексы byPupilId и byAchievementId для получения связанных данных
+  
+  createdAt: AWSDateTime!
+}
+
+# ============================================
+# FAMILY (СЕМЬИ)
+# ============================================
+
+# Семьи учеников для связи и контактов
+type Family
+  @model
+  @auth(rules: [
+    # Admin и Superadmin могут управлять семьями
+    { allow: groups, groups: ["ADMIN", "SUPERADMIN"] },
+    # Teacher может читать семьи
+    { allow: groups, groups: ["TEACHER"], operations: [read] }
+  ]) {
+  id: ID!
+  name: String! # Фамилия семьи
+  phone: String # Телефон контактного лица
+  email: AWSEmail # Email семьи
+  address: String # Адрес (опционально)
+  
+  # Информация о матери
+  motherFirstName: String # Имя матери
+  motherLastName: String # Фамилия матери
+  motherMiddleName: String # Отчество матери
+  motherPhone: String @index(name: "byMotherPhone") # Телефон матери (для связи с PARENT)
+  
+  # Информация об отце
+  fatherFirstName: String # Имя отца
+  fatherLastName: String # Фамилия отца
+  fatherMiddleName: String # Отчество отца
+  fatherPhone: String @index(name: "byFatherPhone") # Телефон отца (для связи с PARENT)
+  
+  # Связи
+  members: [FamilyMember] @hasMany(indexName: "byFamilyId", fields: ["id"])
+  userFamilies: [UserFamily] @hasMany(indexName: "byFamilyId", fields: ["id"])
+  
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+}
+
+# Связь многие-ко-многим между Family и Pupil
+type FamilyMember
+  @model(queries: null)
+  @auth(rules: [
+    # Admin и Superadmin могут управлять связью
+    { allow: groups, groups: ["ADMIN", "SUPERADMIN"] },
+    # Teacher может читать связь
+    { allow: groups, groups: ["TEACHER"], operations: [read] }
+  ]) {
+  id: ID!
+  familyId: ID! @index(name: "byFamilyId")
+  pupilId: ID! @index(name: "byPupilId")
+  
+  # Связи
+  # Примечание: family @belongsTo и pupil @belongsTo убраны для устранения циклической зависимости
+  # Используйте queries через индексы byFamilyId и byPupilId для получения связанных данных
+  
+  createdAt: AWSDateTime!
+}
+
+# Связь пользователей с ролью PARENT с семьями
+type UserFamily
+  @model(queries: null)
+  @auth(rules: [
+    # Admin и Superadmin могут управлять связью
+    { allow: groups, groups: ["ADMIN", "SUPERADMIN"] },
+    # PARENT может читать свои связи
+    { allow: owner, ownerField: "userId", operations: [read] }
+  ]) {
+  id: ID!
+  userId: ID! @index(name: "byUserId")
+  familyId: ID! @index(name: "byFamilyId")
+  phone: String! @index(name: "byPhone") # Номер телефона, использованный для связи
+  
+  # Связи
+  # Примечание: user @belongsTo и family @belongsTo убраны для устранения циклической зависимости
+  # Используйте queries через индексы byUserId и byFamilyId для получения связанных данных
+  
+  createdAt: AWSDateTime!
+}
+
+# ============================================
+# GRADE EVENT (СОБЫТИЯ В РАСПИСАНИИ)
+# ============================================
+
+# События в календаре группы (уроки, мероприятия, отмены)
+type GradeEvent
+  @model
+  @auth(rules: [
+    # Разделенные правила для предотвращения циклических зависимостей CloudFormation
+    { allow: groups, groups: ["ADMIN", "SUPERADMIN"] },
+    { allow: groups, groups: ["TEACHER"], operations: [create, read, update, delete] }
+  ]) {
+  id: ID!
+  gradeId: ID! @index(name: "byGradeId", sortKeyFields: ["eventDate"])
+  eventType: GradeEventType! # LESSON | OUTDOOR_EVENT | LESSON_SKIPPING
+  title: String! # Название события
+  description: String # Описание события
+  eventDate: AWSDate! # Дата события
+  
+  # Связи
+  # Примечание: @belongsTo убран для устранения циклической зависимости
+  # Используйте queries через индекс byGradeId для получения связанной группы
+  
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+}
+
+# ============================================
+# GRADE SETTINGS (НАСТРОЙКИ ОЦЕНИВАНИЯ)
+# ============================================
+
+# Настройки параметров оценивания для каждой группы
+type GradeSettings
+  @model
+  @auth(rules: [
+    # Admin и Superadmin могут управлять настройками
+    { allow: groups, groups: ["ADMIN", "SUPERADMIN"] },
+    # Teacher может читать настройки
+    { allow: groups, groups: ["TEACHER"], operations: [read] }
+  ]) {
+  id: ID!
+  gradeId: ID! @index(name: "byGradeId")
+  
+  # Включение/выключение параметров
+  enableGoldenVerse: Boolean! # Использовать золотые стихи
+  enableTest: Boolean! # Использовать тест
+  enableNotebook: Boolean! # Использовать тетрадь
+  enableSinging: Boolean! # Использовать спевку
+  
+  # Баллы за каждый параметр
+  pointsGoldenVerse: Int! # Баллы за золотой стих
+  pointsTest: Int! # Баллы за тест
+  pointsNotebook: Int! # Баллы за тетрадь
+  pointsSinging: Int! # Баллы за спевку
+  
+  # Кастомные метки (для адаптации названий)
+  labelGoldenVerse: String! # Метка для стихов (по умолчанию "Золотые стихи")
+  labelTest: String! # Метка для теста (по умолчанию "Тест")
+  labelNotebook: String! # Метка для тетради (по умолчанию "Тетрадь")
+  labelSinging: String! # Метка для спевки (по умолчанию "Спевка")
+  
+  # Связи
+  # Примечание: grade @belongsTo убрано для устранения циклической зависимости
+  # Используйте queries через индекс byGradeId для получения связанной группы
+  
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+}

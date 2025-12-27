@@ -88,7 +88,8 @@ Phase 12: Управление учебными годами (Academic Years)
 - [ ] Добавить обработку ошибок
 
 **Документация:**
-- <CRITICAL>[SERVER_ACTIONS.md](../../../api/SERVER_ACTIONS.md) - раздел Academic Process</CRITICAL>
+- <CRITICAL>[SERVER_ACTIONS.md](../../../api/SERVER_ACTIONS.md) - раздел Academic Process и раздел 6 "Working with Related Data via Indexes"</CRITICAL>
+- ⚠️ **Важно:** Для получения связанных данных используй queries через индексы, а не прямые связи `@belongsTo` и `@hasMany`. См. [SCHEMA_DIFFERENCES.md](../../../database/SCHEMA_DIFFERENCES.md)
 - <CRITICAL>[MVP_SCOPE.md](../../../MVP_SCOPE.md) - раздел 2.12 Управление учебным процессом</CRITICAL>
 - Phase 12: Управление учебными годами (Academic Years)
 - Context7: Next.js Server Actions документация

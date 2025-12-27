@@ -983,6 +983,7 @@ export async function batchUpdateHomeworkChecks(checks: HomeworkCheckInput[]) {
 
 **Компоненты:**
 - 📊 Статистика (баллы, домики, процент выполнения)
+- 💯 Баллы и кирпичики (суммарное количество баллов за текущий учебный год, разбивка по категориям, набранные и выданные кирпичики)
 - 📜 История уроков (последние 20 уроков)
 - 🏆 Достижения (badges)
 - 📈 График прогресса
@@ -1008,6 +1009,23 @@ async function PupilCardPage({ params }: { params: { pupilId: string } }) {
     filter: { pupilId: { eq: pupilId } }
   });
   
+  // Получение активного учебного года для группы ученика
+  const grade = await amplifyData.get('Grade', { id: pupil.gradeId });
+  const activeYear = await amplifyData.list('AcademicYear', {
+    filter: {
+      and: [
+        { gradeId: { eq: grade.id } },
+        { status: { eq: 'ACTIVE' } }
+      ]
+    }
+  });
+  
+  // Получение проверок только за текущий учебный год
+  const currentYearChecks = homeworkChecks.filter(check => {
+    // Фильтрация по учебному году через связь с уроком
+    return check.lesson?.academicYearId === activeYear[0]?.id;
+  });
+  
   // Расчет статистики
   const totalPoints = homeworkChecks.reduce((sum, check) => sum + check.points, 0);
   const totalHouses = homeworkChecks.filter(check => check.hasHouse).length;
@@ -1015,10 +1033,38 @@ async function PupilCardPage({ params }: { params: { pupilId: string } }) {
     ? (homeworkChecks.filter(check => check.hasHouse).length / homeworkChecks.length * 100).toFixed(1)
     : 0;
   
+  // Расчет баллов по категориям за текущий учебный год
+  const pointsByCategory = {
+    goldenVerses: currentYearChecks.reduce((sum, check) => 
+      sum + (check.goldenVerse1Score || 0) + (check.goldenVerse2Score || 0) + (check.goldenVerse3Score || 0), 0),
+    test: currentYearChecks.reduce((sum, check) => sum + (check.testScore || 0), 0),
+    notebook: currentYearChecks.reduce((sum, check) => sum + (check.notebookScore || 0), 0),
+    singing: currentYearChecks.filter(check => check.singing).length,
+  };
+  const totalPointsCurrentYear = currentYearChecks.reduce((sum, check) => sum + check.points, 0);
+  
+  // Получение истории выдачи кирпичиков за текущий учебный год
+  const bricksHistory = await amplifyData.list('BricksIssue', {
+    filter: {
+      and: [
+        { pupilId: { eq: pupilId } },
+        { academicYearId: { eq: activeYear[0]?.id } }
+      ]
+    }
+  });
+  const totalIssuedBricks = bricksHistory.reduce((sum, issue) => sum + issue.quantity, 0);
+  
   return (
     <div>
       <PupilHeader pupil={pupil} />
       <StatsCards totalPoints={totalPoints} totalHouses={totalHouses} completionRate={completionRate} />
+      <PointsAndBricksDisplay 
+        totalPoints={totalPointsCurrentYear}
+        pointsByCategory={pointsByCategory}
+        totalBricks={totalPointsCurrentYear}
+        issuedBricks={totalIssuedBricks}
+        academicYearId={activeYear[0]?.id}
+      />
       <AchievementsList achievements={pupilAchievements} />
       <HomeworkHistory checks={homeworkChecks} />
       <ProgressChart checks={homeworkChecks} />

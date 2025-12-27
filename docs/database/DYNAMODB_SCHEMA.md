@@ -1,8 +1,8 @@
 # DynamoDB Schema - Sunday School App
 
-## Версия документа: 1.0
+## Версия документа: 1.2
 **Дата создания:** 23 декабря 2025  
-**Последнее обновление:** 23 декабря 2025  
+**Последнее обновление:** 25 декабря 2025  
 **Проект:** Sunday School App  
 **Технологии:** AWS DynamoDB, AWS AppSync, AWS Amplify Gen 1  
 **Billing Model:** Pay-per-request (On-Demand)
@@ -464,7 +464,7 @@ Access Pattern: "Получить все уроки группы за учебн
 |---------|-----|----------|--------------|
 | id | String (UUID) | Уникальный ID стиха | ✅ |
 | reference | String | Ссылка (Иоанна 3:16) | ✅ (UNIQUE) |
-| book | String | Книга Библии | ✅ |
+| bookId | String (UUID) | ID книги Библии | ✅ |
 | chapter | Number | Номер главы | ✅ |
 | verseStart | Number | Начальный стих | ✅ |
 | verseEnd | Number | Конечный стих | ❌ |
@@ -480,8 +480,8 @@ Access Pattern: "Получить все уроки группы за учебн
 - **Projection:** ALL
 - **Use Case:** Поиск по ссылке
 
-**GSI-2: book-chapter-index**
-- **PK:** book (String)
+**GSI-2: bookId-chapter-index**
+- **PK:** bookId (String)
 - **SK:** chapter (Number → String)
 - **Projection:** ALL
 - **Use Case:** Фильтрация по книге
@@ -492,7 +492,7 @@ Access Pattern: "Получить все уроки группы за учебн
 |---|---------|-------|---------|
 | 1 | Получить стих по ID | Primary Key | `Query(PK=verseId)` |
 | 2 | Поиск по ссылке | GSI-1 | `Query(GSI1PK="Иоанна 3:16")` |
-| 3 | Стихи из книги | GSI-2 | `Query(GSI2PK="Иоанна")` |
+| 3 | Стихи из книги | GSI-2 | `Query(GSI2PK=bookId)` |
 | 4 | Все стихи | Scan | `Scan()` (для библиотеки) |
 
 **Размер записи:** ~200-400 bytes (зависит от длины текста)
@@ -529,7 +529,14 @@ Access Pattern: "Получить все уроки группы за учебн
 - **PK:** goldenVerseId (String)
 - **SK:** Нет
 - **Projection:** KEYS_ONLY
-- **Use Case:** Статистика использования стиха
+- **Use Case:** Статистика использования стиха, аналитика сложности стихов
+
+**Опционально (Post-MVP): GSI-3: academicYearId-goldenVerseId-index**
+- **PK:** academicYearId (String) — требует денормализации academicYearId в LessonGoldenVerse
+- **SK:** goldenVerseId (String)
+- **Projection:** ALL
+- **Use Case:** Оптимизация для получения списка стихов группы за учебный год (AP-25)
+- **Примечание:** Это опциональная оптимизация для post-MVP. Для MVP достаточно существующих GSI.
 
 **Access Patterns:**
 
@@ -537,8 +544,13 @@ Access Pattern: "Получить все уроки группы за учебн
 |---|---------|-------|---------|
 | 1 | Стихи урока | GSI-1 | `Query(GSI1PK=lessonId)` |
 | 2 | Статистика стиха | GSI-2 | `Query(GSI2PK=goldenVerseId)` + Count |
+| 3 | Аналитика сложности стихов | GSI-2 + GSI-1 | Используется в комбинации с HomeworkChecks GSI-3 |
 
 **Размер записи:** ~120 bytes
+
+**Использование для аналитики:**
+- GSI-2 используется для получения всех использований конкретного стиха (аналитика сложности)
+- GSI-1 используется для получения стихов урока при анализе проверок ДЗ
 
 ---
 
@@ -606,11 +618,14 @@ Access Pattern: "Получить все уроки группы за учебн
 | id | String (UUID) | Уникальный ID проверки | ✅ |
 | lessonId | String | ID урока | ✅ |
 | pupilId | String | ID ученика | ✅ |
-| goldenVerse | Boolean | Выучил золотой стих | ✅ (default: false) |
-| test | Boolean | Сделал тест | ✅ (default: false) |
-| notebook | Boolean | Сделал тетрадь | ✅ (default: false) |
+| gradeId | String | ID группы (денормализация) | ✅ |
+| goldenVerse1Score | Number | Баллы за первый золотой стих (0-2) | ❌ |
+| goldenVerse2Score | Number | Баллы за второй золотой стих (0-2) | ❌ |
+| goldenVerse3Score | Number | Баллы за третий золотой стих (0-2) | ❌ |
+| testScore | Number | Баллы за тест (0-10) | ❌ |
+| notebookScore | Number | Баллы за тетрадь (0-10) | ❌ |
 | singing | Boolean | Был на спевке | ✅ (default: false) |
-| points | Number | Баллы за урок | ✅ (default: 0) |
+| points | Number | Баллы за урок (вычисляется автоматически) | ✅ (default: 0) |
 | hasHouse | Boolean | Получил домик | ✅ (вычисляется) |
 | createdAt | String (ISO 8601) | Дата создания | ✅ |
 | updatedAt | String (ISO 8601) | Дата обновления | ✅ |
@@ -629,6 +644,13 @@ Access Pattern: "Получить все уроки группы за учебн
 - **Projection:** ALL
 - **Use Case:** История ученика (личная карточка)
 
+**GSI-3: gradeId-createdAt-index** ⭐ **Для аналитики (Post-MVP)**
+- **PK:** gradeId (String)
+- **SK:** createdAt (String)
+- **Projection:** ALL
+- **Use Case:** История успеваемости группы, топ учеников, аналитика по группе
+- **Важно:** Этот GSI должен быть создан на этапе MVP для поддержки аналитики post-MVP. См. [ANALYTICS.md](ANALYTICS.md) для деталей.
+
 **Access Patterns:**
 
 | # | Pattern | Index | Example |
@@ -637,6 +659,11 @@ Access Pattern: "Получить все уроки группы за учебн
 | 2 | Проверки урока | GSI-1 | `Query(GSI1PK=lessonId)` |
 | 3 | История ученика | GSI-2 | `Query(GSI2PK=pupilId)` |
 | 4 | Проверка существования | GSI-1 + filter | `Query(GSI1PK=lessonId, filter: pupilId)` |
+| 5 | История группы (аналитика) | GSI-3 | `Query(GSI3PK=gradeId, SK BETWEEN start AND end)` |
+| 6 | Топ учеников группы | GSI-3 | `Query(GSI3PK=gradeId) + сортировка` |
+| 7 | Баллы ученика за учебный год | GSI-2 | `Query(GSI2PK=pupilId, SK BETWEEN startDate AND endDate)` |
+| 8 | Баллы ученика за период дат | GSI-2 | `Query(GSI2PK=pupilId, SK BETWEEN startDate AND endDate)` |
+| 9 | Аналитика сложности стихов | GSI-3 | `Query(GSI3PK=gradeId, SK BETWEEN start AND end)` + агрегация |
 
 **Примерная запись:**
 
@@ -645,20 +672,60 @@ Access Pattern: "Получить все уроки группы за учебн
   "id": "check-111",
   "lessonId": "lesson-789",
   "pupilId": "pupil-222",
-  "goldenVerse": true,
-  "test": true,
-  "notebook": true,
-  "singing": false,
-  "points": 30,
+  "gradeId": "grade-123",
+  "goldenVerse1Score": 2,
+  "goldenVerse2Score": 2,
+  "goldenVerse3Score": 1,
+  "testScore": 9,
+  "notebookScore": 8,
+  "singing": true,
+  "points": 24,
   "hasHouse": false,
   "createdAt": "2024-09-08T14:00:00Z",
   "updatedAt": "2024-09-08T14:00:00Z"
 }
 ```
 
-**Размер записи:** ~180 bytes
+**Размер записи:** ~250 bytes
 
-**Важно:** hasHouse = goldenVerse && test && notebook && singing
+**Денормализация:** gradeId хранится в HomeworkCheck для поддержки GSI-3 (аналитика), хотя есть через Lesson.gradeId. Это позволяет эффективно запрашивать историю успеваемости группы без дополнительных запросов к таблице Lessons.
+
+**Использование GSI-3 для аналитики:**
+- История успеваемости группы за период (AP-ANALYTICS-3)
+- Топ учеников группы (AP-ANALYTICS-4)
+- Аналитика сложности золотых стихов (AP-ANALYTICS-7): получение всех проверок группы для анализа успеваемости по стихам
+
+**Пример запроса для аналитики сложности стихов:**
+```typescript
+// Получить все проверки группы за учебный год
+await client.query({
+  TableName: 'HomeworkChecks',
+  IndexName: 'gradeId-createdAt-index',
+  KeyConditionExpression: 'gradeId = :gradeId AND createdAt BETWEEN :start AND :end',
+  ExpressionAttributeValues: {
+    ':gradeId': 'grade-123',
+    ':start': '2024-09-01T00:00:00Z',
+    ':end': '2025-05-31T23:59:59Z'
+  }
+});
+// Затем для каждой проверки получить Lesson и LessonGoldenVerses для сопоставления баллов со стихами
+```
+
+**Расчет баллов (points):**
+Баллы за урок вычисляются автоматически как сумма всех компонентов:
+- Баллы за золотые стихи: `goldenVerse1Score + goldenVerse2Score + goldenVerse3Score` (0-6 баллов)
+- Баллы за тест: `testScore` (0-10 баллов)
+- Баллы за тетрадь: `notebookScore` (0-10 баллов)
+- Баллы за спевку: если `singing = true`, то добавляются баллы из `GradeSettings.pointsSinging` (обычно 1-10 баллов)
+
+**Формула:**
+```
+points = (goldenVerse1Score + goldenVerse2Score + goldenVerse3Score) + testScore + notebookScore + (singing ? gradeSettings.pointsSinging : 0)
+```
+
+**Важно:** 
+- Если ученик отсутствовал на уроке, все баллы = 0, `points = 0`
+- Поле `hasHouse` устарело и будет удалено в будущих версиях (заменено на систему кирпичиков)
 
 ---
 
@@ -747,7 +814,7 @@ Access Pattern: "Получить все уроки группы за учебн
 
 ### 3.12. Таблица: Families
 
-**Назначение:** Семьи учеников
+**Назначение:** Семьи учеников с информацией о родителях
 
 **Primary Key:**
 - **Partition Key (PK):** `id` (String)
@@ -759,11 +826,33 @@ Access Pattern: "Получить все уроки группы за учебн
 |---------|-----|----------|--------------|
 | id | String (UUID) | Уникальный ID семьи | ✅ |
 | name | String | Фамилия семьи | ✅ |
-| phone | String | Телефон | ❌ |
-| email | String | Email | ❌ |
+| phone | String | Телефон контактного лица | ❌ |
+| email | String | Email семьи | ❌ |
 | address | String | Адрес | ❌ |
+| motherFirstName | String | Имя матери | ❌ |
+| motherLastName | String | Фамилия матери | ❌ |
+| motherMiddleName | String | Отчество матери | ❌ |
+| motherPhone | String | Телефон матери | ❌ |
+| fatherFirstName | String | Имя отца | ❌ |
+| fatherLastName | String | Фамилия отца | ❌ |
+| fatherMiddleName | String | Отчество отца | ❌ |
+| fatherPhone | String | Телефон отца | ❌ |
 | createdAt | String (ISO 8601) | Дата создания | ✅ |
 | updatedAt | String (ISO 8601) | Дата обновления | ✅ |
+
+**Global Secondary Indexes:**
+
+**GSI-1: motherPhone-index**
+- **PK:** motherPhone (String)
+- **SK:** Нет
+- **Projection:** ALL
+- **Use Case:** Поиск семьи по телефону матери (для связи с пользователем PARENT)
+
+**GSI-2: fatherPhone-index**
+- **PK:** fatherPhone (String)
+- **SK:** Нет
+- **Projection:** ALL
+- **Use Case:** Поиск семьи по телефону отца (для связи с пользователем PARENT)
 
 **Access Patterns:**
 
@@ -771,8 +860,37 @@ Access Pattern: "Получить все уроки группы за учебн
 |---|---------|-------|---------|
 | 1 | Получить семью | Primary Key | `Query(PK=familyId)` |
 | 2 | Все семьи | Scan | `Scan()` |
+| 3 | Поиск по телефону матери | GSI-1 | `Query(GSI1PK=motherPhone)` |
+| 4 | Поиск по телефону отца | GSI-2 | `Query(GSI2PK=fatherPhone)` |
 
-**Размер записи:** ~200 bytes
+**Примерная запись:**
+
+```json
+{
+  "id": "family-123",
+  "name": "Поповы",
+  "phone": "+7 (912) 345-67-89",
+  "email": "popov@example.com",
+  "address": "г. Москва, ул. Примерная, д. 1",
+  "motherFirstName": "Елена",
+  "motherLastName": "Попова",
+  "motherMiddleName": "Владимировна",
+  "motherPhone": "+7 (912) 345-67-90",
+  "fatherFirstName": "Андрей",
+  "fatherLastName": "Попов",
+  "fatherMiddleName": "Иванович",
+  "fatherPhone": "+7 (912) 345-67-89",
+  "createdAt": "2024-09-01T00:00:00Z",
+  "updatedAt": "2024-09-01T00:00:00Z"
+}
+```
+
+**Размер записи:** ~400 bytes
+
+**Бизнес-правила:**
+- Ученик может принадлежать только одной семье (через FamilyMember)
+- Телефоны матери и отца используются для связи с пользователями с ролью PARENT (Post-MVP функционал)
+- При регистрации пользователя PARENT вводится номер телефона, и система ищет соответствующую семью по полям motherPhone или fatherPhone
 
 ---
 
@@ -927,6 +1045,147 @@ Access Pattern: "Получить все уроки группы за учебн
 ```
 
 **Размер записи:** ~300 bytes
+
+---
+
+### 3.16. Таблица: Books
+
+**Назначение:** Книги Библии (Ветхий и Новый Завет)
+
+**Primary Key:**
+- **Partition Key (PK):** `id` (String)
+- **Sort Key (SK):** Нет
+
+**Атрибуты:**
+
+| Атрибут | Тип | Описание | Обязательный |
+|---------|-----|----------|--------------|
+| id | String (UUID) | Уникальный ID книги | ✅ |
+| fullName | String | Полное название (например, "Евангелие от Иоанна") | ✅ |
+| shortName | String | Сокращенное название (например, "Иоанна") | ✅ |
+| abbreviation | String | Аббревиатура (например, "Ин") | ✅ |
+| testament | String | Завет: "OLD" \| "NEW" | ✅ |
+| order | Number | Порядок в Библии (1-66) | ✅ |
+| createdAt | String (ISO 8601) | Дата создания | ✅ |
+| updatedAt | String (ISO 8601) | Дата обновления | ✅ |
+
+**Global Secondary Indexes:**
+
+**GSI-1: shortName-index**
+- **PK:** shortName (String)
+- **SK:** Нет
+- **Projection:** ALL
+- **Use Case:** Поиск книги по сокращенному названию
+
+**GSI-2: testament-order-index**
+- **PK:** testament (String)
+- **SK:** order (Number → String)
+- **Projection:** ALL
+- **Use Case:** Список книг по завету (отсортированные по порядку)
+
+**Access Patterns:**
+
+| # | Pattern | Index | Example |
+|---|---------|-------|---------|
+| 1 | Получить книгу по ID | Primary Key | `Query(PK=bookId)` |
+| 2 | Поиск книги по названию | GSI-1 | `Query(GSI1PK="Иоанна")` |
+| 3 | Книги по завету | GSI-2 | `Query(GSI2PK="NEW")` |
+| 4 | Все книги | Scan | `Scan()` (маленькая таблица, 66 записей) |
+
+**Примерная запись:**
+
+```json
+{
+  "id": "book-123",
+  "fullName": "Евангелие от Иоанна",
+  "shortName": "Иоанна",
+  "abbreviation": "Ин",
+  "testament": "NEW",
+  "order": 43,
+  "createdAt": "2024-09-01T00:00:00Z",
+  "updatedAt": "2024-09-01T00:00:00Z"
+}
+```
+
+**Размер записи:** ~200 bytes
+
+**Бизнес-правила:**
+- Всего 66 книг Библии (39 Ветхий Завет + 27 Новый Завет)
+- shortName должен быть уникальным
+- order определяет порядок книг в Библии (1-66)
+- Таблица заполняется один раз при инициализации базы данных
+
+---
+
+### 3.17. Таблица: UserFamilies
+
+**Назначение:** Связь пользователей с ролью PARENT с семьями учеников
+
+**Primary Key:**
+- **Partition Key (PK):** `id` (String)
+- **Sort Key (SK):** Нет
+
+**Атрибуты:**
+
+| Атрибут | Тип | Описание | Обязательный |
+|---------|-----|----------|--------------|
+| id | String (UUID) | Уникальный ID связи | ✅ |
+| userId | String | ID пользователя (PARENT) | ✅ |
+| familyId | String | ID семьи | ✅ |
+| phone | String | Номер телефона, использованный для связи | ✅ |
+| createdAt | String (ISO 8601) | Дата создания | ✅ |
+
+**Global Secondary Indexes:**
+
+**GSI-1: userId-index**
+- **PK:** userId (String)
+- **SK:** Нет
+- **Projection:** ALL
+- **Use Case:** Получить все семьи пользователя PARENT
+
+**GSI-2: familyId-index**
+- **PK:** familyId (String)
+- **SK:** Нет
+- **Projection:** ALL
+- **Use Case:** Получить всех пользователей PARENT, связанных с семьей
+
+**GSI-3: phone-index**
+- **PK:** phone (String)
+- **SK:** Нет
+- **Projection:** ALL
+- **Use Case:** Поиск связи по номеру телефона (для проверки при регистрации)
+
+**Access Patterns:**
+
+| # | Pattern | Index | Example |
+|---|---------|-------|---------|
+| 1 | Получить связь | Primary Key | `Query(PK=userFamilyId)` |
+| 2 | Семьи пользователя | GSI-1 | `Query(GSI1PK=userId)` |
+| 3 | Пользователи семьи | GSI-2 | `Query(GSI2PK=familyId)` |
+| 4 | Проверка по телефону | GSI-3 | `Query(GSI3PK=phone)` |
+
+**Примерная запись:**
+
+```json
+{
+  "id": "userfamily-456",
+  "userId": "user-parent-789",
+  "familyId": "family-123",
+  "phone": "+7 (912) 345-67-90",
+  "createdAt": "2024-09-15T10:30:00Z"
+}
+```
+
+**Размер записи:** ~150 bytes
+
+**Бизнес-правила:**
+- Связь создается при регистрации пользователя с ролью PARENT
+- При регистрации пользователь вводит номер телефона
+- Система ищет семью, где `motherPhone` или `fatherPhone` совпадает с введенным номером
+- Если семья найдена, создается связь UserFamily
+- Один пользователь PARENT может быть связан с несколькими семьями (если у него несколько детей в разных семьях)
+- Одна семья может быть связана с несколькими пользователями PARENT (мать и отец)
+- **Важно:** Это Post-MVP функционал, но структура базы данных создается на этапе MVP для будущей реализации
 
 ---
 
@@ -1121,16 +1380,82 @@ type Lesson @model {
 
 ---
 
+## 6. Аналитика (Post-MVP функционал)
+
+### 6.1. Обзор
+
+Для поддержки аналитики учебного процесса (post-MVP функционал) в таблице `HomeworkChecks` добавлен **GSI-3: gradeId-createdAt-index**. Этот индекс необходим для эффективных запросов по группе за период и должен быть создан на этапе MVP, даже если сам функционал аналитики будет реализован post-MVP.
+
+**Критически важно:** Access patterns определяют дизайн базы данных в DynamoDB. Структуру БД для аналитики необходимо создать на этапе MVP, чтобы предотвратить необходимость миграции данных в будущем.
+
+### 6.2. GSI-3 для HomeworkChecks
+
+**GSI-3: gradeId-createdAt-index**
+- **Partition Key (PK):** `gradeId` (String)
+- **Sort Key (SK):** `createdAt` (String, ISO 8601)
+- **Projection:** ALL
+- **Use Case:** 
+  - История успеваемости группы за период
+  - Топ учеников группы по баллам
+  - Агрегированная статистика группы
+  - Сравнительная аналитика между группами
+
+**Пример использования:**
+```typescript
+// Получить все проверки группы за период
+await client.query({
+  TableName: 'HomeworkChecks',
+  IndexName: 'gradeId-createdAt-index',
+  KeyConditionExpression: 'gradeId = :gradeId AND createdAt BETWEEN :start AND :end',
+  ExpressionAttributeValues: {
+    ':gradeId': 'grade-123',
+    ':start': '2024-09-01T00:00:00Z',
+    ':end': '2024-12-31T23:59:59Z'
+  }
+});
+```
+
+### 6.3. Опциональная таблица AnalyticsAggregates
+
+Для оптимизации производительности аналитики (для больших периодов и частых запросов) может быть создана опциональная таблица `AnalyticsAggregates` для кэширования агрегированных данных.
+
+**Структура (опционально):**
+
+| Атрибут | Тип | Описание |
+|---------|-----|----------|
+| id | String | PK: entityType-entityId-period |
+| entityType | String | "pupil" \| "grade" |
+| entityId | String | pupilId или gradeId |
+| period | String | "2024-09" (год-месяц) |
+| totalPoints | Number | Суммарные баллы за период |
+| averagePoints | Number | Средний балл за период |
+| lessonsCount | Number | Количество уроков |
+| attendanceRate | Number | Процент посещаемости |
+| ttl | Number | TTL для автоматической очистки |
+
+**Когда использовать:**
+- Для больших периодов (> 3 месяцев)
+- Для часто запрашиваемых данных
+- Для дашбордов с множеством метрик
+
+**Когда НЕ использовать:**
+- Для небольших периодов (< 1 месяца) — проще агрегировать на клиенте
+- Для редко запрашиваемых данных — избыточно
+
+**Подробнее:** См. [ANALYTICS.md](ANALYTICS.md) для полной документации по аналитике.
+
+---
+
 ## Cross-reference
 
-- См. также: [`docs/database/ERD.md`](../database/ERD.md) — визуализация сущностей
-- См. также: [`docs/database/GRAPHQL_SCHEMA.md`](../database/GRAPHQL_SCHEMA.md) — GraphQL типы
-- См. также: [`docs/database/DATA_MODELING.md`](../database/DATA_MODELING.md) — access patterns
+- См. также: [`docs/database/ERD.md`](ERD.md) — визуализация сущностей
+- См. также: [`docs/database/GRAPHQL_SCHEMA.md`](GRAPHQL_SCHEMA.md) — GraphQL типы
+- См. также: [`docs/database/DATA_MODELING.md`](DATA_MODELING.md) — access patterns
+- См. также: [`docs/database/ANALYTICS.md`](ANALYTICS.md) — аналитика учебного процесса (Post-MVP)
 - См. также: [`docs/architecture/ARCHITECTURE.md`](../architecture/ARCHITECTURE.md) — общая архитектура
 
 ---
 
-**Версия:** 1.0  
-**Последнее обновление:** 23 декабря 2025  
+**Версия:** 1.1  
+**Последнее обновление:** 27 декабря 2025  
 **Автор:** AI Documentation Team
-

@@ -1,8 +1,8 @@
 # Validation Schemas - Sunday School App
 
-## Document Version: 1.0
+## Document Version: 1.1
 **Creation Date:** 23 December 2025  
-**Last Update:** 23 December 2025  
+**Last Update:** 24 December 2025  
 **Project:** Sunday School App  
 **Technologies:** Zod, TypeScript, Next.js 15.5.9, React Hook Form  
 **Target Audience:** Frontend Developers, Backend Developers
@@ -36,6 +36,7 @@ lib/
     ├── grades.ts            # Grade schemas
     ├── academicYears.ts     # Academic year schemas
     ├── goldenVerses.ts      # Golden verse schemas
+    ├── books.ts             # Bible books schemas
     ├── users.ts             # User management schemas
     ├── achievements.ts      # Achievement schemas
     ├── gradeEvents.ts       # Calendar event schemas
@@ -384,11 +385,19 @@ export type UpdateAcademicYearInput = z.infer<typeof updateAcademicYearSchema>
 import { z } from 'zod'
 
 export const createGoldenVerseSchema = z.object({
-  book: z.string().min(1, 'Book name is required').max(50, 'Book name is too long'),
+  bookId: z.string().uuid('Invalid book ID'),
+  reference: z.string().min(1, 'Reference is required').max(100, 'Reference is too long'),
   chapter: z.number().int().min(1, 'Chapter must be at least 1'),
-  verse: z.number().int().min(1, 'Verse must be at least 1'),
+  verseStart: z.number().int().min(1, 'Verse start must be at least 1'),
+  verseEnd: z.number().int().min(1, 'Verse end must be at least 1').optional(),
   text: z.string().min(1, 'Verse text is required').max(1000, 'Verse text is too long'),
-})
+}).refine(
+  (data) => !data.verseEnd || data.verseEnd >= data.verseStart,
+  {
+    message: 'Verse end must be greater than or equal to verse start',
+    path: ['verseEnd'],
+  }
+)
 
 export type CreateGoldenVerseInput = z.infer<typeof createGoldenVerseSchema>
 ```
@@ -408,7 +417,67 @@ export type SearchGoldenVersesInput = z.infer<typeof searchGoldenVersesSchema>
 
 ---
 
-## 10. User Schemas (`lib/validation/users.ts`)
+## 10. Book Schemas (`lib/validation/books.ts`)
+
+### 10.1. List Books Schema
+
+```typescript
+import { z } from 'zod'
+
+export const listBooksSchema = z.object({
+  testament: z.enum(['OLD', 'NEW']).optional(),
+  limit: z.number().int().min(1).max(100).default(66),
+})
+
+export type ListBooksInput = z.infer<typeof listBooksSchema>
+```
+
+---
+
+### 10.2. Get Book Schema
+
+```typescript
+export const getBookSchema = z.object({
+  id: z.string().uuid('Invalid book ID'),
+})
+
+export type GetBookInput = z.infer<typeof getBookSchema>
+```
+
+---
+
+### 10.3. Search Books Schema
+
+```typescript
+export const searchBooksSchema = z.object({
+  query: z.string().min(1, 'Search query is required').max(100, 'Query is too long'),
+  limit: z.number().int().min(1).max(66, 'Limit cannot exceed 66 books').default(10),
+})
+
+export type SearchBooksInput = z.infer<typeof searchBooksSchema>
+```
+
+---
+
+### 10.4. Create Book Schema (Admin only)
+
+```typescript
+export const createBookSchema = z.object({
+  fullName: z.string().min(1, 'Full name is required').max(100, 'Full name is too long'),
+  shortName: z.string().min(1, 'Short name is required').max(50, 'Short name is too long'),
+  abbreviation: z.string().min(1, 'Abbreviation is required').max(10, 'Abbreviation is too long'),
+  testament: z.enum(['OLD', 'NEW'], {
+    errorMap: () => ({ message: 'Testament must be OLD or NEW' }),
+  }),
+  order: z.number().int().min(1).max(66, 'Order must be between 1 and 66'),
+})
+
+export type CreateBookInput = z.infer<typeof createBookSchema>
+```
+
+---
+
+## 11. User Schemas (`lib/validation/users.ts`)
 
 ### 10.1. Create User Schema
 
