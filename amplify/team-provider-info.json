@@ -31,6 +31,14 @@
       "StackName": "amplify-sunsch-prod-e50ea",
       "StackId": "arn:aws:cloudformation:eu-west-1:707421297188:stack/amplify-sunsch-prod-e50ea/886e7da0-e257-11f0-92af-06aca0acdb21",
       "AmplifyAppId": "d1a795g3snm344"
+    },
+    "categories": {
+      "auth": {
+        "sunsche716d941": {}
+      },
+      "api": {
+        "sunsch": {}
+      }
     }
   }
 }
