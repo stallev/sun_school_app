@@ -1,0 +1,20 @@
+﻿=== DynamoDB Tables Check Report ===
+Date: 2025-12-27 20:51:07
+Region: us-east-1
+
+Total tables found: 17
+
+Tables:
+  - AcademicYear-2ito3uqzjbdcbonnabmm3io6x4-dev   - Achievement-2ito3uqzjbdcbonnabmm3io6x4-dev   - Book-2ito3uqzjbdcbonnabmm3io6x4-dev   - Family-2ito3uqzjbdcbonnabmm3io6x4-dev   - FamilyMember-2ito3uqzjbdcbonnabmm3io6x4-dev   - GoldenVerse-2ito3uqzjbdcbonnabmm3io6x4-dev   - Grade-2ito3uqzjbdcbonnabmm3io6x4-dev   - GradeEvent-2ito3uqzjbdcbonnabmm3io6x4-dev   - GradeSettings-2ito3uqzjbdcbonnabmm3io6x4-dev   - HomeworkCheck-2ito3uqzjbdcbonnabmm3io6x4-dev   - Lesson-2ito3uqzjbdcbonnabmm3io6x4-dev   - LessonGoldenVerse-2ito3uqzjbdcbonnabmm3io6x4-dev   - Pupil-2ito3uqzjbdcbonnabmm3io6x4-dev   - PupilAchievement-2ito3uqzjbdcbonnabmm3io6x4-dev   - User-2ito3uqzjbdcbonnabmm3io6x4-dev   - UserFamily-2ito3uqzjbdcbonnabmm3io6x4-dev   - UserGrade-2ito3uqzjbdcbonnabmm3io6x4-dev
+
+Sample check - User table:
+  Partition Key: id
+  Billing Mode: PAY_PER_REQUEST
+  GSI: byEmail (PK=email), byRole (PK=role, SK=createdAt)
+
+Sample check - Lesson table:
+  Partition Key: id
+  Billing Mode: PAY_PER_REQUEST
+  GSI: byAcademicYearId (PK=academicYearId, SK=lessonDate), byGradeId (PK=gradeId, SK=lessonDate), byTeacherId (PK=teacherId, SK=createdAt)
+
+=== All checks passed ===

@@ -83,7 +83,8 @@ Phase 13: Управление уроками (Lessons)
 - [ ] Использовать bookId вместо book в схемах валидации
 
 **Документация:**
-- <CRITICAL>[SERVER_ACTIONS.md](../../../api/SERVER_ACTIONS.md) - раздел Golden Verses</CRITICAL>
+- <CRITICAL>[SERVER_ACTIONS.md](../../../api/SERVER_ACTIONS.md) - раздел Golden Verses и раздел 6 "Working with Related Data via Indexes"</CRITICAL>
+- ⚠️ **Важно:** Для получения связанных данных (книга, уроки) используй queries через индексы, а не прямые связи `@belongsTo` и `@hasMany`. См. [SCHEMA_DIFFERENCES.md](../../../database/SCHEMA_DIFFERENCES.md)
 - <CRITICAL>[MVP_SCOPE.md](../../../MVP_SCOPE.md) - раздел 2.9 Библиотека золотых стихов</CRITICAL>
 - Context7: Next.js 15.5.9 Server Actions документация
 

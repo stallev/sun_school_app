@@ -83,7 +83,8 @@ Phase 13: Управление уроками (Lessons)
 - [ ] Использовать валидацию через Zod схемы
 
 **Документация:**
-- <CRITICAL>[SERVER_ACTIONS.md](../../../api/SERVER_ACTIONS.md) - раздел Homework</CRITICAL>
+- <CRITICAL>[SERVER_ACTIONS.md](../../../api/SERVER_ACTIONS.md) - раздел Homework и раздел 6 "Working with Related Data via Indexes"</CRITICAL>
+- ⚠️ **Важно:** Для получения связанных данных (урок, ученик) используй queries через индексы, а не прямые связи `@belongsTo` и `@hasMany`. См. [SCHEMA_DIFFERENCES.md](../../../database/SCHEMA_DIFFERENCES.md)
 - <CRITICAL>[VALIDATION.md](../../../api/VALIDATION.md) - раздел Homework Schemas</CRITICAL>
 - <CRITICAL>[MVP_SCOPE.md](../../../MVP_SCOPE.md) - раздел 2.4 Проверка домашних заданий</CRITICAL>
 - Context7: Next.js 15.5.9 Server Actions документация

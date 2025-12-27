@@ -1,8 +1,8 @@
 # Server Actions - Sunday School App
 
-## Document Version: 1.0
+## Document Version: 1.1
 **Creation Date:** 23 December 2025  
-**Last Update:** 23 December 2025  
+**Last Update:** 27 December 2025  
 **Project:** Sunday School App  
 **Technologies:** Next.js 15.5.9 (App Router, Server Actions), React 19, AWS Amplify Gen 1, AWS AppSync, Zod  
 **Target Audience:** Frontend Developers, Backend Developers, API Consumers
@@ -210,7 +210,304 @@ export async function createLesson(input: unknown): Promise<ActionResponse<Lesso
 
 ---
 
-## 6. Actions by Domain
+## 6. Working with Related Data via Indexes
+
+⚠️ **Important:** Since `@belongsTo` and `@hasMany` directives were removed from the GraphQL schema to eliminate CloudFormation circular dependencies, all relationships must be accessed via index-based queries.
+
+**Key Principles:**
+1. Use queries through indexes (GSI) instead of direct relationship fields
+2. Create batch queries to fetch related data in a single request
+3. Cache results on the client to reduce API calls
+4. Use Server Actions to combine multiple queries into one call
+
+**See also:**
+- [GRAPHQL_SCHEMA.md](../database/GRAPHQL_SCHEMA.md) section 4.5 for query examples
+- [SCHEMA_DIFFERENCES.md](../database/SCHEMA_DIFFERENCES.md) for complete list of changes
+- [DATA_MODELING.md](../database/DATA_MODELING.md) section 8 for relationship patterns
+
+### 6.1. Querying Related Data
+
+Since `@belongsTo` and `@hasMany` directives were removed from the GraphQL schema, all relationships must be accessed via index-based queries.
+
+**Example: Getting lesson with related data**
+
+```typescript
+'use server'
+
+import { amplifyData } from '@/lib/db/amplify'
+
+export async function getLessonWithRelations(lessonId: string) {
+  // 1. Get lesson
+  const lesson = await amplifyData.models.Lesson.get({ id: lessonId })
+  
+  if (!lesson.data) {
+    return { success: false, error: 'Lesson not found' }
+  }
+  
+  // 2. Get related academic year
+  const academicYear = await amplifyData.models.AcademicYear.get({ 
+    id: lesson.data.academicYearId 
+  })
+  
+  // 3. Get golden verses via index
+  const lessonGoldenVerses = await amplifyData.models.LessonGoldenVerse.list({
+    lessonId,
+    sortDirection: 'ASC'
+  })
+  
+  // 4. Get homework checks via index
+  const homeworkChecks = await amplifyData.models.HomeworkCheck.list({
+    lessonId,
+    sortDirection: 'ASC'
+  })
+  
+  return {
+    success: true,
+    data: {
+      lesson: lesson.data,
+      academicYear: academicYear.data,
+      goldenVerses: lessonGoldenVerses.data,
+      homeworkChecks: homeworkChecks.data
+    }
+  }
+}
+```
+
+**Example: Getting pupil with homework checks and achievements**
+
+```typescript
+'use server'
+
+import { amplifyData } from '@/lib/db/amplify'
+
+export async function getPupilComplete(pupilId: string) {
+  // 1. Get pupil
+  const pupil = await amplifyData.models.Pupil.get({ id: pupilId })
+  
+  if (!pupil.data) {
+    return { success: false, error: 'Pupil not found' }
+  }
+  
+  // 2. Get homework checks via index
+  const homeworkChecks = await amplifyData.models.HomeworkCheck.list({
+    pupilId,
+    sortDirection: 'DESC'
+  })
+  
+  // 3. Get achievements via index
+  const achievements = await amplifyData.models.PupilAchievement.list({
+    pupilId,
+    sortDirection: 'DESC'
+  })
+  
+  // 4. Get grade
+  const grade = await amplifyData.models.Grade.get({ id: pupil.data.gradeId })
+  
+  return {
+    success: true,
+    data: {
+      pupil: pupil.data,
+      homeworkChecks: homeworkChecks.data,
+      achievements: achievements.data,
+      grade: grade.data
+    }
+  }
+}
+```
+
+### 6.2. Batch Queries
+
+Combine multiple queries in a single Server Action to reduce round trips and improve performance.
+
+**Example: Batch query for lesson data**
+
+```typescript
+'use server'
+
+import { amplifyData } from '@/lib/db/amplify'
+
+export async function getLessonComplete(lessonId: string) {
+  // Execute all queries in parallel using Promise.all
+  const [lesson, goldenVerses, homeworkChecks] = await Promise.all([
+    amplifyData.models.Lesson.get({ id: lessonId }),
+    amplifyData.models.LessonGoldenVerse.list({ 
+      lessonId,
+      sortDirection: 'ASC' 
+    }),
+    amplifyData.models.HomeworkCheck.list({ 
+      lessonId,
+      sortDirection: 'ASC' 
+    })
+  ])
+  
+  if (!lesson.data) {
+    return { success: false, error: 'Lesson not found' }
+  }
+  
+  return {
+    success: true,
+    data: {
+      lesson: lesson.data,
+      goldenVerses: goldenVerses.data,
+      homeworkChecks: homeworkChecks.data
+    }
+  }
+}
+```
+
+**Example: Batch query with related entities**
+
+```typescript
+'use server'
+
+import { amplifyData } from '@/lib/db/amplify'
+
+export async function getGradeWithRelations(gradeId: string) {
+  // Execute all queries in parallel
+  const [grade, pupils, academicYears, events, settings] = await Promise.all([
+    amplifyData.models.Grade.get({ id: gradeId }),
+    amplifyData.models.Pupil.list({ gradeId }),
+    amplifyData.models.AcademicYear.list({ gradeId }),
+    amplifyData.models.GradeEvent.list({ 
+      gradeId,
+      sortDirection: 'ASC' 
+    }),
+    amplifyData.models.GradeSettings.list({ gradeId })
+  ])
+  
+  if (!grade.data) {
+    return { success: false, error: 'Grade not found' }
+  }
+  
+  return {
+    success: true,
+    data: {
+      grade: grade.data,
+      pupils: pupils.data,
+      academicYears: academicYears.data,
+      events: events.data,
+      settings: settings.data?.[0] || null
+    }
+  }
+}
+```
+
+**Benefits of batch queries:**
+- ✅ Reduced round trips to API
+- ✅ Parallel execution (faster)
+- ✅ Atomic fetching of related data
+- ✅ Simplified client logic
+
+### 6.3. Caching Strategies
+
+Cache query results on the client to reduce API calls and improve performance.
+
+**Recommendations:**
+
+1. **Server Components (Next.js cache function):**
+   ```typescript
+   import { cache } from 'react'
+   import { amplifyData } from '@/lib/db/amplify'
+   
+   // Cache at Server Component level
+   const getCachedLesson = cache(async (lessonId: string) => {
+     return await amplifyData.models.Lesson.get({ id: lessonId })
+   })
+   
+   // Use in Server Component
+   export default async function LessonPage({ params }: { params: { id: string } }) {
+     const lesson = await getCachedLesson(params.id)
+     // ...
+   }
+   ```
+
+2. **Client Components (React useMemo):**
+   ```typescript
+   'use client'
+   
+   import { useMemo } from 'react'
+   
+   function LessonDetails({ lesson, goldenVerses, homeworkChecks }) {
+     const lessonStats = useMemo(() => {
+       return {
+         totalChecks: homeworkChecks.length,
+         averagePoints: homeworkChecks.reduce((sum, check) => sum + check.points, 0) / homeworkChecks.length,
+         versesCount: goldenVerses.length
+       }
+     }, [homeworkChecks, goldenVerses])
+     
+     // ...
+   }
+   ```
+
+3. **SWR or React Query (for client-side caching):**
+   ```typescript
+   'use client'
+   
+   import useSWR from 'swr'
+   import { getLessonComplete } from '@/actions/lessons'
+   
+   function useLesson(lessonId: string) {
+     const { data, error, isLoading } = useSWR(
+       lessonId ? `lesson-${lessonId}` : null,
+       async () => {
+         const result = await getLessonComplete(lessonId)
+         if (!result.success) throw new Error(result.error)
+         return result.data
+       },
+       {
+         revalidateOnFocus: false,
+         revalidateOnReconnect: false,
+         dedupingInterval: 5000 // Deduplicate requests within 5 seconds
+       }
+     )
+     
+     return { lesson: data, error, isLoading }
+   }
+   ```
+
+4. **Request Deduplication:**
+   ```typescript
+   // Deduplicate parallel requests
+   const requestCache = new Map<string, Promise<any>>()
+   
+   async function getCachedLesson(lessonId: string) {
+     const cacheKey = `lesson-${lessonId}`
+     
+     if (requestCache.has(cacheKey)) {
+       return requestCache.get(cacheKey)
+     }
+     
+     const promise = amplifyData.models.Lesson.get({ id: lessonId })
+     requestCache.set(cacheKey, promise)
+     
+     try {
+       const result = await promise
+       return result
+     } finally {
+       requestCache.delete(cacheKey)
+     }
+   }
+   ```
+
+**Caching Strategy Table:**
+
+| Strategy | When to Use | Example |
+|----------|-------------|---------|
+| Server Component cache | Static data, rarely changing | List of grades, settings |
+| React useMemo | Computed derived data | Statistics, aggregations |
+| SWR/React Query | Dynamic data, needs synchronization | Lists of lessons, homework checks |
+| Request deduplication | Parallel requests of same type | Batch queries in Server Actions |
+
+**Important Notes:**
+- ⚠️ Caching must respect user access rights
+- ⚠️ Invalidate cache when data is mutated
+- ⚠️ Use `revalidatePath()` or `revalidateTag()` in Server Actions after mutations
+- ✅ For MVP, simple Server Component caching is sufficient
+
+---
+
+## 7. Actions by Domain
 
 ---
 
@@ -1146,7 +1443,7 @@ type SignOutOutput = {
 
 ---
 
-## 7. Error Handling Best Practices
+## 8. Error Handling Best Practices
 
 ### 7.1. Granular Error Messages
 
@@ -1187,7 +1484,7 @@ if (!hasPermission(user, 'ADMIN')) {
 
 ---
 
-## 8. Revalidation Strategies
+## 9. Revalidation Strategies
 
 ### 8.1. `revalidatePath()`
 
@@ -1225,7 +1522,7 @@ revalidateTag(`grade-${gradeId}`)
 
 ---
 
-## 9. Testing Server Actions
+## 10. Testing Server Actions
 
 ### 9.1. Unit Testing
 
@@ -1294,7 +1591,7 @@ test('Teacher can create a new lesson', async ({ page }) => {
 
 ---
 
-## 10. Performance Optimization
+## 11. Performance Optimization
 
 ### 10.1. Parallel Data Fetching
 
@@ -1327,17 +1624,19 @@ const debouncedSearch = useDebouncedCallback(async (query) => {
 
 ---
 
-## 11. Cross-References
+## 12. Cross-References
 
 -   **→ [VALIDATION.md](VALIDATION.md):** Full Zod schema definitions for all inputs.
 -   **→ [GRAPHQL_SCHEMA.md](../database/GRAPHQL_SCHEMA.md):** AppSync GraphQL types and queries.
+-   **→ [SCHEMA_DIFFERENCES.md](../database/SCHEMA_DIFFERENCES.md):** Differences between current and documented schema, reasons for removing @belongsTo/@hasMany.
+-   **→ [DATA_MODELING.md](../database/DATA_MODELING.md):** Data modeling patterns and access patterns.
 -   **→ [ARCHITECTURE.md](../architecture/ARCHITECTURE.md):** Overall system architecture.
 -   **→ [SECURITY.md](../infrastructure/SECURITY.md):** Authentication and authorization details.
 -   **→ [COMPONENT_LIBRARY.md](../components/COMPONENT_LIBRARY.md):** UI components that consume Server Actions.
 
 ---
 
-## 12. Resources
+## 13. Resources
 
 -   **Next.js Server Actions Documentation:** https://nextjs.org/docs/app/building-your-application/data-fetching/server-actions-and-mutations
 -   **Zod Documentation:** https://zod.dev

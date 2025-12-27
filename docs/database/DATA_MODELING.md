@@ -1,8 +1,8 @@
 # Data Modeling - Sunday School App
 
-## Версия документа: 1.1
+## Версия документа: 1.2
 **Дата создания:** 23 декабря 2025  
-**Последнее обновление:** 24 декабря 2025  
+**Последнее обновление:** 27 декабря 2025  
 **Проект:** Sunday School App  
 **Технологии:** AWS DynamoDB, AWS AppSync, AWS Amplify Gen 1  
 **Modeling Strategy:** Access Patterns First
@@ -105,6 +105,39 @@ graph LR
 - PK: academicYearId
 - SK: lessonDate
 - Результат: **1 Query**, отсортированный список
+
+### 1.4. Работа со связями через queries
+
+⚠️ **Важно:** В GraphQL схеме удалены директивы `@belongsTo` и `@hasMany` для устранения циклических зависимостей CloudFormation. Все связи между сущностями реализуются через queries с использованием индексов (GSI).
+
+**Причина удаления:**
+- Циклические зависимости CloudFormation при генерации resolvers для связанных типов
+- Переиспользование auth resolver функций между моделями с идентичными @auth правилами
+- Подробности см. в [SCHEMA_DIFFERENCES.md](./SCHEMA_DIFFERENCES.md)
+
+**Принципы работы со связями:**
+
+1. **Используйте queries через индексы** вместо прямых связей `@belongsTo` и `@hasMany`
+   - Все связи доступны через queries с использованием GSI (Global Secondary Index)
+   - Пример: `lessonsByAcademicYearId`, `homeworkChecksByLessonId`, `pupilsByGradeId`
+
+2. **Создавайте batch queries** для получения связанных данных в одном запросе
+   - Объединяйте несколько queries в один GraphQL запрос
+   - Используйте `Promise.all()` в Server Actions для параллельных запросов
+
+3. **Кэшируйте результаты** на клиенте для уменьшения количества запросов
+   - Используйте React `useMemo` для computed derived data
+   - Используйте Next.js `cache()` для Server Components
+   - Рассмотрите использование SWR или React Query для client-side caching
+
+4. **Используйте Server Actions** для объединения нескольких queries в один вызов
+   - Инкапсулируйте логику получения связанных данных в Server Actions
+   - См. [SERVER_ACTIONS.md](../api/SERVER_ACTIONS.md) для примеров
+
+**Примеры:**
+- См. раздел 8 "Обработка связей" ниже для детальных примеров
+- См. [GRAPHQL_SCHEMA.md](./GRAPHQL_SCHEMA.md) раздел 4.5 для примеров queries
+- См. [SCHEMA_DIFFERENCES.md](./SCHEMA_DIFFERENCES.md) для полного списка изменений
 
 ---
 
@@ -1241,6 +1274,19 @@ type HomeworkCheck {
 
 ## 8. Обработка связей
 
+⚠️ **Критически важно:** В GraphQL схеме удалены директивы `@belongsTo` и `@hasMany`. Все связи между сущностями реализуются **только** через queries с использованием индексов (GSI). Это единственный способ работы со связями в текущей схеме.
+
+**Принципы:**
+- Все связи доступны через queries по индексам (например, `lessonsByAcademicYearId`, `homeworkChecksByLessonId`)
+- Используйте batch queries для получения связанных данных в одном запросе
+- Кэшируйте результаты на клиенте для уменьшения количества запросов
+- Используйте Server Actions для объединения нескольких queries
+
+**См. также:**
+- [GRAPHQL_SCHEMA.md](./GRAPHQL_SCHEMA.md) раздел 4.5 для примеров queries
+- [SCHEMA_DIFFERENCES.md](./SCHEMA_DIFFERENCES.md) для полного списка изменений
+- [SERVER_ACTIONS.md](../api/SERVER_ACTIONS.md) для примеров использования в Server Actions
+
 ### 8.1. One-to-Many relationships
 
 **Паттерн:** Foreign Key в дочерней таблице + GSI
@@ -1326,6 +1372,190 @@ await client.query({
 });
 ```
 
+### 8.4. Batch Queries для получения связанных данных
+
+**Паттерн:** Объединение нескольких queries в одном запросе для уменьшения количества round trips.
+
+**Пример 1: Получить урок с золотыми стихами и проверками ДЗ**
+
+```typescript
+// GraphQL batch query (все в одном запросе)
+const query = `
+  query GetLessonComplete($lessonId: ID!) {
+    lesson: getLesson(id: $lessonId) {
+      id
+      title
+      lessonDate
+      academicYearId
+      gradeId
+      teacherId
+    }
+    goldenVerses: lessonGoldenVersesByLessonId(
+      lessonId: $lessonId
+      sortDirection: ASC
+    ) {
+      items {
+        id
+        goldenVerseId
+        order
+      }
+    }
+    homeworkChecks: homeworkChecksByLessonId(
+      lessonId: $lessonId
+      sortDirection: ASC
+    ) {
+      items {
+        id
+        pupilId
+        points
+        goldenVerse1Score
+        goldenVerse2Score
+        goldenVerse3Score
+        testScore
+        notebookScore
+        singing
+      }
+    }
+  }
+`;
+```
+
+**Пример 2: Server Action с параллельными запросами**
+
+```typescript
+// В Server Action используйте Promise.all для параллельных запросов
+export async function getLessonComplete(lessonId: string) {
+  const [lesson, goldenVerses, homeworkChecks] = await Promise.all([
+    amplifyData.models.Lesson.get({ id: lessonId }),
+    amplifyData.models.LessonGoldenVerse.list({ 
+      lessonId,
+      sortDirection: 'ASC' 
+    }),
+    amplifyData.models.HomeworkCheck.list({ 
+      lessonId,
+      sortDirection: 'ASC' 
+    })
+  ]);
+  
+  return {
+    lesson: lesson.data,
+    goldenVerses: goldenVerses.data,
+    homeworkChecks: homeworkChecks.data
+  };
+}
+```
+
+**Преимущества batch queries:**
+- ✅ Уменьшение количества round trips к API
+- ✅ Параллельное выполнение запросов (быстрее)
+- ✅ Атомарность получения связанных данных
+- ✅ Упрощение логики на клиенте
+
+### 8.5. Кэширование результатов queries
+
+**Паттерн:** Кэширование результатов queries на клиенте для уменьшения количества запросов к API.
+
+**Рекомендации по кэшированию:**
+
+1. **Server Components (Next.js):**
+   ```typescript
+   import { cache } from 'react';
+   
+   // Кэширование на уровне Server Component
+   const getCachedLesson = cache(async (lessonId: string) => {
+     return await amplifyData.models.Lesson.get({ id: lessonId });
+   });
+   
+   // Использование в Server Component
+   export default async function LessonPage({ params }: { params: { id: string } }) {
+     const lesson = await getCachedLesson(params.id);
+     // ...
+   }
+   ```
+
+2. **Client Components (React):**
+   ```typescript
+   'use client';
+   
+   import { useMemo } from 'react';
+   
+   // Кэширование computed derived data
+   function LessonDetails({ lesson, goldenVerses, homeworkChecks }) {
+     const lessonStats = useMemo(() => {
+       return {
+         totalChecks: homeworkChecks.length,
+         averagePoints: homeworkChecks.reduce((sum, check) => sum + check.points, 0) / homeworkChecks.length,
+         versesCount: goldenVerses.length
+       };
+     }, [homeworkChecks, goldenVerses]);
+     
+     // ...
+   }
+   ```
+
+3. **SWR или React Query (для client-side caching):**
+   ```typescript
+   'use client';
+   
+   import useSWR from 'swr';
+   
+   function useLesson(lessonId: string) {
+     const { data, error, isLoading } = useSWR(
+       lessonId ? `lesson-${lessonId}` : null,
+       async () => {
+         const result = await getLessonComplete(lessonId);
+         return result;
+       },
+       {
+         revalidateOnFocus: false,
+         revalidateOnReconnect: false,
+         dedupingInterval: 5000 // Дедупликация запросов в течение 5 секунд
+       }
+     );
+     
+     return { lesson: data, error, isLoading };
+   }
+   ```
+
+4. **Request Deduplication:**
+   ```typescript
+   // Дедупликация параллельных запросов
+   const requestCache = new Map<string, Promise<any>>();
+   
+   async function getCachedLesson(lessonId: string) {
+     const cacheKey = `lesson-${lessonId}`;
+     
+     if (requestCache.has(cacheKey)) {
+       return requestCache.get(cacheKey);
+     }
+     
+     const promise = amplifyData.models.Lesson.get({ id: lessonId });
+     requestCache.set(cacheKey, promise);
+     
+     try {
+       const result = await promise;
+       return result;
+     } finally {
+       requestCache.delete(cacheKey);
+     }
+   }
+   ```
+
+**Стратегии кэширования:**
+
+| Стратегия | Когда использовать | Пример |
+|-----------|-------------------|--------|
+| Server Component cache | Статические данные, редко изменяющиеся | Список групп, настройки |
+| React useMemo | Computed derived data | Статистика, агрегации |
+| SWR/React Query | Динамические данные, нужна синхронизация | Списки уроков, проверки ДЗ |
+| Request deduplication | Параллельные запросы одного типа | Batch queries в Server Actions |
+
+**Важные замечания:**
+- ⚠️ Кэширование должно учитывать права доступа пользователя
+- ⚠️ При мутациях данных необходимо инвалидировать кэш
+- ⚠️ Используйте `revalidatePath()` или `revalidateTag()` в Server Actions после мутаций
+- ✅ Для MVP достаточно простого кэширования на уровне Server Components
+
 ---
 
 ## 9. Best Practices
@@ -1395,6 +1625,7 @@ const lesson = {
 
 - См. также: [`docs/database/DYNAMODB_SCHEMA.md`](DYNAMODB_SCHEMA.md) — детальная схема таблиц
 - См. также: [`docs/database/GRAPHQL_SCHEMA.md`](GRAPHQL_SCHEMA.md) — GraphQL типы и queries
+- См. также: [`docs/database/SCHEMA_DIFFERENCES.md`](SCHEMA_DIFFERENCES.md) — различия между текущей и документированной схемой, причины удаления @belongsTo/@hasMany
 - См. также: [`docs/database/ERD.md`](ERD.md) — визуализация сущностей
 - См. также: [`docs/database/ANALYTICS.md`](ANALYTICS.md) — аналитика учебного процесса (Post-MVP)
 - См. также: [`docs/architecture/ARCHITECTURE.md`](../architecture/ARCHITECTURE.md) — общая архитектура
