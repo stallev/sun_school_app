@@ -38,6 +38,7 @@ enum GradeEventType {
 # Метаданные хранятся в DynamoDB
 type User
   @model
+  @versioned
   @auth(rules: [
     # Owner может читать и редактировать свой профиль
     { allow: owner, ownerField: "id", operations: [read, update] },
@@ -69,6 +70,7 @@ type User
 # Группы учеников воскресной школы
 type Grade
   @model
+  @versioned
   @auth(rules: [
     # Admin и Superadmin могут управлять группами
     { allow: groups, groups: ["ADMIN", "SUPERADMIN"] },
@@ -152,6 +154,7 @@ type AcademicYear
 # Уроки в рамках учебного года
 type Lesson
   @model
+  @versioned
   @auth(rules: [
     # Admin и Superadmin могут управлять всеми уроками
     { allow: groups, groups: ["ADMIN", "SUPERADMIN"] },
@@ -266,6 +269,7 @@ type LessonGoldenVerse
 # Ученики воскресной школы
 type Pupil
   @model
+  @versioned
   @auth(rules: [
     # Admin и Superadmin могут управлять учениками
     { allow: groups, groups: ["ADMIN", "SUPERADMIN"] },
@@ -300,6 +304,7 @@ type Pupil
 # Результаты проверки домашних заданий учеников за урок
 type HomeworkCheck
   @model
+  @versioned
   @auth(rules: [
     # Разделенные правила для предотвращения циклических зависимостей CloudFormation
     { allow: groups, groups: ["TEACHER"] },
@@ -498,6 +503,7 @@ type GradeEvent
 # Настройки параметров оценивания для каждой группы
 type GradeSettings
   @model
+  @versioned
   @auth(rules: [
     # Admin и Superadmin могут управлять настройками
     { allow: groups, groups: ["ADMIN", "SUPERADMIN"] },

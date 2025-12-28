@@ -1,0 +1,18 @@
+schema: src/graphql/schema.json
+documents: null
+generates:
+  src/graphql/generated/types.ts:
+    plugins:
+      - typescript
+    config:
+      scalars:
+        AWSDate: string
+        AWSTime: string
+        AWSDateTime: string
+        AWSEmail: string
+        AWSURL: string
+        AWSJSON: string
+      enumsAsTypes: true
+      skipTypename: true
+      useTypeImports: true
+
