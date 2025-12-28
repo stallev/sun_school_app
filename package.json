@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "format": "prettier --write .",
-    "seed:books": "tsx scripts/seed-books-cli.ts"
+    "seed:books": "tsx scripts/seed-books-cli.ts",
+    "codegen": "graphql-codegen --config codegen.yml"
   },
   "dependencies": {
     "@aws-crypto/sha256-js": "5.2.0",
@@ -35,6 +36,9 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@graphql-codegen/cli": "^6.1.0",
+    "@graphql-codegen/typescript": "^5.0.7",
+    "@graphql-codegen/typescript-operations": "^5.0.7",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

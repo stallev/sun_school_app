@@ -1842,6 +1842,35 @@ type User @model @auth(rules: [
 }
 ```
 
+### 8.4. Таблица прав доступа по ролям
+
+Краткая сводка прав доступа для каждой роли:
+
+| Тип данных | TEACHER | ADMIN | SUPERADMIN |
+|------------|---------|-------|------------|
+| **User** | Read (все), Update (свой профиль) | Create, Read, Update, Delete (все) | Create, Read, Update, Delete (все) |
+| **Grade** | Read | Create, Read, Update, Delete | Create, Read, Update, Delete |
+| **UserGrade** | Read (свои назначения) | Create, Read, Update, Delete | Create, Read, Update, Delete |
+| **AcademicYear** | Read | Create, Read, Update, Delete | Create, Read, Update, Delete |
+| **Lesson** | Read (все), Create/Update/Delete (свои уроки) | Create, Read, Update, Delete | Create, Read, Update, Delete |
+| **Book** | Read | Create, Read, Update, Delete | Create, Read, Update, Delete |
+| **GoldenVerse** | Read | Create, Read, Update, Delete | Create, Read, Update, Delete |
+| **LessonGoldenVerse** | Create, Read, Update, Delete | Create, Read, Update, Delete | Create, Read, Update, Delete |
+| **Pupil** | Read | Create, Read, Update, Delete | Create, Read, Update, Delete |
+| **HomeworkCheck** | Create, Read, Update, Delete | Create, Read, Update, Delete | Create, Read, Update, Delete |
+| **Achievement** | Read | Create, Read, Update, Delete | Create, Read, Update, Delete |
+| **PupilAchievement** | Create, Read, Update, Delete | Create, Read, Update, Delete | Create, Read, Update, Delete |
+| **Family** | Read | Create, Read, Update, Delete | Create, Read, Update, Delete |
+| **FamilyMember** | Read | Create, Read, Update, Delete | Create, Read, Update, Delete |
+| **UserFamily** | — | Create, Read, Update, Delete | Create, Read, Update, Delete |
+| **GradeEvent** | Create, Read, Update, Delete | Create, Read, Update, Delete | Create, Read, Update, Delete |
+| **GradeSettings** | Read | Create, Read, Update, Delete | Create, Read, Update, Delete |
+
+**Примечания:**
+- **Owner-based access:** User может обновлять только свой профиль (ownerField: "id"). Lesson может создавать/обновлять/удалять только свои уроки (ownerField: "teacherId").
+- **UserFamily:** Owner (userId) может читать свои связи (для роли PARENT, Post-MVP).
+- **ADMIN и SUPERADMIN:** В MVP имеют одинаковые права. SUPERADMIN зарезервирован для будущего расширения.
+
 ---
 
 ## 9. Связь с DynamoDB

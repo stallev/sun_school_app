@@ -610,7 +610,9 @@ export async function getSecret(secretName: string): Promise<string> {
 
 ### 8.1. CloudWatch Logs
 
-**AppSync Logs:**
+> **Примечание для MVP:** CloudWatch Logs для AppSync не настраиваются на стадии MVP, так как это добавляет дополнительные затраты и сложность, которые не требуются на начальном этапе. Базовые метрики доступны в AWS Console без дополнительной настройки.
+
+**AppSync Logs (Post-MVP):**
 
 -   Enable detailed logging for all GraphQL operations.
 -   Logs include: queries, mutations, authentication events, and errors.
@@ -702,7 +704,7 @@ aws cloudtrail start-logging --name sundayschoolapp-trail
 
 ### 9.7. Monitoring and Logging
 
--   ✅ Enable CloudWatch Logs for AppSync.
+-   ⬜ Enable CloudWatch Logs for AppSync (Post-MVP, не требуется для MVP).
 -   ✅ Enable Cognito audit logging.
 -   ⬜ Set up alerts for suspicious activity (Post-MVP).
 -   ⬜ Enable AWS GuardDuty for threat detection (Post-MVP).
