@@ -139,7 +139,7 @@ Phase 04: Настройка GraphQL API (AppSync)
 **Действия:**
 - [x] Изучить текущую конфигурацию из phase_05_auth_current_config.md
 - [x] Обновить `amplify/backend/auth/sunsche716d941/cli-inputs.json`:
-  - Парольная политика: добавить REQUIRE_UPPERCASE, REQUIRE_LOWERCASE, REQUIRE_NUMBERS, REQUIRE_SYMBOLS
+  - Парольная политика: добавить REQUIRE_UPPERCASE, REQUIRE_NUMBERS
   - Проверить другие настройки
 - [x] Обновить `amplify/backend/backend-config.json`:
   - Парольная политика: добавить passwordPolicyCharacters
@@ -223,7 +223,7 @@ Phase 04: Настройка GraphQL API (AppSync)
 </context>
 
 <task>
-Примени обновленную парольную политику к Cognito User Pools через `amplify push`. Убедись, что политика требует минимальную длину 8 символов и включает uppercase, lowercase, number и special character.
+Примени обновленную парольную политику к Cognito User Pools через `amplify push`. Убедись, что политика требует минимальную длину 8 символов и включает uppercase и number.
 </task>
 
 <constraints>

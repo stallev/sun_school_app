@@ -178,7 +178,7 @@ amplify add auth
 **Advanced Configuration (Optional):**
 
 -   **MFA (Multi-Factor Authentication):** Optional (Post-MVP)
--   **Password Policy:** Minimum 8 characters, require uppercase, lowercase, number
+-   **Password Policy:** Minimum 8 characters, require uppercase, number
 -   **Email Verification:** Required for account activation
 
 **Deploy Auth:**

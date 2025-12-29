@@ -24,7 +24,18 @@
 
 ### Парольная политика (Password Policy)
 
-**Текущее состояние (dev и prod идентичны):**
+**Текущее состояние в конфигурационных файлах:**
+```json
+{
+  "passwordPolicyMinLength": 8,
+  "passwordPolicyCharacters": [
+    "REQUIRE_UPPERCASE",
+    "REQUIRE_NUMBERS"
+  ]
+}
+```
+
+**Текущее состояние в AWS (dev и prod):**
 ```json
 {
   "MinimumLength": 8,
@@ -38,9 +49,15 @@
 
 **Требования из SECURITY.md:**
 - Minimum length: 8 characters ✅ (соответствует)
-- Require: Uppercase, lowercase, number, special character ❌ (не настроено)
+- Require: Uppercase, number ✅ (настроено в конфигурационных файлах)
 
-**Действие:** Необходимо обновить парольную политику для соответствия требованиям безопасности.
+**Статус:**
+- ✅ Конфигурация обновлена в `amplify/backend/auth/sunsche716d941/cli-inputs.json`
+- ✅ Конфигурация обновлена в `amplify/backend/backend-config.json`
+- ⏳ Требуется применение изменений через `amplify push` для dev окружения
+- ⏳ Требуется применение изменений через `amplify push` для prod окружения
+
+**Действие:** Применить изменения через `amplify push` для обоих окружений.
 
 ### Группы пользователей (Cognito Groups)
 

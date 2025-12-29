@@ -37,9 +37,7 @@
         "passwordProtectionSettings": {
           "passwordPolicyCharacters": [
             "REQUIRE_UPPERCASE",
-            "REQUIRE_LOWERCASE",
-            "REQUIRE_NUMBERS",
-            "REQUIRE_SYMBOLS"
+            "REQUIRE_NUMBERS"
           ],
           "passwordPolicyMinLength": 8
         },
