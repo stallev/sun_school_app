@@ -70,9 +70,9 @@ Phase 06: Настройка UI библиотеки (Shadcn UI)
 </thinking>
 
 **Действия:**
-- [ ] Создать каталог `components/organisms/navigation/`
-- [ ] Создать каталог `components/organisms/layout/`
-- [ ] Создать базовую структуру файлов:
+- [x] Создать каталог `components/organisms/navigation/`
+- [x] Создать каталог `components/organisms/layout/`
+- [x] Создать базовую структуру файлов:
   - `components/organisms/navigation/header.tsx`
   - `components/organisms/navigation/sidebar.tsx`
   - `components/organisms/navigation/mobile-nav.tsx`
@@ -122,15 +122,15 @@ Phase 06: Настройка UI библиотеки (Shadcn UI)
 </thinking>
 
 **Действия:**
-- [ ] Изучить wireframe Header из [WIREFRAMES.md](../../../ui_ux/WIREFRAMES.md)
-- [ ] Создать Server Component `Header` с:
+- [x] Изучить wireframe Header из [WIREFRAMES.md](../../../ui_ux/WIREFRAMES.md)
+- [x] Создать Server Component `Header` с:
   - Логотипом приложения
   - Навигационным меню (для Desktop)
   - Кнопкой меню для мобильных (hamburger)
   - Информацией о текущем пользователе
   - Кнопкой выхода
-- [ ] Использовать компоненты Shadcn UI (Button, Avatar, Dropdown Menu)
-- [ ] Добавить адаптивность для мобильных устройств
+- [x] Использовать компоненты Shadcn UI (Button, Avatar, Dropdown Menu)
+- [x] Добавить адаптивность для мобильных устройств
 
 **Документация:**
 - <CRITICAL>[WIREFRAMES.md](../../../ui_ux/WIREFRAMES.md) - раздел Header</CRITICAL>
@@ -177,14 +177,14 @@ Phase 06: Настройка UI библиотеки (Shadcn UI)
 </thinking>
 
 **Действия:**
-- [ ] Изучить wireframe Sidebar из [WIREFRAMES.md](../../../ui_ux/WIREFRAMES.md)
-- [ ] Создать Server Component `Sidebar` с:
+- [x] Изучить wireframe Sidebar из [WIREFRAMES.md](../../../ui_ux/WIREFRAMES.md)
+- [x] Создать Server Component `Sidebar` с:
   - Навигационными ссылками согласно роли пользователя
   - Активным состоянием текущей страницы
   - Иконками для каждого пункта меню
   - Группировкой пунктов меню (если необходимо)
-- [ ] Реализовать логику отображения меню в зависимости от роли (Teacher/Admin)
-- [ ] Использовать компоненты Shadcn UI (Navigation Menu)
+- [x] Реализовать логику отображения меню в зависимости от роли (Teacher/Admin)
+- [x] Использовать компоненты Shadcn UI (Navigation Menu)
 
 **Документация:**
 - <CRITICAL>[WIREFRAMES.md](../../../ui_ux/WIREFRAMES.md) - раздел Sidebar</CRITICAL>
@@ -231,13 +231,13 @@ Phase 06: Настройка UI библиотеки (Shadcn UI)
 </thinking>
 
 **Действия:**
-- [ ] Создать Client Component `MobileNav` с:
+- [x] Создать Client Component `MobileNav` с:
   - Drawer/Sheet компонентом для мобильного меню
   - Списком навигационных ссылок
   - Кнопкой закрытия
   - Анимацией открытия/закрытия
-- [ ] Использовать Shadcn UI Sheet компонент
-- [ ] Интегрировать с Header (кнопка hamburger открывает MobileNav)
+- [x] Использовать Shadcn UI Sheet компонент
+- [x] Интегрировать с Header (кнопка hamburger открывает MobileNav)
 
 **Документация:**
 - <CRITICAL>[WIREFRAMES.md](../../../ui_ux/WIREFRAMES.md) - раздел Mobile Navigation</CRITICAL>
@@ -282,13 +282,13 @@ Phase 06: Настройка UI библиотеки (Shadcn UI)
 </thinking>
 
 **Действия:**
-- [ ] Изучить wireframe Footer из [WIREFRAMES.md](../../../ui_ux/WIREFRAMES.md)
-- [ ] Создать Server Component `Footer` с:
+- [x] Изучить wireframe Footer из [WIREFRAMES.md](../../../ui_ux/WIREFRAMES.md)
+- [x] Создать Server Component `Footer` с:
   - Информацией о приложении
   - Ссылками (если необходимы)
   - Копирайтом
   - Версией приложения (опционально)
-- [ ] Использовать компоненты Shadcn UI для стилизации
+- [x] Использовать компоненты Shadcn UI для стилизации
 
 **Документация:**
 - [WIREFRAMES.md](../../../ui_ux/WIREFRAMES.md) - раздел Footer
@@ -333,15 +333,15 @@ Phase 06: Настройка UI библиотеки (Shadcn UI)
 </thinking>
 
 **Действия:**
-- [ ] Создать Server Component `MainLayout` который объединяет:
+- [x] Создать Server Component `MainLayout` который объединяет:
   - Header
   - Sidebar (для Desktop)
   - Main content area
   - Footer
-- [ ] Реализовать адаптивный layout:
+- [x] Реализовать адаптивный layout:
   - Desktop: Header + Sidebar + Content + Footer
   - Mobile: Header + Content + Footer (Sidebar скрыт, открывается через MobileNav)
-- [ ] Использовать CSS Grid или Flexbox для layout
+- [x] Использовать CSS Grid или Flexbox для layout
 
 **Документация:**
 - <CRITICAL>[WIREFRAMES.md](../../../ui_ux/WIREFRAMES.md) - раздел Layout Structure</CRITICAL>
@@ -386,10 +386,10 @@ Phase 06: Настройка UI библиотеки (Shadcn UI)
 </thinking>
 
 **Действия:**
-- [ ] Создать `app/(private)/layout.tsx` для защищенных маршрутов
-- [ ] Использовать MainLayout в layout.tsx
-- [ ] Настроить метаданные страниц
-- [ ] Убедиться, что layout применяется ко всем страницам
+- [x] Создать `app/(private)/layout.tsx` для защищенных маршрутов
+- [x] Использовать MainLayout в layout.tsx
+- [x] Настроить метаданные страниц
+- [x] Убедиться, что layout применяется ко всем страницам
 
 **Документация:**
 - <CRITICAL>[ARCHITECTURE.md](../../../architecture/ARCHITECTURE.md) - раздел 3.1 Next.js App Router</CRITICAL>
@@ -435,10 +435,10 @@ Phase 06: Настройка UI библиотеки (Shadcn UI)
 </thinking>
 
 **Действия:**
-- [ ] Создать утилиту для получения роли пользователя: `lib/utils/auth.ts`
-- [ ] Реализовать функцию `getUserRole()` которая возвращает роль из Cognito
-- [ ] Обновить Sidebar и Header для отображения меню согласно роли
-- [ ] Создать конфигурацию меню для каждой роли:
+- [x] Создать утилиту для получения роли пользователя: `lib/utils/auth.ts`
+- [x] Реализовать функцию `getUserRole()` которая возвращает роль из Cognito
+- [x] Обновить Sidebar и Header для отображения меню согласно роли
+- [x] Создать конфигурацию меню для каждой роли:
   - Teacher menu items
   - Admin menu items
 
@@ -485,12 +485,12 @@ Phase 06: Настройка UI библиотеки (Shadcn UI)
 </thinking>
 
 **Действия:**
-- [ ] Протестировать Header на всех размерах экрана
-- [ ] Протестировать Sidebar на Desktop
-- [ ] Протестировать MobileNav на мобильных устройствах
-- [ ] Протестировать Footer на всех страницах
-- [ ] Протестировать навигацию с разными ролями (Teacher, Admin)
-- [ ] Проверить keyboard navigation
+- [x] Протестировать Header на всех размерах экрана
+- [x] Протестировать Sidebar на Desktop
+- [x] Протестировать MobileNav на мобильных устройствах
+- [x] Протестировать Footer на всех страницах
+- [x] Протестировать навигацию с разными ролями (Teacher, Admin)
+- [x] Проверить keyboard navigation
 
 **Документация:**
 - [WIREFRAMES.md](../../../ui_ux/WIREFRAMES.md)
@@ -534,10 +534,10 @@ Phase 06: Настройка UI библиотеки (Shadcn UI)
 </thinking>
 
 **Действия:**
-- [ ] Убедиться, что layout компоненты являются Server Components
-- [ ] Проверить, что нет ненужных re-renders
-- [ ] Оптимизировать загрузку иконок (lazy loading если необходимо)
-- [ ] Проверить размер bundle для layout компонентов
+- [x] Убедиться, что layout компоненты являются Server Components
+- [x] Проверить, что нет ненужных re-renders
+- [x] Оптимизировать загрузку иконок (lazy loading если необходимо)
+- [x] Проверить размер bundle для layout компонентов
 
 **Документация:**
 - [ARCHITECTURE.md](../../../architecture/ARCHITECTURE.md) - раздел Server Components
