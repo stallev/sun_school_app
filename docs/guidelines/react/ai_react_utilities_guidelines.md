@@ -247,25 +247,22 @@ export const isValidPhone = (phone: string): boolean => {
 };
 
 /**
- * Validates strong password
+ * Validates password according to Cognito password policy
+ * Policy: minimum 8 characters, requires uppercase and numbers
  * @param password - Password to validate
  * @returns Object with validation results
  */
 export const validatePassword = (password: string) => {
   const minLength = 8;
   const hasUpperCase = /[A-Z]/.test(password);
-  const hasLowerCase = /[a-z]/.test(password);
   const hasNumbers = /\d/.test(password);
-  const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
   
   return {
-    isValid: password.length >= minLength && hasUpperCase && hasLowerCase && hasNumbers && hasSpecialChar,
+    isValid: password.length >= minLength && hasUpperCase && hasNumbers,
     errors: {
       minLength: password.length < minLength,
       noUpperCase: !hasUpperCase,
-      noLowerCase: !hasLowerCase,
       noNumbers: !hasNumbers,
-      noSpecialChar: !hasSpecialChar,
     }
   };
 };
