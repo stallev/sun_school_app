@@ -72,11 +72,11 @@ Phase 04: Настройка GraphQL API (AppSync)
 </thinking>
 
 **Действия:**
-- [ ] Создать каталог `lib/db/`
-- [ ] Создать файл `lib/db/amplify.ts`
-- [ ] Импортировать необходимые функции из `aws-amplify/data`
-- [ ] Настроить amplifyData с правильной конфигурацией
-- [ ] Экспортировать amplifyData для использования в Server Actions
+- [x] Создать каталог `lib/db/`
+- [x] Создать файл `lib/db/amplify.ts`
+- [x] Импортировать необходимые функции из `aws-amplify/data`
+- [x] Настроить amplifyData с правильной конфигурацией
+- [x] Экспортировать amplifyData для использования в Server Actions
 
 **Документация:**
 - <CRITICAL>[ARCHITECTURE.md](../../../architecture/ARCHITECTURE.md) - раздел 4.3 Data Access Layer</CRITICAL>
@@ -127,20 +127,20 @@ Phase 04: Настройка GraphQL API (AppSync)
 </thinking>
 
 **Действия:**
-- [ ] Создать файл `lib/db/queries.ts`
-- [ ] Реализовать функции для основных queries:
+- [x] Создать файл `lib/db/queries.ts`
+- [x] Реализовать функции для основных queries:
   - `getGrade(id: string)`
   - `listGrades()`
   - `getLesson(id: string)`
   - `listLessons(gradeId: string)`
   - И другие queries согласно [GRAPHQL_SCHEMA.md](../../../database/GRAPHQL_SCHEMA.md)
-- [ ] Реализовать функции для получения связанных данных через индексы:
+- [x] Реализовать функции для получения связанных данных через индексы:
   - `getLessonWithRelations(lessonId: string)` - урок с золотыми стихами и проверками ДЗ
   - `getPupilComplete(pupilId: string)` - ученик с проверками ДЗ и достижениями
   - `getGradeWithRelations(gradeId: string)` - группа с учениками, годами и событиями
   - Использовать `Promise.all()` для параллельных запросов (batch queries)
-- [ ] Использовать amplifyData для выполнения queries
-- [ ] Добавить типизацию для результатов queries
+- [x] Использовать amplifyData для выполнения queries
+- [x] Добавить типизацию для результатов queries
 
 **Документация:**
 - <CRITICAL>[GRAPHQL_SCHEMA.md](../../../database/GRAPHQL_SCHEMA.md) - раздел 1.4, раздел 4.5 и раздел Queries</CRITICAL>
@@ -187,15 +187,15 @@ Phase 04: Настройка GraphQL API (AppSync)
 </thinking>
 
 **Действия:**
-- [ ] Создать файл `lib/db/mutations.ts`
-- [ ] Реализовать функции для основных mutations:
+- [x] Создать файл `lib/db/mutations.ts`
+- [x] Реализовать функции для основных mutations:
   - `createGrade(input: CreateGradeInput)`
   - `updateGrade(input: UpdateGradeInput)`
   - `createLesson(input: CreateLessonInput)`
   - `updateLesson(input: UpdateLessonInput)`
   - И другие mutations согласно [GRAPHQL_SCHEMA.md](../../../database/GRAPHQL_SCHEMA.md)
-- [ ] Использовать amplifyData для выполнения mutations
-- [ ] Добавить типизацию для входных и выходных данных
+- [x] Использовать amplifyData для выполнения mutations
+- [x] Добавить типизацию для входных и выходных данных
 
 **Документация:**
 - <CRITICAL>[GRAPHQL_SCHEMA.md](../../../database/GRAPHQL_SCHEMA.md) - раздел Mutations</CRITICAL>
@@ -240,11 +240,11 @@ Phase 04: Настройка GraphQL API (AppSync)
 </thinking>
 
 **Действия:**
-- [ ] Реализовать обработку ошибок GraphQL
-- [ ] Реализовать обработку ошибок сети
-- [ ] Реализовать обработку ошибок авторизации
-- [ ] Создать типизированные ошибки
-- [ ] Логировать ошибки для отладки
+- [x] Реализовать обработку ошибок GraphQL
+- [x] Реализовать обработку ошибок сети
+- [x] Реализовать обработку ошибок авторизации
+- [x] Создать типизированные ошибки
+- [x] Логировать ошибки для отладки
 
 **Документация:**
 - [ERROR_HANDLING.md](../../../user_flows/ERROR_HANDLING.md) - раздел Ошибки GraphQL/AppSync
@@ -287,10 +287,10 @@ Phase 04: Настройка GraphQL API (AppSync)
 </thinking>
 
 **Действия:**
-- [ ] Протестировать queries с реальными данными
-- [ ] Протестировать mutations с реальными данными
-- [ ] Протестировать обработку ошибок
-- [ ] Протестировать типизацию
+- [x] Протестировать queries с реальными данными
+- [x] Протестировать mutations с реальными данными
+- [x] Протестировать обработку ошибок
+- [x] Протестировать типизацию
 
 **Документация:**
 - [GRAPHQL_SCHEMA.md](../../../database/GRAPHQL_SCHEMA.md)
