@@ -20,6 +20,9 @@ This document outlines the security architecture, authentication, authorization 
 -   **Secure by Default:** All API endpoints require authentication unless explicitly marked as public.
 -   **Data Encryption:** Encryption in transit (HTTPS) and at rest (DynamoDB, S3).
 -   **Audit and Monitoring:** Logging of all authentication events and sensitive operations.
+-   **Infrastructure as Code:** All security configurations (Cognito, IAM, AppSync) must be stored in code and version controlled. Manual changes via AWS Console are prohibited.
+
+**See [INFRASTRUCTURE_AS_CODE.md](./INFRASTRUCTURE_AS_CODE.md) for detailed requirements.**
 
 ---
 
@@ -750,6 +753,7 @@ aws cloudtrail start-logging --name sundayschoolapp-trail
 ## 12. Cross-References
 
 -   **→ [AWS_AMPLIFY.md](AWS_AMPLIFY.md):** Cognito and AppSync configuration.
+-   **→ [INFRASTRUCTURE_AS_CODE.md](./INFRASTRUCTURE_AS_CODE.md):** Infrastructure as Code principles and requirements.
 -   **→ [SERVER_ACTIONS.md](../api/SERVER_ACTIONS.md):** Server-side validation and authorization.
 -   **→ [VALIDATION.md](../api/VALIDATION.md):** Zod schemas for input validation.
 -   **→ [GRAPHQL_SCHEMA.md](../database/GRAPHQL_SCHEMA.md):** `@auth` directive usage in GraphQL schema.

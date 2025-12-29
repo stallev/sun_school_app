@@ -36,6 +36,7 @@ Sunday School App — веб-приложение для автоматизац�
 - **Serverless & Scalable** — использование AWS serverless сервисов для автомасштабирования
 - **Educational Focus** — фокус на образовательных процессах и мотивации учеников
 - **Security by Default** — безопасность на всех уровнях (Cognito, RBAC, валидация)
+- **Infrastructure as Code** — вся конфигурация инфраструктуры хранится в коде для обеспечения идентичности dev и prod окружений
 
 ### 1.3. Архитектурные решения
 
@@ -946,8 +947,9 @@ graph TB
 - См. также: [`docs/database/GRAPHQL_SCHEMA.md`](../database/GRAPHQL_SCHEMA.md) — GraphQL API
 - См. также: [`docs/api/SERVER_ACTIONS.md`](../api/SERVER_ACTIONS.md) — API контракты
 - См. также: [`docs/infrastructure/AWS_AMPLIFY.md`](../infrastructure/AWS_AMPLIFY.md) — конфигурация Amplify
+- См. также: [`docs/infrastructure/INFRASTRUCTURE_AS_CODE.md`](../infrastructure/INFRASTRUCTURE_AS_CODE.md) — принципы Infrastructure as Code
 - См. также: [`docs/infrastructure/AWS_COST_ESTIMATION.md`](../infrastructure/AWS_COST_ESTIMATION.md) — расчет стоимости AWS инфраструктуры
-- См. также: [`docs/architecture/SECURITY.md`](../architecture/SECURITY.md) — детальная безопасность
+- См. также: [`docs/infrastructure/SECURITY.md`](../infrastructure/SECURITY.md) — детальная безопасность
 - См. также: [`docs/architecture/DATA_FLOW.md`](../architecture/DATA_FLOW.md) — детальные потоки данных
 
 ---
