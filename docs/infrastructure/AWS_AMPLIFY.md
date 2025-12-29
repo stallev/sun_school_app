@@ -33,6 +33,18 @@ This document provides a comprehensive guide to configuring **AWS Amplify Genera
 
 **Important:** Before deploying to AWS Amplify Hosting, verify Next.js compatibility. See [AMPLIFY_COMPATIBILITY.md](./AMPLIFY_COMPATIBILITY.md) for detailed compatibility information for Next.js 15.5.9 with AWS Amplify Hosting, including support for App Router, Server Actions, and Server Components.
 
+### 1.4 Infrastructure as Code
+
+**⚠️ CRITICAL:** This project follows **Infrastructure as Code (IaC)** principles. All infrastructure configuration must be stored in code (configuration files, CloudFormation templates) and version controlled in Git. Manual changes via AWS Console are **PROHIBITED** unless documented as exceptions.
+
+**Key Requirements:**
+- All Cognito, AppSync, DynamoDB, and S3 configurations are stored in `amplify/backend/` files
+- Dev and prod environments must have identical configuration (except environment-specific values)
+- All changes must go through Git commits
+- Configuration information should be obtained from configuration files or AWS CLI (not manual inspection)
+
+**See [INFRASTRUCTURE_AS_CODE.md](./INFRASTRUCTURE_AS_CODE.md) for detailed requirements and best practices.**
+
 ---
 
 ## 2. Prerequisites
@@ -166,7 +178,7 @@ amplify add auth
 **Advanced Configuration (Optional):**
 
 -   **MFA (Multi-Factor Authentication):** Optional (Post-MVP)
--   **Password Policy:** Minimum 8 characters, require uppercase, lowercase, number
+-   **Password Policy:** Minimum 8 characters, require uppercase, number
 -   **Email Verification:** Required for account activation
 
 **Deploy Auth:**
@@ -1434,6 +1446,7 @@ grep -r "referencetotransformerroot.*HomeworkCheck\|referencetotransformerroot.*
 -   **→ [GRAPHQL_SCHEMA.md](../database/GRAPHQL_SCHEMA.md):** Full GraphQL schema definition for AppSync.
 -   **→ [DYNAMODB_SCHEMA.md](../database/DYNAMODB_SCHEMA.md):** DynamoDB table design and access patterns.
 -   **→ [SECURITY.md](SECURITY.md):** Authentication and authorization details with Cognito.
+-   **→ [INFRASTRUCTURE_AS_CODE.md](./INFRASTRUCTURE_AS_CODE.md):** Infrastructure as Code principles and requirements.
 -   **→ [DEPLOYMENT_GUIDE.md](../deployment/DEPLOYMENT_GUIDE.md):** Comprehensive deployment strategies.
 -   **→ [AWS_COST_ESTIMATION.md](AWS_COST_ESTIMATION.md):** Monthly cost estimation for AWS infrastructure.
 
@@ -1463,6 +1476,27 @@ grep -r "referencetotransformerroot.*HomeworkCheck\|referencetotransformerroot.*
 # PowerShell (Windows)
 .\scripts\check-duplicate-resources.ps1 eu-west-1
 ```
+
+### 12.4. AWS CLI Configuration Scripts
+
+- **[AWS_CLI_SCRIPTS.md](./AWS_CLI_SCRIPTS.md)** - Инструкции по конфигурации инфраструктуры через AWS CLI скрипты для случаев, когда Amplify Gen 1 CLI не поддерживает необходимые настройки
+
+**Доступные скрипты:**
+
+- **`scripts/create-cognito-groups.sh`** - Bash скрипт для создания Cognito Groups
+- **`scripts/create-cognito-groups.ps1`** - PowerShell скрипт для создания Cognito Groups
+
+**Использование скриптов:**
+
+```bash
+# Bash (Linux/Mac)
+./scripts/create-cognito-groups.sh <USER_POOL_ID> <REGION>
+
+# PowerShell (Windows)
+.\scripts\create-cognito-groups.ps1 -UserPoolId <USER_POOL_ID> -Region <REGION>
+```
+
+**См. [AWS_CLI_SCRIPTS.md](./AWS_CLI_SCRIPTS.md) для подробных инструкций.**
 
 ---
 

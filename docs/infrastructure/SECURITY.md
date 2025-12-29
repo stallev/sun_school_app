@@ -1,8 +1,8 @@
 # Security - Sunday School App
 
-## Document Version: 1.0
+## Document Version: 1.1
 **Creation Date:** 23 December 2025  
-**Last Update:** 23 December 2025  
+**Last Update:** 29 December 2025  
 **Project:** Sunday School App  
 **Technologies:** AWS Cognito, AWS AppSync, AWS IAM, Next.js 15.5.9, OWASP Best Practices  
 **Target Audience:** Security Engineers, Backend Developers, System Administrators
@@ -20,6 +20,9 @@ This document outlines the security architecture, authentication, authorization 
 -   **Secure by Default:** All API endpoints require authentication unless explicitly marked as public.
 -   **Data Encryption:** Encryption in transit (HTTPS) and at rest (DynamoDB, S3).
 -   **Audit and Monitoring:** Logging of all authentication events and sensitive operations.
+-   **Infrastructure as Code:** All security configurations (Cognito, IAM, AppSync) must be stored in code and version controlled. Manual changes via AWS Console are prohibited.
+
+**See [INFRASTRUCTURE_AS_CODE.md](./INFRASTRUCTURE_AS_CODE.md) for detailed requirements.**
 
 ---
 
@@ -39,7 +42,7 @@ This document outlines the security architecture, authentication, authorization 
 -   **Sign-In Methods:** Email and Password (MVP)
 -   **Password Policy:**
     -   Minimum length: 8 characters
-    -   Require: Uppercase, lowercase, number, special character
+    -   Require: Uppercase, number
 -   **MFA (Multi-Factor Authentication):** Optional (Post-MVP for Admin users)
 -   **Email Verification:** Required before first login
 
@@ -665,7 +668,7 @@ aws cloudtrail start-logging --name sundayschoolapp-trail
 ### 9.1. Authentication
 
 -   ✅ Use Cognito User Pools for authentication.
--   ✅ Enforce strong password policies (8+ characters, uppercase, lowercase, number).
+-   ✅ Enforce strong password policies (8+ characters, uppercase, number).
 -   ✅ Require email verification before first login.
 -   ⬜ Enable MFA for Admin/Superadmin users (Post-MVP).
 -   ⬜ Implement account lockout after 5 failed login attempts (Post-MVP).
@@ -750,6 +753,7 @@ aws cloudtrail start-logging --name sundayschoolapp-trail
 ## 12. Cross-References
 
 -   **→ [AWS_AMPLIFY.md](AWS_AMPLIFY.md):** Cognito and AppSync configuration.
+-   **→ [INFRASTRUCTURE_AS_CODE.md](./INFRASTRUCTURE_AS_CODE.md):** Infrastructure as Code principles and requirements.
 -   **→ [SERVER_ACTIONS.md](../api/SERVER_ACTIONS.md):** Server-side validation and authorization.
 -   **→ [VALIDATION.md](../api/VALIDATION.md):** Zod schemas for input validation.
 -   **→ [GRAPHQL_SCHEMA.md](../database/GRAPHQL_SCHEMA.md):** `@auth` directive usage in GraphQL schema.

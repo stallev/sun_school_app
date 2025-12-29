@@ -3,6 +3,9 @@
 ## Описание фазы
 Настройка AWS Cognito User Pools, создание групп (TEACHER, ADMIN, SUPERADMIN), настройка политик авторизации, интеграция с AppSync.
 
+**⚠️ CRITICAL: Infrastructure as Code**
+Все настройки Cognito должны быть сохранены в конфигурационных файлах Amplify (`amplify/backend/auth/*/cli-inputs.json`, `amplify/backend/backend-config.json`). Ручные изменения через AWS Console **ЗАПРЕЩЕНЫ**. См. [INFRASTRUCTURE_AS_CODE.md](../../../infrastructure/INFRASTRUCTURE_AS_CODE.md) для детальных требований.
+
 ## Зависимости
 Phase 04: Настройка GraphQL API (AppSync)
 
@@ -33,11 +36,13 @@ Phase 04: Настройка GraphQL API (AppSync)
 Вдохни глубоко, расправь плечи и приступай к решению задачи шаг за шагом. Это критически важная фаза для настройки аутентификации и авторизации. Правильная настройка безопасности определит защищенность всего приложения.
 
 <CRITICAL>Перед началом работы:</CRITICAL>
-1. Изучи SECURITY.md - все требования к безопасности и аутентификации
-2. Изучи MVP_SCOPE.md раздел 2.1.2 - роли пользователей
-3. Используй Context7 для получения актуальной документации AWS Cognito
-4. Убедись, что понимаешь разницу между группами и их precedence
-5. Следуй принципам из `docs/guidelines/prompts/general_prompt_guidelines.md`
+1. Изучи [INFRASTRUCTURE_AS_CODE.md](../../../infrastructure/INFRASTRUCTURE_AS_CODE.md) - требования к Infrastructure as Code
+2. Изучи [SECURITY.md](../../../infrastructure/SECURITY.md) - все требования к безопасности и аутентификации
+3. Изучи [phase_05_auth_current_config.md](./phase_05_auth_current_config.md) - текущая конфигурация Cognito
+4. Изучи MVP_SCOPE.md раздел 2.1.2 - роли пользователей
+5. Используй Context7 для получения актуальной документации AWS Cognito
+6. Убедись, что понимаешь разницу между группами и их precedence
+7. Следуй принципам из `docs/guidelines/prompts/general_prompt_guidelines.md`
 
 <CONSTRAINT>Группы Cognito используются для RBAC в AppSync через @auth директивы. Precedence групп критически важен для правильной работы авторизации!</CONSTRAINT>
 </critical_instructions>
@@ -45,7 +50,119 @@ Phase 04: Настройка GraphQL API (AppSync)
 
 ## Задачи
 
-### Task 05.01: Добавление Auth ресурса в Amplify
+### Task 05.00: Получение информации о текущей конфигурации Cognito
+
+<context>
+<CRITICAL>Это первая задача фазы!</CRITICAL> Перед настройкой auth необходимо получить информацию о текущей конфигурации Cognito для dev и prod окружений. Это позволит понять текущее состояние и определить, какие настройки нужно обновить.
+</context>
+
+<task>
+Получи информацию о текущей конфигурации Cognito User Pools для dev и prod окружений через AWS CLI команды. Сохрани полученную информацию в структурированном виде для анализа.
+</task>
+
+<constraints>
+- Используй AWS CLI для получения информации (НЕ AWS Console для просмотра!)
+- Получи информацию для обоих окружений: dev (us-east-1) и prod (eu-west-1)
+- Сохрани информацию в файл `docs/implementation/mvp/tasks/phase_05_auth_current_config.md`
+- Следуй принципам Infrastructure as Code - информация должна быть получена через CLI или конфигурационные файлы
+</constraints>
+
+<thinking>
+Прежде чем приступить к реализации:
+1. Изучи [INFRASTRUCTURE_AS_CODE.md](../../../infrastructure/INFRASTRUCTURE_AS_CODE.md) раздел 3 "Getting Infrastructure Information"
+2. Определи User Pool IDs для dev и prod окружений из `amplify/team-provider-info.json` или через CloudFormation
+3. Используй AWS CLI команды для получения детальной информации
+4. Сохрани информацию в структурированном виде
+</thinking>
+
+**Действия:**
+- [x] Определить User Pool IDs для dev и prod окружений
+- [x] Выполнить команды AWS CLI для получения информации:
+  ```bash
+  # Dev окружение
+  aws cognito-idp describe-user-pool --user-pool-id <DEV_POOL_ID> --region us-east-1
+  aws cognito-idp list-user-pool-clients --user-pool-id <DEV_POOL_ID> --region us-east-1
+  aws cognito-idp list-groups --user-pool-id <DEV_POOL_ID> --region us-east-1
+  
+  # Prod окружение
+  aws cognito-idp describe-user-pool --user-pool-id <PROD_POOL_ID> --region eu-west-1
+  aws cognito-idp list-user-pool-clients --user-pool-id <PROD_POOL_ID> --region eu-west-1
+  aws cognito-idp list-groups --user-pool-id <PROD_POOL_ID> --region eu-west-1
+  ```
+- [x] Сохранить полученную информацию в `docs/implementation/mvp/tasks/phase_05_auth_current_config.md`
+- [x] Проанализировать различия между dev и prod окружениями
+- [x] Определить настройки, которые нужно обновить
+
+**Документация:**
+- <CRITICAL>[INFRASTRUCTURE_AS_CODE.md](../../../infrastructure/INFRASTRUCTURE_AS_CODE.md) - раздел 3 "Getting Infrastructure Information"</CRITICAL>
+- [AWS_AMPLIFY.md](../../../infrastructure/AWS_AMPLIFY.md) - раздел Environments
+
+**Критерии приемки:**
+- Информация о текущей конфигурации получена для обоих окружений
+- Информация сохранена в структурированном виде
+- Выявлены различия между dev и prod (если есть)
+- Определены настройки для обновления
+
+<output_format>
+После выполнения задачи информация о текущей конфигурации Cognito должна быть получена, сохранена в файл phase_05_auth_current_config.md, и проанализирована для определения необходимых обновлений.
+</output_format>
+
+---
+
+### Task 05.01: Обновление конфигурации Auth в Amplify
+
+<context>
+<CRITICAL>Auth ресурс уже создан!</CRITICAL> Cognito User Pools уже существуют для dev и prod окружений. Необходимо обновить конфигурационные файлы Amplify для обеспечения Infrastructure as Code и соответствия требованиям безопасности.
+</context>
+
+<task>
+Обнови конфигурационные файлы Amplify (`amplify/backend/auth/sunsche716d941/cli-inputs.json` и `amplify/backend/backend-config.json`) с полными настройками Cognito согласно требованиям SECURITY.md и принципам Infrastructure as Code.
+</task>
+
+<constraints>
+- НЕ используй `amplify add auth` - ресурс уже создан!
+- Обновляй только конфигурационные файлы
+- Все настройки должны быть в коде
+- Настройки dev и prod должны быть идентичны (кроме автоматически генерируемых значений)
+- Следуй принципам Infrastructure as Code
+</constraints>
+
+<thinking>
+Прежде чем приступить к реализации:
+1. Изучи [phase_05_auth_current_config.md](./phase_05_auth_current_config.md) - текущая конфигурация
+2. Изучи [SECURITY.md](../../../infrastructure/SECURITY.md) раздел 2.1 Password Policy
+3. Изучи [INFRASTRUCTURE_AS_CODE.md](../../../infrastructure/INFRASTRUCTURE_AS_CODE.md) раздел 4 "Configuration Synchronization"
+4. Определи настройки, которые нужно обновить
+5. Обнови конфигурационные файлы
+</thinking>
+
+**Действия:**
+- [x] Изучить текущую конфигурацию из phase_05_auth_current_config.md
+- [x] Обновить `amplify/backend/auth/sunsche716d941/cli-inputs.json`:
+  - Парольная политика: добавить REQUIRE_UPPERCASE, REQUIRE_NUMBERS
+  - Проверить другие настройки
+- [x] Обновить `amplify/backend/backend-config.json`:
+  - Парольная политика: добавить passwordPolicyCharacters
+- [x] Убедиться, что настройки соответствуют SECURITY.md требованиям
+- [x] Проверить, что настройки идентичны для dev и prod (кроме автоматически генерируемых значений)
+
+**Документация:**
+- <CRITICAL>[INFRASTRUCTURE_AS_CODE.md](../../../infrastructure/INFRASTRUCTURE_AS_CODE.md) - раздел 4 "Configuration Synchronization"</CRITICAL>
+- <CRITICAL>[SECURITY.md](../../../infrastructure/SECURITY.md) - раздел 2.1 Password Policy</CRITICAL>
+- [phase_05_auth_current_config.md](./phase_05_auth_current_config.md) - текущая конфигурация
+
+**Критерии приемки:**
+- Конфигурационные файлы обновлены с полными настройками
+- Парольная политика соответствует SECURITY.md требованиям
+- Настройки готовы к применению через `amplify push`
+
+<output_format>
+После выполнения задачи конфигурационные файлы должны быть обновлены с полными настройками Cognito, соответствующими требованиям безопасности и принципам Infrastructure as Code.
+</output_format>
+
+---
+
+### Task 05.02: Настройка парольной политики в коде
 
 <context>
 <CRITICAL>Это первая и критически важная задача фазы!</CRITICAL> Добавление Auth ресурса создает Cognito User Pool для аутентификации пользователей. Правильная настройка на этом этапе определит работу всей системы аутентификации.
@@ -73,15 +190,15 @@ Phase 04: Настройка GraphQL API (AppSync)
 </thinking>
 
 **Действия:**
-- [ ] Запустить `amplify add auth`
-- [ ] Выбрать опции:
+- [x] Запустить `amplify add auth`
+- [x] Выбрать опции:
   - Do you want to use the default authentication and security configuration? `Default configuration`
   - How do you want users to be able to sign in? `Email`
   - Do you want to configure advanced settings? `Yes`
   - What attributes are required for signing up? `Email` (и другие при необходимости)
   - Do you want to enable Multi-Factor Authentication (MFA)? `Off` (для MVP)
   - Email verification: `Required`
-- [ ] Дождаться завершения настройки
+- [x] Дождаться завершения настройки
 
 **Документация:**
 - <CRITICAL>[AWS_AMPLIFY.md](../../../infrastructure/AWS_AMPLIFY.md) - раздел Auth Setup</CRITICAL>
@@ -99,51 +216,64 @@ Phase 04: Настройка GraphQL API (AppSync)
 
 ---
 
-### Task 05.02: Настройка парольной политики
+### Task 05.02: Настройка парольной политики в коде
 
 <context>
-<CRITICAL>Это критически важная задача для безопасности!</CRITICAL> Парольная политика определяет требования к паролям пользователей. Правильная настройка парольной политики защитит систему от слабых паролей.
+<CRITICAL>Это критически важная задача для безопасности!</CRITICAL> Парольная политика определяет требования к паролям пользователей. Правильная настройка парольной политики защитит систему от слабых паролей. Парольная политика должна быть настроена в конфигурационных файлах Amplify (уже обновлено в Task 05.01).
 </context>
 
 <task>
-Настрой парольную политику для Cognito User Pool согласно SECURITY.md. Убедись, что политика требует минимальную длину 8 символов и включает uppercase, lowercase, number и special character.
+Примени обновленную парольную политику к Cognito User Pools через `amplify push`. Убедись, что политика требует минимальную длину 8 символов и включает uppercase и number.
 </task>
 
 <constraints>
-- Парольная политика должна соответствовать SECURITY.md раздел 2.1 Password Policy
-- Minimum length должна быть 8 characters
-- Должны быть требуемы: Uppercase, lowercase, number, special character
-- Политика должна применяться при регистрации
+- Парольная политика уже обновлена в конфигурационных файлах (Task 05.01)
+- Используй `amplify push` для применения изменений
+- НЕ используй AWS Console для настройки!
+- Политика должна применяться к обоим окружениям (dev и prod)
+- Политика должна соответствовать SECURITY.md раздел 2.1 Password Policy
 </constraints>
 
 <thinking>
 Прежде чем приступить к реализации:
-1. Изучи SECURITY.md раздел 2.1 Password Policy детально
-2. Используй Context7 для получения актуальной документации AWS Cognito Password Policy
-3. Определи все требования к парольной политике
-4. Только после этого настраивай парольную политику в AWS Console
+1. Убедись, что конфигурационные файлы обновлены (Task 05.01)
+2. Изучи [INFRASTRUCTURE_AS_CODE.md](../../../infrastructure/INFRASTRUCTURE_AS_CODE.md) раздел 7 "Deployment Process"
+3. Примени изменения через `amplify push`
+4. Проверь примененные изменения через AWS CLI
 </thinking>
 
 **Действия:**
-- [ ] Открыть AWS Console -> Cognito -> User Pools
-- [ ] Выбрать созданный User Pool
-- [ ] Перейти в раздел "Sign-in experience" -> "Password policy"
-- [ ] Настроить политику паролей согласно [SECURITY.md](../../../infrastructure/SECURITY.md):
-  - Minimum length: 8 characters
-  - Require: Uppercase, lowercase, number, special character
-- [ ] Сохранить изменения
+- [x] Убедиться, что конфигурационные файлы обновлены (Task 05.01)
+- [ ] Применить изменения к dev окружению:
+  ```bash
+  amplify env checkout dev
+  amplify push
+  ```
+- [ ] Проверить примененную парольную политику:
+  ```bash
+  aws cognito-idp describe-user-pool --user-pool-id <DEV_POOL_ID> --region us-east-1 --query "UserPool.Policies.PasswordPolicy"
+  ```
+- [ ] Применить изменения к prod окружению:
+  ```bash
+  amplify env checkout prod
+  amplify push
+  ```
+- [ ] Проверить примененную парольную политику в prod
+- [ ] Убедиться, что политики идентичны в dev и prod
 
 **Документация:**
+- <CRITICAL>[INFRASTRUCTURE_AS_CODE.md](../../../infrastructure/INFRASTRUCTURE_AS_CODE.md) - раздел 7 "Deployment Process"</CRITICAL>
 - <CRITICAL>[SECURITY.md](../../../infrastructure/SECURITY.md) - раздел 2.1 Password Policy</CRITICAL>
-- AWS Cognito Password Policy документация (через Context7)
+- [AWS_AMPLIFY.md](../../../infrastructure/AWS_AMPLIFY.md) - раздел 8 "Deployment"
 
 **Критерии приемки:**
-- Парольная политика настроена
-- Требования соответствуют документации
+- Парольная политика применена через `amplify push`
+- Требования соответствуют документации (Minimum length: 8, Require: Uppercase, Lowercase, Numbers, Symbols)
+- Политика идентична в dev и prod окружениях
 - Политика применяется при регистрации
 
 <output_format>
-После выполнения задачи парольная политика должна быть настроена, требования должны соответствовать документации, и политика должна применяться при регистрации.
+После выполнения задачи парольная политика должна быть применена к обоим окружениям через `amplify push`, требования должны соответствовать документации, и политика должна быть идентична в dev и prod.
 </output_format>
 
 ---
@@ -151,55 +281,83 @@ Phase 04: Настройка GraphQL API (AppSync)
 ### Task 05.03: Создание групп пользователей (Cognito Groups)
 
 <context>
-<CRITICAL>Это критически важная задача для RBAC!</CRITICAL> Создание групп пользователей необходимо для реализации Role-Based Access Control (RBAC). Группы используются в AppSync через @auth директивы для авторизации.
+<CRITICAL>Это критически важная задача для RBAC!</CRITICAL> Создание групп пользователей необходимо для реализации Role-Based Access Control (RBAC). Группы используются в AppSync через @auth директивы для авторизации. 
+
+**Важно:** Amplify Gen 1 CLI не поддерживает создание групп напрямую через конфигурационные файлы. Группы создаются через AWS CLI с последующим документированием в коде.
 </context>
 
 <task>
-Создай три группы пользователей в Cognito User Pool: TEACHER, ADMIN и SUPERADMIN. Настрой правильный Precedence для каждой группы согласно требованиям RBAC.
+Создай три группы пользователей в Cognito User Pool для dev и prod окружений: TEACHER, ADMIN и SUPERADMIN. Настрой правильный Precedence для каждой группы согласно требованиям RBAC. Используй AWS CLI для создания групп и документируй процесс в коде.
 </task>
 
 <constraints>
 - Все три группы должны быть созданы: TEACHER, ADMIN, SUPERADMIN
-- Precedence должен быть настроен правильно (ADMIN > TEACHER)
-- Группы должны быть видны в Cognito Console
+- Precedence должен быть настроен правильно (SUPERADMIN > ADMIN > TEACHER)
+- Группы должны быть созданы в обоих окружениях (dev и prod)
+- Используй AWS CLI для создания групп (НЕ AWS Console!)
+- Создай скрипт для автоматизации создания групп
 - Precedence критически важен для правильной работы авторизации
 </constraints>
 
 <thinking>
 Прежде чем приступить к реализации:
-1. Изучи SECURITY.md раздел 3.1 Role-Based Access Control для понимания требований
-2. Изучи MVP_SCOPE.md раздел 2.1.2 Роли пользователей для понимания ролей
-3. Используй Context7 для получения актуальной документации AWS Cognito Groups
-4. Определи правильный Precedence для каждой группы
-5. Только после этого создавай группы
+1. Изучи [INFRASTRUCTURE_AS_CODE.md](../../../infrastructure/INFRASTRUCTURE_AS_CODE.md) раздел 5 "Cognito Groups Configuration"
+2. Изучи [SECURITY.md](../../../infrastructure/SECURITY.md) раздел 3.1 Role-Based Access Control
+3. Изучи MVP_SCOPE.md раздел 2.1.2 Роли пользователей
+4. Используй Context7 для получения актуальной документации AWS Cognito Groups
+5. Определи правильный Precedence для каждой группы
+6. Создай скрипт для создания групп
 </thinking>
 
 **Действия:**
-- [ ] Открыть AWS Console -> Cognito -> User Pools
-- [ ] Выбрать созданный User Pool
-- [ ] Перейти в раздел "Groups"
-- [ ] Создать группу `TEACHER`:
-  - Group name: `TEACHER`
-  - Description: `Преподаватели воскресной школы`
-  - Precedence: `1`
-- [ ] Создать группу `ADMIN`:
-  - Group name: `ADMIN`
-  - Description: `Администраторы воскресной школы`
-  - Precedence: `2`
-- [ ] Создать группу `SUPERADMIN`:
-  - Group name: `SUPERADMIN`
-  - Description: `Главные администраторы`
-  - Precedence: `3`
+- [x] Создать скрипт для создания групп (например, `scripts/create-cognito-groups.sh` или `.ps1`):
+  ```bash
+  # Создать группу TEACHER (precedence: 1)
+  aws cognito-idp create-group \
+    --user-pool-id <POOL_ID> \
+    --group-name TEACHER \
+    --description "Sunday School Teachers" \
+    --precedence 1 \
+    --region <REGION>
+  
+  # Создать группу ADMIN (precedence: 2)
+  aws cognito-idp create-group \
+    --user-pool-id <POOL_ID> \
+    --group-name ADMIN \
+    --description "Sunday School Administrators" \
+    --precedence 2 \
+    --region <REGION>
+  
+  # Создать группу SUPERADMIN (precedence: 3)
+  aws cognito-idp create-group \
+    --user-pool-id <POOL_ID> \
+    --group-name SUPERADMIN \
+    --description "Sunday School Super Administrators" \
+    --precedence 3 \
+    --region <REGION>
+  ```
+- [x] Выполнить скрипт для dev окружения (us-east-1) - ✅ Выполнено 29.12.2025
+- [ ] Выполнить скрипт для prod окружения (eu-west-1) - ⏳ Отложено до деплоя конфигурации в prod
+- [x] Проверить созданные группы:
+  ```bash
+  aws cognito-idp list-groups --user-pool-id <POOL_ID> --region <REGION>
+  ```
+  ✅ Проверено 29.12.2025 - все три группы созданы с правильным Precedence
+- [x] Документировать группы в `docs/infrastructure/COGNITO_GROUPS.md` - ✅ Создан файл документации
 
 **Документация:**
 - <CRITICAL>[SECURITY.md](../../../infrastructure/SECURITY.md) - раздел 3.1 Role-Based Access Control</CRITICAL>
 - <CRITICAL>[MVP_SCOPE.md](../../../MVP_SCOPE.md) - раздел 2.1.2 Роли пользователей</CRITICAL>
+- <CRITICAL>[AWS_CLI_SCRIPTS.md](../../../infrastructure/AWS_CLI_SCRIPTS.md) - инструкции по созданию Cognito Groups через AWS CLI</CRITICAL>
+- <CRITICAL>[COGNITO_GROUPS.md](../../../infrastructure/COGNITO_GROUPS.md) - полная документация по группам Cognito</CRITICAL>
 - AWS Cognito Groups документация (через Context7)
 
 **Критерии приемки:**
-- Все три группы созданы
-- Precedence настроен правильно (ADMIN > TEACHER)
-- Группы видны в Cognito Console
+- [x] Все три группы созданы - ✅ TEACHER, ADMIN, SUPERADMIN созданы для dev окружения (29.12.2025)
+- [x] Precedence настроен правильно (SUPERADMIN (3) > ADMIN (2) > TEACHER (1)) - ✅ Проверено
+- [x] Группы видны в Cognito Console - ✅ Проверено через AWS CLI
+
+**Примечание:** Выполнение для prod окружения отложено до деплоя конфигурации в prod, как указано пользователем.
 
 <output_format>
 После выполнения задачи все три группы должны быть созданы, Precedence должен быть настроен правильно, и группы должны быть видны в Cognito Console.
@@ -353,6 +511,76 @@ Phase 04: Настройка GraphQL API (AppSync)
 
 <output_format>
 После выполнения задачи JWT токены должны быть настроены, время жизни токенов должно соответствовать требованиям, и refresh token должен иметь достаточное время жизни (30 дней).
+</output_format>
+
+---
+
+### Task 05.06: Проверка идентичности настроек dev и prod
+
+<context>
+<CRITICAL>Это критически важная задача для Infrastructure as Code!</CRITICAL> Настройки dev и prod окружений должны быть идентичны (кроме автоматически генерируемых значений). Проверка идентичности гарантирует, что конфигурация соответствует принципам Infrastructure as Code.
+</context>
+
+<task>
+Проверь, что настройки Cognito User Pools в dev и prod окружениях идентичны. Сравни все настройки через AWS CLI и убедись, что различия есть только в автоматически генерируемых значениях (User Pool ID, Client ID, region).
+</task>
+
+<constraints>
+- Используй AWS CLI для получения информации (НЕ AWS Console!)
+- Сравни все настройки между dev и prod
+- Различия допускаются только в автоматически генерируемых значениях
+- Все остальные настройки должны быть идентичны
+- Документируй любые найденные различия
+</constraints>
+
+<thinking>
+Прежде чем приступить к реализации:
+1. Изучи [INFRASTRUCTURE_AS_CODE.md](../../../infrastructure/INFRASTRUCTURE_AS_CODE.md) раздел 4.2 "Synchronization Process"
+2. Получи конфигурацию для обоих окружений через AWS CLI
+3. Сравни настройки
+4. Документируй различия (если есть)
+</thinking>
+
+**Действия:**
+- [x] Получить конфигурацию dev окружения:
+  ```bash
+  aws cognito-idp describe-user-pool --user-pool-id <DEV_POOL_ID> --region us-east-1 > dev_config.json
+  ```
+- [x] Получить конфигурацию prod окружения:
+  ```bash
+  aws cognito-idp describe-user-pool --user-pool-id <PROD_POOL_ID> --region eu-west-1 > prod_config.json
+  ```
+- [x] Сравнить настройки:
+  - Парольная политика (PasswordPolicy)
+  - MFA настройки (MfaConfiguration)
+  - Email верификация (AutoVerifiedAttributes, VerificationMessageTemplate)
+  - Schema attributes
+  - Username configuration
+  - Account recovery settings
+- [x] Проверить группы пользователей:
+  ```bash
+  # Dev
+  aws cognito-idp list-groups --user-pool-id <DEV_POOL_ID> --region us-east-1
+  
+  # Prod
+  aws cognito-idp list-groups --user-pool-id <PROD_POOL_ID> --region eu-west-1
+  ```
+- [x] Убедиться, что группы идентичны (названия, precedence, описания)
+- [x] Документировать любые различия (если найдены)
+- [x] Исправить различия, если они недопустимы
+
+**Документация:**
+- <CRITICAL>[INFRASTRUCTURE_AS_CODE.md](../../../infrastructure/INFRASTRUCTURE_AS_CODE.md) - раздел 4 "Configuration Synchronization"</CRITICAL>
+- [phase_05_auth_current_config.md](./phase_05_auth_current_config.md) - текущая конфигурация
+
+**Критерии приемки:**
+- Настройки dev и prod идентичны (кроме автоматически генерируемых значений)
+- Группы пользователей идентичны в обоих окружениях
+- Все различия документированы
+- Недопустимые различия исправлены
+
+<output_format>
+После выполнения задачи настройки dev и prod должны быть идентичны, все различия должны быть документированы, и недопустимые различия должны быть исправлены.
 </output_format>
 
 ---
@@ -518,47 +746,71 @@ Email верификация критически важна для безопа
 
 ---
 
-### Task 05.10: Push изменений в AWS
+### Task 05.10: Применение изменений к dev и prod окружениям
 
 <context>
-<CRITICAL>Это критически важная задача!</CRITICAL> Push изменений в AWS применяет все изменения в настройках Cognito к AWS. После push изменения вступают в силу в production.
+<CRITICAL>Это критически важная задача!</CRITICAL> Push изменений в AWS применяет все изменения в настройках Cognito к AWS. Изменения должны быть применены к обоим окружениям (dev и prod) для обеспечения идентичности конфигурации.
 </context>
 
 <task>
-Запусти `amplify push` для применения всех изменений в настройках Cognito к AWS. Убедись, что все обновления применены успешно.
+Примени все изменения в настройках Cognito к dev и prod окружениям через `amplify push`. Убедись, что все обновления применены успешно и настройки идентичны в обоих окружениях.
 </task>
 
 <constraints>
 - Используй команду `amplify push` (Gen 1, НЕ Gen 2!)
+- Примени изменения к dev окружению сначала
+- Проверь примененные изменения в dev
+- Примени изменения к prod окружению
+- Проверь, что настройки идентичны (Task 05.06)
 - Подтверди обновление ресурсов только после проверки
-- Дождись завершения обновления Cognito
-- Проверь статус после обновления
 </constraints>
 
 <thinking>
 Прежде чем приступить к реализации:
-1. Убедись, что все предыдущие задачи выполнены
-2. Изучи AWS_AMPLIFY.md раздел Push для понимания процесса
-3. Подготовься к проверке обновлений
-4. Только после этого запускай `amplify push`
+1. Убедись, что все предыдущие задачи выполнены (особенно Task 05.01 - обновление конфигурационных файлов)
+2. Изучи [INFRASTRUCTURE_AS_CODE.md](../../../infrastructure/INFRASTRUCTURE_AS_CODE.md) раздел 7 "Deployment Process"
+3. Изучи [AWS_AMPLIFY.md](../../../infrastructure/AWS_AMPLIFY.md) раздел 8 "Deployment"
+4. Подготовься к проверке обновлений
+5. Только после этого запускай `amplify push`
 </thinking>
 
 **Действия:**
-- [ ] Запустить `amplify push`
-- [ ] Подтвердить обновление ресурсов
-- [ ] Дождаться завершения обновления Cognito
+- [ ] Убедиться, что конфигурационные файлы обновлены (Task 05.01)
+- [ ] Применить изменения к dev окружению:
+  ```bash
+  amplify env checkout dev
+  amplify status  # Проверить изменения
+  amplify push
+  ```
+- [ ] Проверить примененные изменения в dev:
+  ```bash
+  aws cognito-idp describe-user-pool --user-pool-id <DEV_POOL_ID> --region us-east-1
+  ```
+- [ ] Применить изменения к prod окружению:
+  ```bash
+  amplify env checkout prod
+  amplify status  # Проверить изменения
+  amplify push
+  ```
+- [ ] Проверить примененные изменения в prod:
+  ```bash
+  aws cognito-idp describe-user-pool --user-pool-id <PROD_POOL_ID> --region eu-west-1
+  ```
+- [ ] Выполнить Task 05.06 для проверки идентичности настроек
 - [ ] Проверить статус: `amplify status`
 
 **Документация:**
-- <CRITICAL>[AWS_AMPLIFY.md](../../../infrastructure/AWS_AMPLIFY.md) - раздел Push</CRITICAL>
+- <CRITICAL>[INFRASTRUCTURE_AS_CODE.md](../../../infrastructure/INFRASTRUCTURE_AS_CODE.md) - раздел 7 "Deployment Process"</CRITICAL>
+- <CRITICAL>[AWS_AMPLIFY.md](../../../infrastructure/AWS_AMPLIFY.md) - раздел 8 "Deployment"</CRITICAL>
 
 **Критерии приемки:**
-- Команда `amplify push` выполнена успешно
-- Cognito User Pool обновлен
+- Команда `amplify push` выполнена успешно для обоих окружений
+- Cognito User Pool обновлен в dev и prod
+- Настройки идентичны в обоих окружениях (проверено в Task 05.06)
 - Нет ошибок при обновлении
 
 <output_format>
-После выполнения задачи команда `amplify push` должна быть выполнена успешно, Cognito User Pool должен быть обновлен, и не должно быть ошибок при обновлении.
+После выполнения задачи команда `amplify push` должна быть выполнена успешно для обоих окружений, Cognito User Pool должен быть обновлен, настройки должны быть идентичны, и не должно быть ошибок при обновлении.
 </output_format>
 
 ---
@@ -590,8 +842,8 @@ Email верификация критически важна для безопа
 </thinking>
 
 **Действия:**
-- [ ] Открыть файл `amplifyconfiguration.json` (или `src/amplifyconfiguration.json`)
-- [ ] Проверить наличие секции `Auth`:
+- [x] Открыть файл `amplifyconfiguration.json` (или `src/amplifyconfiguration.json`)
+- [x] Проверить наличие секции `Auth`:
   ```json
   {
     "Auth": {
@@ -603,8 +855,8 @@ Email верификация критически важна для безопа
     }
   }
   ```
-- [ ] Убедиться, что конфигурация корректна
-- [ ] Проверить, что User Pool ID и Client ID правильные
+- [x] Убедиться, что конфигурация корректна
+- [x] Проверить, что User Pool ID и Client ID правильные
 
 **Документация:**
 - [AWS_AMPLIFY.md](../../../infrastructure/AWS_AMPLIFY.md) - раздел Configuration Files
@@ -718,8 +970,11 @@ Email верификация критически важна для безопа
 
 ## Ссылки на документацию проекта
 
+- <CRITICAL>[INFRASTRUCTURE_AS_CODE.md](../../../infrastructure/INFRASTRUCTURE_AS_CODE.md) - Принципы Infrastructure as Code</CRITICAL>
 - [SECURITY.md](../../../infrastructure/SECURITY.md) - Безопасность и аутентификация
 - [AWS_AMPLIFY.md](../../../infrastructure/AWS_AMPLIFY.md) - Настройка AWS Amplify
+- [AWS_CLI_SCRIPTS.md](../../../infrastructure/AWS_CLI_SCRIPTS.md) - AWS CLI скрипты для конфигурации инфраструктуры
+- [phase_05_auth_current_config.md](./phase_05_auth_current_config.md) - Текущая конфигурация Cognito
 - [MVP_SCOPE.md](../../../MVP_SCOPE.md) - Роли пользователей
 - [GRAPHQL_SCHEMA.md](../../../database/GRAPHQL_SCHEMA.md) - Авторизация в GraphQL
 
