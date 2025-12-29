@@ -1,8 +1,8 @@
 # AWS CLI Scripts - Sunday School App
 
-## Document Version: 1.0
+## Document Version: 1.1
 **Creation Date:** 29 December 2025  
-**Last Update:** 29 December 2025  
+**Last Update:** 30 December 2025  
 **Project:** Sunday School App  
 **Technologies:** AWS CLI, AWS Cognito, AWS AppSync, Bash, PowerShell
 
@@ -79,6 +79,8 @@ This document provides instructions for configuring infrastructure through AWS C
 scripts/
 ├── create-cognito-groups.sh      # Bash script for Linux/Mac
 ├── create-cognito-groups.ps1    # PowerShell script for Windows
+├── update-cognito-tokens.sh      # Bash script for token settings (Linux/Mac)
+├── update-cognito-tokens.ps1    # PowerShell script for token settings (Windows)
 ├── check-duplicate-resources.sh  # Monitoring script (existing)
 └── check-duplicate-resources.ps1 # Monitoring script (existing)
 ```
@@ -426,7 +428,221 @@ SUPERADMIN   3           Главные администраторы
 
 ---
 
-## 5. Script Execution Guidelines
+## 5. Cognito Token Settings Configuration
+
+### 5.1. Challenge
+
+**Amplify Gen 1 CLI has limited support for token expiration configuration:**
+
+- ✅ **Refresh Token expiration:** Supported in `cli-inputs.json` via `userpoolClientRefreshTokenValidity`
+- ❌ **ID Token expiration:** Not directly supported (uses default: 1 hour)
+- ❌ **Access Token expiration:** Not directly supported (uses default: 1 hour)
+
+**Token expiration must be configured using AWS CLI after User Pool Client is deployed.**
+
+### 5.2. Required Token Settings
+
+**Token expiration configuration:**
+
+1. **ID Token:** 24 hours (1 day)
+   - Purpose: Contains user identity (userId, email, name, cognito:groups)
+   - Used for: User identification in AppSync requests
+
+2. **Access Token:** 24 hours (1 day)
+   - Purpose: Used for authorization (includes cognito:groups claim)
+   - Used for: Access to AWS resources
+
+3. **Refresh Token:** 30 days
+   - Purpose: Used to obtain new ID/Access tokens
+   - Already configured in `cli-inputs.json` via `userpoolClientRefreshTokenValidity: 30`
+
+**See [SECURITY.md](./SECURITY.md) section 2.3 JWT Tokens for requirements.**
+
+### 5.3. Bash Script
+
+**File:** `scripts/update-cognito-tokens.sh`
+
+```bash
+#!/bin/bash
+
+# Script to update Cognito User Pool Client Token Settings
+# Usage: ./scripts/update-cognito-tokens.sh <USER_POOL_ID> <CLIENT_ID> <REGION>
+# Example: ./scripts/update-cognito-tokens.sh us-east-1_FORzY4ey4 5hq66dq341pt5peavra3bqpd7b us-east-1
+
+set -e  # Exit on error
+
+USER_POOL_ID=$1
+CLIENT_ID=$2
+REGION=$3
+
+# Token expiration settings
+ID_TOKEN_VALIDITY=24        # 1 day in hours
+ACCESS_TOKEN_VALIDITY=24    # 1 day in hours
+REFRESH_TOKEN_VALIDITY=30   # 30 days
+
+# Update token settings
+aws cognito-idp update-user-pool-client \
+  --user-pool-id "$USER_POOL_ID" \
+  --client-id "$CLIENT_ID" \
+  --id-token-validity "$ID_TOKEN_VALIDITY" \
+  --access-token-validity "$ACCESS_TOKEN_VALIDITY" \
+  --refresh-token-validity "$REFRESH_TOKEN_VALIDITY" \
+  --token-validity-units IdToken=hours,AccessToken=hours,RefreshToken=days \
+  --region "$REGION"
+```
+
+**Make script executable:**
+
+```bash
+chmod +x scripts/update-cognito-tokens.sh
+```
+
+### 5.4. PowerShell Script
+
+**File:** `scripts/update-cognito-tokens.ps1`
+
+```powershell
+# Script to update Cognito User Pool Client Token Settings
+# Usage: .\scripts\update-cognito-tokens.ps1 -UserPoolId <USER_POOL_ID> -ClientId <CLIENT_ID> -Region <REGION>
+# Example: .\scripts\update-cognito-tokens.ps1 -UserPoolId us-east-1_FORzY4ey4 -ClientId 5hq66dq341pt5peavra3bqpd7b -Region us-east-1
+
+param(
+    [Parameter(Mandatory=$true)]
+    [string]$UserPoolId,
+    
+    [Parameter(Mandatory=$true)]
+    [string]$ClientId,
+    
+    [Parameter(Mandatory=$true)]
+    [string]$Region
+)
+
+# Token expiration settings
+$IdTokenValidity = 24        # 1 day in hours
+$AccessTokenValidity = 24     # 1 day in hours
+$RefreshTokenValidity = 30    # 30 days
+
+# Update token settings
+aws cognito-idp update-user-pool-client `
+    --user-pool-id $UserPoolId `
+    --client-id $ClientId `
+    --id-token-validity $IdTokenValidity `
+    --access-token-validity $AccessTokenValidity `
+    --refresh-token-validity $RefreshTokenValidity `
+    --token-validity-units IdToken=hours,AccessToken=hours,RefreshToken=days `
+    --region $Region
+```
+
+### 5.5. Getting Client ID
+
+**Method 1: From AWS CLI list command**
+
+```bash
+# Dev environment
+aws cognito-idp list-user-pool-clients \
+  --user-pool-id us-east-1_FORzY4ey4 \
+  --region us-east-1 \
+  --query "UserPoolClients[?ClientName=='sunsche716d941_app_clientWeb'].ClientId" \
+  --output text
+
+# Prod environment
+aws cognito-idp list-user-pool-clients \
+  --user-pool-id eu-west-1_iQ7XIxudA \
+  --region eu-west-1 \
+  --query "UserPoolClients[?ClientName=='sunsche716d941_app_clientWeb'].ClientId" \
+  --output text
+```
+
+**Method 2: From phase_05_auth_current_config.md**
+
+- Dev Client ID: `5hq66dq341pt5peavra3bqpd7b`
+- Prod Client ID: `16u9cvivepo40bp2hn5ipjcg2k`
+
+### 5.6. Execution Instructions
+
+**Step 1: Verify AWS credentials**
+
+```bash
+aws sts get-caller-identity
+```
+
+**Step 2: Get Client ID (use one of the methods from section 5.5)**
+
+**Step 3: Execute script**
+
+**Linux/Mac:**
+```bash
+# Dev environment
+./scripts/update-cognito-tokens.sh us-east-1_FORzY4ey4 5hq66dq341pt5peavra3bqpd7b us-east-1
+
+# Prod environment
+./scripts/update-cognito-tokens.sh eu-west-1_iQ7XIxudA 16u9cvivepo40bp2hn5ipjcg2k eu-west-1
+```
+
+**Windows PowerShell:**
+```powershell
+# Dev environment
+.\scripts\update-cognito-tokens.ps1 -UserPoolId us-east-1_FORzY4ey4 -ClientId 5hq66dq341pt5peavra3bqpd7b -Region us-east-1
+
+# Prod environment
+.\scripts\update-cognito-tokens.ps1 -UserPoolId eu-west-1_iQ7XIxudA -ClientId 16u9cvivepo40bp2hn5ipjcg2k -Region eu-west-1
+```
+
+**Important:** Always execute scripts for dev environment first, verify results, then execute for prod.
+
+### 5.7. Verification
+
+**Check token settings:**
+
+```bash
+aws cognito-idp describe-user-pool-client \
+  --user-pool-id <USER_POOL_ID> \
+  --client-id <CLIENT_ID> \
+  --region <REGION> \
+  --query "UserPoolClient.{IdTokenValidity:IdTokenValidity,AccessTokenValidity:AccessTokenValidity,RefreshTokenValidity:RefreshTokenValidity,TokenValidityUnits:TokenValidityUnits}" \
+  --output json
+```
+
+**Expected output:**
+
+```json
+{
+  "IdTokenValidity": 24,
+  "AccessTokenValidity": 24,
+  "RefreshTokenValidity": 30,
+  "TokenValidityUnits": {
+    "IdToken": "hours",
+    "AccessToken": "hours",
+    "RefreshToken": "days"
+  }
+}
+```
+
+### 5.8. Troubleshooting
+
+**Error: "User Pool Client not found"**
+
+- **Cause:** Incorrect Client ID or User Pool ID
+- **Solution:** Verify Client ID using methods from section 5.5
+
+**Error: "Invalid parameter: TokenValidityUnits"**
+
+- **Cause:** Incorrect format for token validity units
+- **Solution:** Use format: `IdToken=hours,AccessToken=hours,RefreshToken=days`
+
+**Error: "Access Denied"**
+
+- **Cause:** AWS credentials don't have permissions
+- **Solution:** Ensure IAM user/role has `cognito-idp:UpdateUserPoolClient` permission
+
+**Error: "Invalid parameter: IdTokenValidity"**
+
+- **Cause:** Value is out of valid range (1-24 hours)
+- **Solution:** Verify token validity values in script (24 hours for ID/Access tokens)
+
+---
+
+## 6. Script Execution Guidelines
 
 ### 5.1. Pre-Execution Checklist
 
@@ -491,7 +707,7 @@ SUPERADMIN   3           Главные администраторы
 
 ---
 
-## 6. Future Scripts
+## 7. Future Scripts
 
 ### 6.1. Script Template
 
@@ -581,7 +797,7 @@ Write-Host "==========================================" -ForegroundColor Cyan
 
 ---
 
-## 7. Integration with Deployment
+## 8. Integration with Deployment
 
 ### 7.1. Deployment Workflow
 
@@ -634,7 +850,7 @@ Write-Host "==========================================" -ForegroundColor Cyan
 
 ---
 
-## 8. References
+## 9. References
 
 ### 8.1. Related Documentation
 
@@ -659,7 +875,7 @@ Write-Host "==========================================" -ForegroundColor Cyan
 
 ---
 
-## 9. Compliance Checklist
+## 10. Compliance Checklist
 
 **Before considering script setup complete:**
 
@@ -675,7 +891,7 @@ Write-Host "==========================================" -ForegroundColor Cyan
 
 ---
 
-**Version:** 1.0  
-**Last Update:** 29 December 2025  
+**Version:** 1.1  
+**Last Update:** 30 December 2025  
 **Maintainer:** DevOps Team
 
