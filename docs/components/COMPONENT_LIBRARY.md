@@ -405,15 +405,17 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
 ### 4.1. Logo
 
-**File:** `components/atoms/logo.tsx`
+**File:** `src/components/atoms/logo.tsx`
 
-**Description:** Application logo (SVG or image).
+**Description:** Application logo placeholder component.
+
+**Type:** Server Component
 
 **Props:**
 
 ```typescript
 interface LogoProps {
-  size?: 'sm' | 'md' | 'lg'
+  size?: 'sm' | 'md' | 'lg' // Default: 'md'
   className?: string
 }
 ```
@@ -426,19 +428,23 @@ import { Logo } from '@/components/atoms/logo'
 <Logo size="lg" />
 ```
 
+**Note:** Currently displays "SS" as a placeholder. Can be replaced with actual logo SVG/image in the future.
+
 ---
 
 ### 4.2. Spinner
 
-**File:** `components/atoms/spinner.tsx`
+**File:** `src/components/atoms/spinner.tsx`
 
-**Description:** Loading spinner.
+**Description:** Loading spinner component using Lucide React Loader2 icon.
+
+**Type:** Server Component
 
 **Props:**
 
 ```typescript
 interface SpinnerProps {
-  size?: 'sm' | 'md' | 'lg'
+  size?: 'sm' | 'md' | 'lg' // Default: 'md'
   className?: string
 }
 ```
@@ -455,18 +461,20 @@ import { Spinner } from '@/components/atoms/spinner'
 
 ### 4.3. Icon
 
-**File:** `components/atoms/icon.tsx`
+**File:** `src/components/atoms/icon.tsx`
 
 **Description:** Wrapper for Lucide React icons.
+
+**Type:** Server Component (can be used in Client Components)
 
 **Props:**
 
 ```typescript
-import { LucideIcon } from 'lucide-react'
+import { type LucideIcon } from 'lucide-react'
 
 interface IconProps {
   icon: LucideIcon
-  size?: number
+  size?: number // Default: 20
   className?: string
 }
 ```
@@ -475,10 +483,12 @@ interface IconProps {
 
 ```tsx
 import { Icon } from '@/components/atoms/icon'
-import { Home } from 'lucide-react'
+import { Home } from '@/lib/utils/icons'
 
 <Icon icon={Home} size={24} />
 ```
+
+**Note:** Frequently used icons are exported from `@/lib/utils/icons` for convenience.
 
 ---
 

@@ -37,6 +37,8 @@ Phase 01: Настройка проекта и окружения
 3. Используй Context7 для получения актуальной документации Shadcn UI
 4. Используй Context7 для получения актуальной документации Tailwind CSS 4
 5. Следуй принципам из `docs/guidelines/prompts/general_prompt_guidelines.md`
+6. Следуй принципам из `docs/guidelines/react/ai_component_guidelines.md`
+7. Следуй принципам из `.cursor/rules/aiagentworkflow.mdc`
 
 <CONSTRAINT>Все компоненты должны следовать дизайн-системе проекта и быть доступными (WCAG 2.1 AA). Shadcn UI компоненты копируются в проект, что дает полный контроль над кодом!</CONSTRAINT>
 </critical_instructions>
@@ -73,12 +75,12 @@ Phase 01: Настройка проекта и окружения
 </thinking>
 
 **Действия:**
-- [ ] Установить Shadcn UI CLI: `npx shadcn@latest init`
-- [ ] Выбрать опции:
+- [x] Установить Shadcn UI CLI: `npx shadcn@latest init`
+- [x] Выбрать опции:
   - Style: `Default` (или другой согласно дизайн-системе)
   - Base color: `Slate` (или другой согласно дизайн-системе)
   - CSS variables: `Yes`
-- [ ] Дождаться создания конфигурационных файлов
+- [x] Дождаться создания конфигурационных файлов
 
 **Документация:**
 - <CRITICAL>[DESIGN_SYSTEM.md](../../../ui_ux/DESIGN_SYSTEM.md) - раздел 2 Design Tokens</CRITICAL>
@@ -123,17 +125,17 @@ Phase 01: Настройка проекта и окружения
 </thinking>
 
 **Действия:**
-- [ ] Установить Button: `npx shadcn@latest add button`
-- [ ] Установить Card: `npx shadcn@latest add card`
-- [ ] Установить Form: `npx shadcn@latest add form`
-- [ ] Установить Input: `npx shadcn@latest add input`
-- [ ] Установить Dialog: `npx shadcn@latest add dialog`
-- [ ] Установить Table: `npx shadcn@latest add table`
-- [ ] Установить Badge: `npx shadcn@latest add badge`
-- [ ] Установить Dropdown Menu: `npx shadcn@latest add dropdown-menu`
-- [ ] Установить Calendar: `npx shadcn@latest add calendar`
-- [ ] Установить Avatar: `npx shadcn@latest add avatar`
-- [ ] Установить другие необходимые компоненты согласно [COMPONENT_LIBRARY.md](../../../components/COMPONENT_LIBRARY.md)
+- [x] Установить Button: `npx shadcn@latest add button`
+- [x] Установить Card: `npx shadcn@latest add card`
+- [x] Установить Form: `npx shadcn@latest add form`
+- [x] Установить Input: `npx shadcn@latest add input`
+- [x] Установить Dialog: `npx shadcn@latest add dialog`
+- [x] Установить Table: `npx shadcn@latest add table`
+- [x] Установить Badge: `npx shadcn@latest add badge`
+- [x] Установить Dropdown Menu: `npx shadcn@latest add dropdown-menu`
+- [x] Установить Calendar: `npx shadcn@latest add calendar`
+- [x] Установить Avatar: `npx shadcn@latest add avatar`
+- [x] Установить другие необходимые компоненты согласно [COMPONENT_LIBRARY.md](../../../components/COMPONENT_LIBRARY.md) (Label, Textarea, Select, Popover, Sonner, Sheet)
 
 **Документация:**
 - <CRITICAL>[COMPONENT_LIBRARY.md](../../../components/COMPONENT_LIBRARY.md) - раздел 2 Directory Structure</CRITICAL>
@@ -177,12 +179,12 @@ Phase 01: Настройка проекта и окружения
 </thinking>
 
 **Действия:**
-- [ ] Открыть `tailwind.config.ts`
-- [ ] Настроить цвета согласно [DESIGN_SYSTEM.md](../../../ui_ux/DESIGN_SYSTEM.md) раздел 2.1 Color Palette
-- [ ] Настроить типографику согласно раздел 2.2 Typography
-- [ ] Настроить spacing согласно раздел 2.3 Spacing
-- [ ] Настроить border radius согласно раздел 2.4 Border Radius
-- [ ] Настроить shadows согласно раздел 2.5 Shadows
+- [x] Открыть `tailwind.config.ts`
+- [x] Настроить цвета согласно [DESIGN_SYSTEM.md](../../../ui_ux/DESIGN_SYSTEM.md) раздел 2.1 Color Palette
+- [x] Настроить типографику согласно раздел 2.2 Typography
+- [x] Настроить spacing согласно раздел 2.3 Spacing
+- [x] Настроить border radius согласно раздел 2.4 Border Radius
+- [x] Настроить shadows согласно раздел 2.5 Shadows
 
 **Документация:**
 - <CRITICAL>[DESIGN_SYSTEM.md](../../../ui_ux/DESIGN_SYSTEM.md) - раздел 2 Design Tokens</CRITICAL>
@@ -225,11 +227,11 @@ Phase 01: Настройка проекта и окружения
 </thinking>
 
 **Действия:**
-- [ ] Открыть `app/globals.css` (или `src/app/globals.css`)
-- [ ] Проверить наличие CSS переменных для цветов
-- [ ] Настроить переменные согласно [DESIGN_SYSTEM.md](../../../ui_ux/DESIGN_SYSTEM.md) раздел 2.1
-- [ ] Убедиться, что переменные используются в компонентах
-- [ ] Протестировать изменение цветов через переменные
+- [x] Открыть `app/globals.css` (или `src/app/globals.css`)
+- [x] Проверить наличие CSS переменных для цветов
+- [x] Настроить переменные согласно [DESIGN_SYSTEM.md](../../../ui_ux/DESIGN_SYSTEM.md) раздел 2.1
+- [x] Убедиться, что переменные используются в компонентах
+- [x] Протестировать изменение цветов через переменные
 
 **Документация:**
 - <CRITICAL>[DESIGN_SYSTEM.md](../../../ui_ux/DESIGN_SYSTEM.md) - раздел 2 Design Tokens</CRITICAL>
@@ -272,11 +274,11 @@ Phase 01: Настройка проекта и окружения
 </thinking>
 
 **Действия:**
-- [ ] Создать кастомные компоненты-обертки для часто используемых паттернов
-- [ ] Создать `components/atoms/icon.tsx` для иконок
-- [ ] Создать `components/atoms/logo.tsx` для логотипа
-- [ ] Создать `components/atoms/spinner.tsx` для загрузки
-- [ ] Убедиться, что компоненты следуют Atomic Design принципам
+- [x] Создать кастомные компоненты-обертки для часто используемых паттернов
+- [x] Создать `components/atoms/icon.tsx` для иконок
+- [x] Создать `components/atoms/logo.tsx` для логотипа
+- [x] Создать `components/atoms/spinner.tsx` для загрузки
+- [x] Убедиться, что компоненты следуют Atomic Design принципам
 
 **Документация:**
 - [COMPONENT_LIBRARY.md](../../../components/COMPONENT_LIBRARY.md) - раздел 2 Directory Structure
@@ -320,10 +322,10 @@ Phase 01: Настройка проекта и окружения
 </thinking>
 
 **Действия:**
-- [ ] Убедиться, что `lucide-react` установлен (из Phase 01)
-- [ ] Создать утилиту для иконок: `lib/utils/icons.ts`
-- [ ] Экспортировать часто используемые иконки
-- [ ] Протестировать использование иконок в компонентах
+- [x] Убедиться, что `lucide-react` установлен (из Phase 01)
+- [x] Создать утилиту для иконок: `lib/utils/icons.ts`
+- [x] Экспортировать часто используемые иконки
+- [x] Протестировать использование иконок в компонентах
 
 **Документация:**
 - [DESIGN_SYSTEM.md](../../../ui_ux/DESIGN_SYSTEM.md) - раздел 2.6 Iconography
@@ -365,11 +367,11 @@ Phase 01: Настройка проекта и окружения
 </thinking>
 
 **Действия:**
-- [ ] Создать тестовую страницу для проверки компонентов: `app/test-components/page.tsx`
-- [ ] Добавить примеры использования всех установленных компонентов
-- [ ] Проверить визуальное отображение компонентов
-- [ ] Проверить работу интерактивных компонентов (Dialog, Dropdown и др.)
-- [ ] Проверить адаптивность компонентов (Mobile, Tablet, Desktop)
+- [x] Создать тестовую страницу для проверки компонентов: `app/test-components/page.tsx`
+- [x] Добавить примеры использования всех установленных компонентов
+- [x] Проверить визуальное отображение компонентов
+- [x] Проверить работу интерактивных компонентов (Dialog, Dropdown и др.)
+- [x] Проверить адаптивность компонентов (Mobile, Tablet, Desktop)
 
 **Документация:**
 - [DESIGN_SYSTEM.md](../../../ui_ux/DESIGN_SYSTEM.md)
@@ -413,11 +415,11 @@ Phase 01: Настройка проекта и окружения
 </thinking>
 
 **Действия:**
-- [ ] Определить, нужна ли темная тема для MVP (согласно MVP_SCOPE.md)
-- [ ] Если нужна, установить next-themes: `npm install next-themes`
-- [ ] Создать ThemeProvider компонент
-- [ ] Настроить переключение темы
-- [ ] Протестировать темную тему
+- [x] Определить, нужна ли темная тема для MVP (согласно MVP_SCOPE.md)
+- [x] Если нужна, установить next-themes: `npm install next-themes` (пропущено - не требуется для MVP)
+- [x] Создать ThemeProvider компонент (пропущено - не требуется для MVP)
+- [x] Настроить переключение темы (пропущено - не требуется для MVP)
+- [x] Протестировать темную тему (пропущено - не требуется для MVP)
 
 **Документация:**
 - [MVP_SCOPE.md](../../../MVP_SCOPE.md) - раздел 3.4.4 Темная тема
@@ -462,10 +464,10 @@ Phase 01: Настройка проекта и окружения
 </thinking>
 
 **Действия:**
-- [ ] Проверить, что все компоненты имеют правильные ARIA атрибуты
-- [ ] Проверить keyboard navigation для интерактивных компонентов
-- [ ] Проверить цветовой контраст согласно WCAG 2.1 AA
-- [ ] Протестировать с screen reader (если возможно)
+- [x] Проверить, что все компоненты имеют правильные ARIA атрибуты
+- [x] Проверить keyboard navigation для интерактивных компонентов
+- [x] Проверить цветовой контраст согласно WCAG 2.1 AA
+- [x] Протестировать с screen reader (если возможно)
 
 **Документация:**
 - <CRITICAL>[DESIGN_SYSTEM.md](../../../ui_ux/DESIGN_SYSTEM.md) - раздел 4 Accessibility</CRITICAL>
@@ -509,10 +511,10 @@ Phase 01: Настройка проекта и окружения
 </thinking>
 
 **Действия:**
-- [ ] Создать список всех установленных компонентов
-- [ ] Задокументировать кастомные компоненты
-- [ ] Обновить [COMPONENT_LIBRARY.md](../../../components/COMPONENT_LIBRARY.md) если необходимо
-- [ ] Создать примеры использования компонентов
+- [x] Создать список всех установленных компонентов
+- [x] Задокументировать кастомные компоненты
+- [x] Обновить [COMPONENT_LIBRARY.md](../../../components/COMPONENT_LIBRARY.md) если необходимо
+- [x] Создать примеры использования компонентов
 
 **Документация:**
 - [COMPONENT_LIBRARY.md](../../../components/COMPONENT_LIBRARY.md)
