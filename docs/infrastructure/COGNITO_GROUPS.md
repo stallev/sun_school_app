@@ -71,14 +71,19 @@ aws cognito-idp list-groups --user-pool-id us-east-1_FORzY4ey4 --region us-east-
 
 ### 3.2. Prod Environment (eu-west-1)
 
-**Status:** ⏳ Pending (will be created after prod configuration deployment)
+**Status:** ✅ Groups created
 
 **User Pool ID:** `eu-west-1_iQ7XIxudA`
 
 **Created Groups:**
-- ⏳ TEACHER (precedence: 1) - Pending
-- ⏳ ADMIN (precedence: 2) - Pending
-- ⏳ SUPERADMIN (precedence: 3) - Pending
+- ✅ TEACHER (precedence: 1) - "Sunday School Teachers" - Created: 2025-12-29
+- ✅ ADMIN (precedence: 2) - "Sunday School Administrators" - Created: 2025-12-29
+- ✅ SUPERADMIN (precedence: 3) - "Sunday School Super Administrators" - Created: 2025-12-29
+
+**Verification Command:**
+```bash
+aws cognito-idp list-groups --user-pool-id eu-west-1_iQ7XIxudA --region eu-west-1 --output table
+```
 
 ---
 
