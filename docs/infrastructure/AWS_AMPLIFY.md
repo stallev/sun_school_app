@@ -1477,6 +1477,27 @@ grep -r "referencetotransformerroot.*HomeworkCheck\|referencetotransformerroot.*
 .\scripts\check-duplicate-resources.ps1 eu-west-1
 ```
 
+### 12.4. AWS CLI Configuration Scripts
+
+- **[AWS_CLI_SCRIPTS.md](./AWS_CLI_SCRIPTS.md)** - Инструкции по конфигурации инфраструктуры через AWS CLI скрипты для случаев, когда Amplify Gen 1 CLI не поддерживает необходимые настройки
+
+**Доступные скрипты:**
+
+- **`scripts/create-cognito-groups.sh`** - Bash скрипт для создания Cognito Groups
+- **`scripts/create-cognito-groups.ps1`** - PowerShell скрипт для создания Cognito Groups
+
+**Использование скриптов:**
+
+```bash
+# Bash (Linux/Mac)
+./scripts/create-cognito-groups.sh <USER_POOL_ID> <REGION>
+
+# PowerShell (Windows)
+.\scripts\create-cognito-groups.ps1 -UserPoolId <USER_POOL_ID> -Region <REGION>
+```
+
+**См. [AWS_CLI_SCRIPTS.md](./AWS_CLI_SCRIPTS.md) для подробных инструкций.**
+
 ---
 
 ## 13. Resources

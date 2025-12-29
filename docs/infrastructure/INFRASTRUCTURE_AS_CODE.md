@@ -249,15 +249,16 @@ aws cognito-idp create-group \
 
 **Document groups configuration:**
 
-1. Create `docs/infrastructure/COGNITO_GROUPS.md` with:
-   - List of groups and their precedence
-   - IAM roles associated with groups
-   - Scripts for creating groups
+1. See [AWS_CLI_SCRIPTS.md](./AWS_CLI_SCRIPTS.md) for:
+   - Complete scripts for creating groups (bash and PowerShell)
+   - Detailed execution instructions
    - Verification commands
+   - Troubleshooting guide
+   - List of groups and their precedence
 
 2. Update `amplify/backend/auth/*/cli-inputs.json` with:
-   - `userPoolGroupList` field (if supported in future Amplify versions)
-   - Comments documenting groups
+   - Comments documenting groups configuration
+   - Reference to AWS_CLI_SCRIPTS.md for group creation
 
 ---
 
@@ -442,6 +443,7 @@ aws cognito-idp create-group \
 
 - [AWS_AMPLIFY.md](./AWS_AMPLIFY.md) - AWS Amplify configuration guide
 - [SECURITY.md](./SECURITY.md) - Security requirements and Cognito setup
+- [AWS_CLI_SCRIPTS.md](./AWS_CLI_SCRIPTS.md) - AWS CLI scripts for infrastructure configuration
 - [ARCHITECTURE.md](../architecture/ARCHITECTURE.md) - Overall architecture
 
 ### 10.2. AWS Documentation

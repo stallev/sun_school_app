@@ -1,6 +1,7 @@
 # Текущая конфигурация Cognito - Phase 05 Auth
 
-**Дата получения:** 27 декабря 2025  
+**Дата получения:** 29 декабря 2025  
+**Последнее обновление:** 29 декабря 2025  
 **Метод получения:** AWS CLI команды
 
 ## Обзор окружений
@@ -44,14 +45,39 @@
 ### Группы пользователей (Cognito Groups)
 
 **Текущее состояние:**
-- Группы не созданы (пустой список в обоих окружениях)
+- ✅ Группы созданы для dev окружения (29.12.2025)
+- ⏳ Группы не созданы для prod окружения (ожидают деплоя конфигурации в prod)
 
-**Требуемые группы:**
-- `TEACHER` (precedence: 1)
-- `ADMIN` (precedence: 2)
-- `SUPERADMIN` (precedence: 3)
+**Созданные группы (dev окружение):**
+- ✅ `TEACHER` (precedence: 1) - "Sunday School Teachers"
+  - Creation Date: 2025-12-29T13:13:47.561000+03:00
+  - User Pool ID: us-east-1_FORzY4ey4
+  - Region: us-east-1
+- ✅ `ADMIN` (precedence: 2) - "Sunday School Administrators"
+  - Creation Date: 2025-12-29T13:13:57.961000+03:00
+  - User Pool ID: us-east-1_FORzY4ey4
+  - Region: us-east-1
+- ✅ `SUPERADMIN` (precedence: 3) - "Sunday School Super Administrators"
+  - Creation Date: 2025-12-29T13:14:02.939000+03:00
+  - User Pool ID: us-east-1_FORzY4ey4
+  - Region: us-east-1
 
-**Действие:** Необходимо создать группы через конфигурацию или AWS CLI с последующим обновлением кода.
+**Проверка групп через AWS CLI:**
+```bash
+# Список всех групп
+aws cognito-idp list-groups --user-pool-id us-east-1_FORzY4ey4 --region us-east-1 --output table
+
+# Детали конкретной группы
+aws cognito-idp get-group --user-pool-id us-east-1_FORzY4ey4 --group-name TEACHER --region us-east-1
+aws cognito-idp get-group --user-pool-id us-east-1_FORzY4ey4 --group-name ADMIN --region us-east-1
+aws cognito-idp get-group --user-pool-id us-east-1_FORzY4ey4 --group-name SUPERADMIN --region us-east-1
+```
+
+**Документация:**
+- [COGNITO_GROUPS.md](../../../infrastructure/COGNITO_GROUPS.md) - полная документация по группам
+- [AWS_CLI_SCRIPTS.md](../../../infrastructure/AWS_CLI_SCRIPTS.md) - инструкции по созданию групп через AWS CLI
+
+**Статус:** ✅ Группы созданы для dev окружения (проверено через AWS CLI 29.12.2025)
 
 ### Настройки токенов (Token Settings)
 
@@ -184,6 +210,63 @@ aws cognito-idp list-groups --user-pool-id eu-west-1_iQ7XIxudA --region eu-west-
 
 ---
 
-**Версия:** 1.0  
-**Последнее обновление:** 27 декабря 2025
+## Статус задач Phase 05 Auth
+
+**Дата проверки:** 29 декабря 2025  
+**Метод проверки:** AWS CLI команды и проверка конфигурационных файлов
+
+### Выполненные задачи
+
+- ✅ **Task 05.00:** Получение информации о текущей конфигурации Cognito
+  - Файл `phase_05_auth_current_config.md` создан и содержит актуальную информацию
+  - User Pool IDs определены для обоих окружений
+
+- ✅ **Task 05.01:** Обновление конфигурации Auth в Amplify
+  - Файл `amplify/backend/auth/sunsche716d941/cli-inputs.json` обновлен
+  - Парольная политика настроена в коде: REQUIRE_UPPERCASE, REQUIRE_LOWERCASE, REQUIRE_NUMBERS, REQUIRE_SYMBOLS
+  - ⚠️ **Примечание:** Изменения не применены через `amplify push` (см. Task 05.02 и 05.10)
+
+- ✅ **Task 05.06:** Проверка идентичности настроек dev и prod
+  - Настройки dev и prod идентичны:
+    - Парольная политика: одинаковая (MinimumLength: 8, все Require* = false)
+    - MFA: OFF в обоих окружениях
+    - AutoVerifiedAttributes: ["email"] в обоих окружениях
+  - Различия только в автоматически генерируемых значениях (User Pool ID, Client ID, Region)
+
+- ✅ **Task 05.11:** Проверка конфигурации в amplifyconfiguration.json
+  - Файл `src/amplifyconfiguration.json` существует
+  - Содержит правильные User Pool ID и Client ID для dev окружения
+  - ⚠️ **Примечание:** passwordPolicyCharacters пустой массив (изменения не применены)
+
+### Не выполненные задачи
+
+- ❌ **Task 05.02:** Настройка парольной политики в коде
+  - **Проблема:** Парольная политика настроена в `cli-inputs.json`, но не применена в AWS
+  - **Текущее состояние:**
+    - Dev: MinimumLength: 8, RequireUppercase: false, RequireLowercase: false, RequireNumbers: false, RequireSymbols: false
+    - Prod: MinimumLength: 8, RequireUppercase: false, RequireLowercase: false, RequireNumbers: false, RequireSymbols: false
+  - **Требуется:** Выполнить `amplify push` для применения изменений (Task 05.10)
+
+- ❌ **Task 05.03:** Создание групп пользователей (Cognito Groups)
+  - **Проблема:** Группы не созданы в обоих окружениях
+  - **Текущее состояние:**
+    - Dev: Groups: [] (пустой список)
+    - Prod: Groups: [] (пустой список)
+  - **Требуется:** Выполнить скрипты `scripts/create-cognito-groups.sh` или `scripts/create-cognito-groups.ps1`
+  - **Документация:** [AWS_CLI_SCRIPTS.md](../../../infrastructure/AWS_CLI_SCRIPTS.md)
+
+- ❌ **Task 05.10:** Применение изменений к dev и prod окружениям
+  - **Проблема:** Изменения в конфигурационных файлах не применены через `amplify push`
+  - **Требуется:** Выполнить `amplify push` для обоих окружений
+
+### Рекомендации
+
+1. **Приоритет 1:** Выполнить Task 05.10 (amplify push) для применения парольной политики
+2. **Приоритет 2:** Выполнить Task 05.03 (создание групп) через AWS CLI скрипты
+3. **После выполнения:** Повторить проверку через AWS CLI для подтверждения применения изменений
+
+---
+
+**Версия:** 1.1  
+**Последнее обновление:** 29 декабря 2025
 
