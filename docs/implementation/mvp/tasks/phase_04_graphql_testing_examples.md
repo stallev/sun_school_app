@@ -573,3 +573,4 @@ query TestPerformance {
 
 **Примечание:** После выполнения `amplify push` используйте эти примеры для тестирования фильтрации и пагинации в AWS AppSync Console.
 
+
