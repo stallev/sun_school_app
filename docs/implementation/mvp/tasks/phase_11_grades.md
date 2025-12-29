@@ -88,6 +88,18 @@ Phase 10: Создание системы валидации
 - <CRITICAL>[VALIDATION.md](../../../api/VALIDATION.md) - раздел Grade Schemas</CRITICAL>
 - [MVP_SCOPE.md](../../../MVP_SCOPE.md) - раздел 2.2.1 Группы
 - Context7: Next.js 15.5.9 Server Actions документация
+- **Код реализации:**
+  - [src/lib/validation/grades.ts](../../../../src/lib/validation/grades.ts) - схемы валидации для групп
+  - [src/lib/db/queries.ts](../../../../src/lib/db/queries.ts) - функции запросов (getGrade, listGrades)
+  - [src/lib/db/mutations.ts](../../../../src/lib/db/mutations.ts) - функции мутаций (createGrade, updateGrade, deleteGrade)
+  - [src/lib/db/amplify.ts](../../../../src/lib/db/amplify.ts) - Data Access Layer (amplifyData)
+  - [src/lib/db/errors.ts](../../../../src/lib/db/errors.ts) - обработка ошибок Data Access Layer
+  - [src/lib/auth/cognito.ts](../../../../src/lib/auth/cognito.ts) - проверка прав доступа
+  - [src/graphql/queries.ts](../../../../src/graphql/queries.ts) - GraphQL запросы для групп
+  - [src/graphql/mutations.ts](../../../../src/graphql/mutations.ts) - GraphQL мутации для групп
+  - [src/graphql/generated/types.ts](../../../../src/graphql/generated/types.ts) - TypeScript типы из GraphQL схемы
+  - [src/lib/validation/common.ts](../../../../src/lib/validation/common.ts) - общие схемы валидации
+  - [src/lib/validation/utils.ts](../../../../src/lib/validation/utils.ts) - утилиты для работы с валидацией
 
 **Критерии приемки:**
 - Все Server Actions созданы
@@ -146,6 +158,9 @@ Phase 10: Создание системы валидации
 - [ADMIN_FLOWS.md](../../../user_flows/ADMIN_FLOWS.md) - раздел 3.1 Создание новой группы
 - [MVP_SCOPE.md](../../../MVP_SCOPE.md) - раздел 2.2.1
 - Context7: Next.js 15.5.9 App Router документация
+- **Код реализации:**
+  - [src/lib/db/queries.ts](../../../../src/lib/db/queries.ts) - для получения данных групп
+  - [src/lib/validation/grades.ts](../../../../src/lib/validation/grades.ts) - для валидации форм
 
 **Критерии приемки:**
 - Страница списка групп создана
@@ -203,6 +218,8 @@ Phase 10: Создание системы валидации
 - [USER_FLOW.md](../../../user_flows/USER_FLOW.md) - раздел Grade View
 - [TEACHER_FLOWS.md](../../../user_flows/TEACHER_FLOWS.md) - раздел 2.1 Вход в систему и навигация
 - Context7: Next.js 15.5.9 динамические маршруты документация
+- **Код реализации:**
+  - [src/lib/db/queries.ts](../../../../src/lib/db/queries.ts) - для получения данных группы
 
 **Критерии приемки:**
 - Страница просмотра группы создана
@@ -263,6 +280,10 @@ Phase 10: Создание системы валидации
 - [COMPONENT_LIBRARY.md](../../../components/COMPONENT_LIBRARY.md)
 - Context7: React Hook Form документация
 - Context7: Zod документация
+- **Код реализации:**
+  - [src/lib/validation/grades.ts](../../../../src/lib/validation/grades.ts) - схемы валидации для форм
+  - [src/lib/validation/common.ts](../../../../src/lib/validation/common.ts) - общие схемы валидации
+  - [src/lib/validation/utils.ts](../../../../src/lib/validation/utils.ts) - утилиты для работы с валидацией
 
 **Критерии приемки:**
 - Форма создана и работает
@@ -323,6 +344,8 @@ Phase 10: Создание системы валидации
 - [ADMIN_FLOWS.md](../../../user_flows/ADMIN_FLOWS.md) - раздел 3.1 Создание новой группы
 - <CRITICAL>[MVP_SCOPE.md](../../../MVP_SCOPE.md) - раздел 2.1.2 Роли пользователей</CRITICAL>
 - Context7: AWS Cognito документация
+- **Код реализации:**
+  - [src/lib/auth/cognito.ts](../../../../src/lib/auth/cognito.ts) - проверка прав доступа через Cognito
 
 **Критерии приемки:**
 - Проверка прав доступа работает корректно

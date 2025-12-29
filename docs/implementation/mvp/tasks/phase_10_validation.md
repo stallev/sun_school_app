@@ -69,8 +69,8 @@ Phase 09: Создание Data Access Layer
 </thinking>
 
 **Действия:**
-- [ ] Создать каталог `lib/validation/`
-- [ ] Создать файлы согласно [VALIDATION.md](../../../api/VALIDATION.md):
+- [x] Создать каталог `lib/validation/`
+- [x] Создать файлы согласно [VALIDATION.md](../../../api/VALIDATION.md):
   - `lib/validation/index.ts` - реэкспорт всех схем
   - `lib/validation/auth.ts` - схемы аутентификации
   - `lib/validation/lessons.ts` - схемы уроков
@@ -120,13 +120,13 @@ Phase 09: Создание Data Access Layer
 </thinking>
 
 **Действия:**
-- [ ] Создать общие схемы в `lib/validation/common.ts`:
+- [x] Создать общие схемы в `lib/validation/common.ts`:
   - `uuidSchema` - валидация UUID
   - `dateSchema` - валидация даты
   - `emailSchema` - валидация email
   - `passwordSchema` - валидация пароля
   - И другие общие схемы
-- [ ] Экспортировать схемы для использования
+- [x] Экспортировать схемы для использования
 
 **Документация:**
 - <CRITICAL>[VALIDATION.md](../../../api/VALIDATION.md) - раздел 2 Common Validation Patterns</CRITICAL>
@@ -169,12 +169,12 @@ Phase 09: Создание Data Access Layer
 </thinking>
 
 **Действия:**
-- [ ] Создать схемы в `lib/validation/auth.ts`:
+- [x] Создать схемы в `lib/validation/auth.ts`:
   - `signInSchema` - вход
   - `signUpSchema` - регистрация (если требуется)
   - И другие схемы аутентификации
-- [ ] Использовать общие схемы (email, password)
-- [ ] Добавить кастомные сообщения об ошибках
+- [x] Использовать общие схемы (email, password)
+- [x] Добавить кастомные сообщения об ошибках
 
 **Документация:**
 - <CRITICAL>[VALIDATION.md](../../../api/VALIDATION.md) - раздел 3 Authentication Schemas</CRITICAL>
@@ -219,12 +219,12 @@ Phase 09: Создание Data Access Layer
 </thinking>
 
 **Действия:**
-- [ ] Создать схемы в `lib/validation/lessons.ts`:
+- [x] Создать схемы в `lib/validation/lessons.ts`:
   - `createLessonSchema` - создание урока
   - `updateLessonSchema` - обновление урока
   - `lessonIdSchema` - валидация ID урока
-- [ ] Использовать общие схемы где возможно
-- [ ] Добавить валидацию для всех полей урока
+- [x] Использовать общие схемы где возможно
+- [x] Добавить валидацию для всех полей урока
 
 **Документация:**
 - <CRITICAL>[VALIDATION.md](../../../api/VALIDATION.md) - раздел 4 Lesson Schemas</CRITICAL>
@@ -269,11 +269,11 @@ Phase 09: Создание Data Access Layer
 </thinking>
 
 **Действия:**
-- [ ] Создать схемы для групп (`grades.ts`)
-- [ ] Создать схемы для учеников (`pupils.ts`)
-- [ ] Создать схемы для домашних заданий (`homework.ts`)
-- [ ] Создать схемы для других сущностей согласно [VALIDATION.md](../../../api/VALIDATION.md)
-- [ ] Убедиться, что все схемы соответствуют GraphQL Schema
+- [x] Создать схемы для групп (`grades.ts`)
+- [x] Создать схемы для учеников (`pupils.ts`)
+- [x] Создать схемы для домашних заданий (`homework.ts`)
+- [x] Создать схемы для других сущностей согласно [VALIDATION.md](../../../api/VALIDATION.md)
+- [x] Убедиться, что все схемы соответствуют GraphQL Schema
 
 **Документация:**
 - <CRITICAL>[VALIDATION.md](../../../api/VALIDATION.md) - все разделы</CRITICAL>
@@ -370,10 +370,10 @@ Phase 09: Создание Data Access Layer
 </thinking>
 
 **Действия:**
-- [ ] Убедиться, что `@hookform/resolvers` установлен
-- [ ] Создать пример интеграции Zod с React Hook Form
-- [ ] Создать утилиту для создания resolver из Zod схемы
-- [ ] Протестировать интеграцию
+- [x] Убедиться, что `@hookform/resolvers` установлен
+- [x] Создать пример интеграции Zod с React Hook Form
+- [x] Создать утилиту для создания resolver из Zod схемы
+- [x] Протестировать интеграцию
 
 **Документация:**
 - <CRITICAL>[VALIDATION.md](../../../api/VALIDATION.md) - раздел 6 React Hook Form Integration</CRITICAL>

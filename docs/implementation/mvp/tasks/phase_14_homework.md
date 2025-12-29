@@ -88,6 +88,17 @@ Phase 13: Управление уроками (Lessons)
 - <CRITICAL>[VALIDATION.md](../../../api/VALIDATION.md) - раздел Homework Schemas</CRITICAL>
 - <CRITICAL>[MVP_SCOPE.md](../../../MVP_SCOPE.md) - раздел 2.4 Проверка домашних заданий</CRITICAL>
 - Context7: Next.js 15.5.9 Server Actions документация
+- **Код реализации:**
+  - [src/lib/validation/homework.ts](../../../../src/lib/validation/homework.ts) - схемы валидации
+  - [src/lib/db/queries.ts](../../../../src/lib/db/queries.ts) - функции запросов (getHomeworkCheck, listHomeworkChecks)
+  - [src/lib/db/mutations.ts](../../../../src/lib/db/mutations.ts) - функции мутаций (createHomeworkCheck, updateHomeworkCheck)
+  - [src/lib/db/amplify.ts](../../../../src/lib/db/amplify.ts) - Data Access Layer (amplifyData)
+  - [src/lib/db/errors.ts](../../../../src/lib/db/errors.ts) - обработка ошибок Data Access Layer
+  - [src/lib/auth/cognito.ts](../../../../src/lib/auth/cognito.ts) - проверка прав доступа
+  - [src/graphql/queries.ts](../../../../src/graphql/queries.ts) - GraphQL запросы для проверок ДЗ
+  - [src/graphql/generated/types.ts](../../../../src/graphql/generated/types.ts) - TypeScript типы из GraphQL схемы
+  - [src/lib/validation/common.ts](../../../../src/lib/validation/common.ts) - общие схемы валидации
+  - [src/lib/validation/utils.ts](../../../../src/lib/validation/utils.ts) - утилиты для работы с валидацией
 
 **Критерии приемки:**
 - Все Server Actions созданы
@@ -146,6 +157,8 @@ Phase 13: Управление уроками (Lessons)
 - [MVP_SCOPE.md](../../../MVP_SCOPE.md) - раздел 2.4.1
 - Context7: Shadcn UI Table документация
 - Context7: Shadcn UI Checkbox документация
+- **Код реализации:**
+  - [src/lib/db/queries.ts](../../../../src/lib/db/queries.ts) - для получения данных учеников и проверок ДЗ
 
 **Критерии приемки:**
 - Таблица создана и работает
@@ -306,6 +319,9 @@ Phase 13: Управление уроками (Lessons)
 - [TEACHER_FLOWS.md](../../../user_flows/TEACHER_FLOWS.md) - раздел 4.1 Последовательная проверка ДЗ
 - [ADMIN_FLOWS.md](../../../user_flows/ADMIN_FLOWS.md) - раздел 7.2 Проверка ДЗ для любой группы
 - Context7: Next.js 15.5.9 App Router документация
+- **Код реализации:**
+  - [src/lib/db/queries.ts](../../../../src/lib/db/queries.ts) - для получения данных
+  - [src/lib/validation/homework.ts](../../../../src/lib/validation/homework.ts) - для валидации форм
 
 **Критерии приемки:**
 - Страница создана и работает

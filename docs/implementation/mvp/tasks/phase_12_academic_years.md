@@ -87,6 +87,17 @@ Phase 11: Управление группами (Grades)
 - ⚠️ **Важно:** Для получения связанных данных (группа, уроки) используй queries через индексы, а не прямые связи `@belongsTo` и `@hasMany`. См. [SCHEMA_DIFFERENCES.md](../../../database/SCHEMA_DIFFERENCES.md)
 - <CRITICAL>[MVP_SCOPE.md](../../../MVP_SCOPE.md) - раздел 2.2.2 Учебные годы</CRITICAL>
 - Context7: Next.js 15.5.9 Server Actions документация
+- **Код реализации:**
+  - [src/lib/validation/academicYears.ts](../../../../src/lib/validation/academicYears.ts) - схемы валидации
+  - [src/lib/db/queries.ts](../../../../src/lib/db/queries.ts) - функции запросов (getAcademicYear, listAcademicYears)
+  - [src/lib/db/mutations.ts](../../../../src/lib/db/mutations.ts) - функции мутаций (createAcademicYear, updateAcademicYear)
+  - [src/lib/db/amplify.ts](../../../../src/lib/db/amplify.ts) - Data Access Layer (amplifyData)
+  - [src/lib/db/errors.ts](../../../../src/lib/db/errors.ts) - обработка ошибок Data Access Layer
+  - [src/lib/auth/cognito.ts](../../../../src/lib/auth/cognito.ts) - проверка прав доступа
+  - [src/graphql/queries.ts](../../../../src/graphql/queries.ts) - GraphQL запросы для учебных годов
+  - [src/graphql/generated/types.ts](../../../../src/graphql/generated/types.ts) - TypeScript типы из GraphQL схемы
+  - [src/lib/validation/common.ts](../../../../src/lib/validation/common.ts) - общие схемы валидации
+  - [src/lib/validation/utils.ts](../../../../src/lib/validation/utils.ts) - утилиты для работы с валидацией
 
 **Критерии приемки:**
 - Все Server Actions созданы
@@ -140,6 +151,9 @@ Phase 11: Управление группами (Grades)
 - <CRITICAL>[MVP_SCOPE.md](../../../MVP_SCOPE.md) - раздел 2.2.2</CRITICAL>
 - [DATA_MODELING.md](../../../database/DATA_MODELING.md)
 - Context7: AWS Amplify Gen 1 amplifyData документация
+- **Код реализации:**
+  - [src/lib/db/queries.ts](../../../../src/lib/db/queries.ts) - для получения данных учебных годов
+  - [src/lib/db/amplify.ts](../../../../src/lib/db/amplify.ts) - Data Access Layer (amplifyData)
 
 **Критерии приемки:**
 - Логика определения активного года работает корректно
@@ -196,6 +210,9 @@ UI для управления учебными годами позволяет 
 - [USER_FLOW.md](../../../user_flows/USER_FLOW.md)
 - [TEACHER_FLOWS.md](../../../user_flows/TEACHER_FLOWS.md) - раздел 2.1 Вход в систему и навигация
 - Context7: Next.js 15.5.9 App Router документация
+- **Код реализации:**
+  - [src/lib/db/queries.ts](../../../../src/lib/db/queries.ts) - для получения данных
+  - [src/lib/validation/academicYears.ts](../../../../src/lib/validation/academicYears.ts) - для валидации форм
 
 **Критерии приемки:**
 - UI создан и работает

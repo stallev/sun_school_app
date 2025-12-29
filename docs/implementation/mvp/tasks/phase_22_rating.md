@@ -95,6 +95,10 @@ Phase 15: Система баллов и домиков
 - ⚠️ **Важно:** Для получения связанных данных (ученики, проверки ДЗ) используй queries через индексы, а не прямые связи `@belongsTo` и `@hasMany`. См. [SCHEMA_DIFFERENCES.md](../../../database/SCHEMA_DIFFERENCES.md)
 - <CRITICAL>[MVP_SCOPE.md](../../../MVP_SCOPE.md) - раздел 2.7 Рейтинг группы</CRITICAL>
 - Context7: Next.js Server Actions документация
+- **Код реализации:**
+  - [src/lib/db/queries.ts](../../../../src/lib/db/queries.ts) - для получения данных для расчета рейтинга
+  - [src/lib/db/errors.ts](../../../../src/lib/db/errors.ts) - обработка ошибок
+  - [src/lib/auth/cognito.ts](../../../../src/lib/auth/cognito.ts) - проверка прав доступа
 
 **Критерии приемки:**
 - Server Actions созданы

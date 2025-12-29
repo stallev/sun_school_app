@@ -86,6 +86,10 @@ Phase 14: Проверка домашних заданий (Homework Checks)
 **Документация:**
 - <CRITICAL>[MVP_SCOPE.md](../../../MVP_SCOPE.md) - раздел 2.6.1 Система баллов</CRITICAL>
 - <CRITICAL>[MVP_SCOPE.md](../../../MVP_SCOPE.md) - раздел 2.11.3 Настройка баллов</CRITICAL>
+- **Код реализации:**
+  - [src/lib/db/queries.ts](../../../../src/lib/db/queries.ts) - для получения данных проверок ДЗ и настроек группы
+  - [src/lib/db/mutations.ts](../../../../src/lib/db/mutations.ts) - для обновления данных
+  - [src/lib/auth/cognito.ts](../../../../src/lib/auth/cognito.ts) - проверка прав доступа
 
 **Критерии приемки:**
 - Расчет баллов работает корректно
