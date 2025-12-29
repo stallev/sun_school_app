@@ -1,8 +1,8 @@
 # Текущая конфигурация Cognito - Phase 05 Auth
 
 **Дата получения:** 29 декабря 2025  
-**Последнее обновление:** 30 декабря 2025  
-**Метод получения:** AWS CLI команды
+**Последнее обновление:** 30 декабря 2025 (после выполнения задач 05.06-05.08)  
+**Метод получения:** AWS CLI команды после настройки токенов
 
 ## Обзор окружений
 
@@ -117,25 +117,44 @@ aws cognito-idp get-group --user-pool-id us-east-1_FORzY4ey4 --group-name SUPERA
 
 ### Настройки токенов (Token Settings)
 
-**Текущее состояние (dev):**
+**Текущее состояние в конфигурационных файлах:**
 ```json
 {
+  "userpoolClientRefreshTokenValidity": 30
+}
+```
+**Примечание:** ID Token и Access Token expiration не поддерживаются в Amplify Gen 1 CLI через конфигурационные файлы. Настроены через AWS CLI скрипты.
+
+**Текущее состояние в AWS (dev и prod, проверено 30.12.2025):**
+```json
+{
+  "IdTokenValidity": 24,
+  "AccessTokenValidity": 24,
   "RefreshTokenValidity": 30,
   "TokenValidityUnits": {
+    "IdToken": "hours",
+    "AccessToken": "hours",
     "RefreshToken": "days"
   },
   "AuthSessionValidity": 3
 }
 ```
 
-**Примечание:** ID Token и Access Token expiration не видны в текущем выводе, возможно используют значения по умолчанию (1 час).
-
 **Требования:**
-- ID Token expiration: 1 day
-- Access Token expiration: 1 day
-- Refresh Token expiration: 30 days ✅ (соответствует)
+- ID Token expiration: 1 day (24 hours) ✅ (настроено)
+- Access Token expiration: 1 day (24 hours) ✅ (настроено)
+- Refresh Token expiration: 30 days ✅ (настроено)
 
-**Действие:** Необходимо проверить и настроить ID Token и Access Token expiration.
+**Статус:**
+- ✅ Refresh Token expiration настроен в `amplify/backend/auth/sunsche716d941/cli-inputs.json` (30 days)
+- ✅ ID Token и Access Token expiration настроены через AWS CLI скрипты (30.12.2025)
+- ✅ Настройки идентичны для dev и prod окружений
+- ✅ Настройки соответствуют требованиям SECURITY.md
+
+**Метод настройки:**
+- Refresh Token: через `cli-inputs.json` → `amplify push`
+- ID Token и Access Token: через AWS CLI команды (см. `scripts/update-cognito-tokens.ps1` и `.sh`)
+- Документация: [AWS_CLI_SCRIPTS.md](../../../infrastructure/AWS_CLI_SCRIPTS.md)
 
 ### Email верификация
 
@@ -183,17 +202,25 @@ aws cognito-idp get-group --user-pool-id us-east-1_FORzY4ey4 --group-name SUPERA
 
 ## Сравнение dev и prod
 
+**Проверка выполнена:** 30 декабря 2025 (Task 05.06)
+
 **Идентичность настроек:**
 - ✅ Парольная политика идентична (MinimumLength: 8, все Require* = false)
-- ✅ Email верификация идентична
-- ✅ MFA настройки идентичны
-- ✅ Schema attributes идентичны
-- ✅ Группы пользователей идентичны (обе окружения имеют 3 группы: TEACHER, ADMIN, SUPERADMIN)
+- ✅ Email верификация идентична (AutoVerifiedAttributes: ["email"], UsernameAttributes: ["email"])
+- ✅ MFA настройки идентичны (MfaConfiguration: "OFF")
+- ✅ Schema attributes идентичны (одинаковый набор стандартных атрибутов Cognito)
+- ✅ Username configuration идентична (CaseSensitive: false)
+- ✅ Account recovery settings идентичны (Priority 1: verified_email, Priority 2: verified_phone_number)
+- ✅ Группы пользователей идентичны (обе окружения имеют 3 группы: TEACHER, ADMIN, SUPERADMIN с одинаковыми precedence и описаниями)
 
-**Различия (ожидаемые):**
-- User Pool ID (автоматически генерируется)
+**Различия (ожидаемые, автоматически генерируемые):**
+- User Pool ID (dev: `us-east-1_FORzY4ey4`, prod: `eu-west-1_iQ7XIxudA`)
 - Region (dev: us-east-1, prod: eu-west-1)
 - CloudFormation Stack names
+- UserPoolTags (user:Stack: dev vs prod)
+- CreationDate/LastModifiedDate
+
+**Вывод:** ✅ Настройки dev и prod полностью идентичны (кроме автоматически генерируемых значений). Конфигурация соответствует принципам Infrastructure as Code.
 
 ## Выводы и рекомендации
 
@@ -308,6 +335,76 @@ aws cognito-idp list-groups --user-pool-id eu-west-1_iQ7XIxudA --region eu-west-
 
 ---
 
-**Версия:** 1.2  
+## Тестовые пользователи (Dev окружение)
+
+**Создано:** 30 декабря 2025 (Task 05.07)  
+**Окружение:** Dev only (us-east-1)  
+**User Pool ID:** `us-east-1_FORzY4ey4`
+
+### Созданные тестовые пользователи
+
+1. **TEACHER**
+   - Email: `teacher@test.com`
+   - Группа: `TEACHER` (precedence: 1)
+   - Email verified: `true`
+   - UserStatus: `CONFIRMED`
+   - Username: `6418f488-8001-70b2-b88d-49bc855e72e3`
+   - Создан: 2025-12-29T14:36:31.147000+03:00
+
+2. **ADMIN**
+   - Email: `admin@test.com`
+   - Группа: `ADMIN` (precedence: 2)
+   - Email verified: `true`
+   - UserStatus: `CONFIRMED`
+   - Username: `c46814c8-9011-7070-d574-20d53a5d8ff8`
+   - Создан: 2025-12-29T14:36:58.013000+03:00
+
+3. **SUPERADMIN**
+   - Email: `superadmin@test.com`
+   - Группа: `SUPERADMIN` (precedence: 3)
+   - Email verified: `true`
+   - UserStatus: `CONFIRMED`
+   - Username: `04b80498-b0d1-7025-3ba7-a22b99506dae`
+   - Создан: 2025-12-29T14:37:15.622000+03:00
+
+**Проверка групп:**
+- ✅ Все пользователи находятся в правильных группах (проверено через `admin-list-groups-for-user`)
+- ✅ TEACHER → группа TEACHER
+- ✅ ADMIN → группа ADMIN
+- ✅ SUPERADMIN → группа SUPERADMIN
+
+**Credentials:** См. `docs/secure_data/cognito_users.md` (⚠️ файл в `.gitignore`, не коммитится в Git)
+
+**Примечание:** Тестовые пользователи созданы только для dev окружения. В production окружении их нет.
+
+## Тестирование аутентификации
+
+**Выполнено:** 30 декабря 2025 (Task 05.08)
+
+### Базовое тестирование через AWS CLI
+
+**Проверено:**
+- ✅ Все тестовые пользователи созданы и находятся в правильных группах
+- ✅ Email verified = true для всех пользователей
+- ✅ UserStatus = CONFIRMED для всех пользователей
+
+**Ограничения:**
+- ⚠️ Полное тестирование аутентификации с получением JWT токенов через AWS CLI требует включения auth flows в клиенте
+- ⚠️ USER_PASSWORD_AUTH и ADMIN_NO_SRP_AUTH flows не включены для клиента `5hq66dq341pt5peavra3bqpd7b`
+- ⚠️ Полное тестирование JWT токенов с проверкой групп будет выполнено в Phase 08 после настройки Amplify конфигурации
+
+**Метод проверки:**
+- Использованы административные команды AWS CLI:
+  - `admin-get-user` - проверка информации о пользователях
+  - `admin-list-groups-for-user` - проверка групп пользователей
+
+**Следующие шаги:**
+- В Phase 08 будет настроена Amplify конфигурация
+- После настройки Amplify можно будет протестировать полный цикл аутентификации с получением JWT токенов
+- JWT токены будут содержать информацию о группах в поле `cognito:groups` в AccessToken
+
+---
+
+**Версия:** 1.3  
 **Последнее обновление:** 30 декабря 2025
 

@@ -1,8 +1,8 @@
 # Security - Sunday School App
 
-## Document Version: 1.1
+## Document Version: 1.2
 **Creation Date:** 23 December 2025  
-**Last Update:** 29 December 2025  
+**Last Update:** 30 December 2025  
 **Project:** Sunday School App  
 **Technologies:** AWS Cognito, AWS AppSync, AWS IAM, Next.js 15.5.9, OWASP Best Practices  
 **Target Audience:** Security Engineers, Backend Developers, System Administrators
@@ -38,13 +38,18 @@ This document outlines the security architecture, authentication, authorization 
 
 **Configuration:**
 
--   **User Pool Name:** `sundayschoolapp-userpool-dev`
+-   **User Pool Name (Dev):** `sunsche716d941_userpool_e716d941-dev`
+-   **User Pool ID (Dev):** `us-east-1_FORzY4ey4`
+-   **User Pool Name (Prod):** `sunsche716d941_userpool_e716d941-prod`
+-   **User Pool ID (Prod):** `eu-west-1_iQ7XIxudA`
 -   **Sign-In Methods:** Email and Password (MVP)
 -   **Password Policy:**
-    -   Minimum length: 8 characters
-    -   Require: Uppercase, number
--   **MFA (Multi-Factor Authentication):** Optional (Post-MVP for Admin users)
+    -   **Configured in code:** Minimum length: 8 characters, Require: Uppercase, number
+    -   **Current state in AWS (dev and prod):** Minimum length: 8 characters, all Require* = false
+    -   **Note:** Password policy requirements (RequireUppercase, RequireNumbers) are configured in `amplify/backend/auth/sunsche716d941/cli-inputs.json` but are not being applied through `amplify push`. This is a known limitation of Amplify Gen 1 CLI. For MVP, the minimum length requirement (8 characters) is enforced.
+-   **MFA (Multi-Factor Authentication):** OFF (for MVP)
 -   **Email Verification:** Required before first login
+-   **Auto-Verified Attributes:** Email
 
 **Setup:**
 
@@ -216,8 +221,22 @@ export async function confirmPasswordReset(email: string, code: string, newPassw
 **JWT Tokens:**
 
 -   **ID Token:** Contains user identity (userId, email, name).
+    -   **Expiration:** 24 hours
+    -   **Validity Unit:** hours
 -   **Access Token:** Used for authorization (includes `cognito:groups` claim).
--   **Refresh Token:** Used to obtain new ID/Access tokens (expires after 30 days by default).
+    -   **Expiration:** 24 hours
+    -   **Validity Unit:** hours
+    -   **Groups Claim:** User groups are included in the `cognito:groups` field in the AccessToken payload
+-   **Refresh Token:** Used to obtain new ID/Access tokens.
+    -   **Expiration:** 30 days
+    -   **Validity Unit:** days
+
+**Token Configuration:**
+
+-   Token expiration settings are configured in `amplify/backend/auth/sunsche716d941/cli-inputs.json`
+-   ID Token and Access Token expiration are set via AWS CLI scripts (not directly supported by Amplify Gen 1 CLI)
+-   Refresh Token expiration is configured through `cli-inputs.json` and applied via `amplify push`
+-   See [phase_05_auth_current_config.md](../implementation/mvp/tasks/phase_05_auth_current_config.md) for current configuration details
 
 **Token Storage:**
 
@@ -258,16 +277,27 @@ export async function logoutUser() {
 **Role Assignment:**
 
 -   Roles are stored in **Cognito User Groups** (e.g., `TEACHER`, `ADMIN`, `SUPERADMIN`).
--   Assigned by Admins during user creation or via Cognito Console.
+-   Assigned by Admins during user creation or via AWS CLI commands.
+-   Groups are created using AWS CLI scripts (Amplify Gen 1 CLI does not support creating groups directly).
+
+**Group Configuration:**
+
+-   **TEACHER** (precedence: 1) - Sunday School Teachers
+-   **ADMIN** (precedence: 2) - Sunday School Administrators  
+-   **SUPERADMIN** (precedence: 3) - Sunday School Super Administrators
+
+**Precedence Order:** SUPERADMIN (3) > ADMIN (2) > TEACHER (1)
+
+Higher precedence groups take priority in authorization decisions when a user belongs to multiple groups.
 
 **Setup:**
 
-```bash
-amplify console auth
-```
+Groups are created using AWS CLI scripts. See [COGNITO_GROUPS.md](./COGNITO_GROUPS.md) for detailed documentation and [AWS_CLI_SCRIPTS.md](./AWS_CLI_SCRIPTS.md) for execution instructions.
 
--   Navigate to **User Pool** → **Groups**.
--   Create groups: `TEACHER`, `ADMIN`, `SUPERADMIN`.
+**Current Status:**
+- ✅ Groups created in dev environment (us-east-1): `us-east-1_FORzY4ey4`
+- ✅ Groups created in prod environment (eu-west-1): `eu-west-1_iQ7XIxudA`
+- ✅ All groups have correct precedence and descriptions
 
 ---
 
@@ -750,10 +780,37 @@ aws cloudtrail start-logging --name sundayschoolapp-trail
 
 ---
 
+## 12. Testing and Test Users
+
+### 12.1. Test Users for Development
+
+**Test users are created only for dev environment (not for production).**
+
+Test user credentials are stored in `docs/secure_data/cognito_users.md` (this file is in `.gitignore` and should not be committed to Git).
+
+**Test Users:**
+- `teacher@test.com` - Group: TEACHER
+- `admin@test.com` - Group: ADMIN
+- `superadmin@test.com` - Group: SUPERADMIN
+
+**Important:**
+- ⚠️ Test users are for development only
+- ⚠️ Do not use test users in production environment
+- ⚠️ Test user credentials file should not be committed to Git
+- ✅ All test users have email verified = true for easier testing
+- ✅ All test users are added to their respective groups
+
+**See [cognito_users.md](../secure_data/cognito_users.md) for test user credentials (dev environment only).**
+
+---
+
 ## 12. Cross-References
 
 -   **→ [AWS_AMPLIFY.md](AWS_AMPLIFY.md):** Cognito and AppSync configuration.
 -   **→ [INFRASTRUCTURE_AS_CODE.md](./INFRASTRUCTURE_AS_CODE.md):** Infrastructure as Code principles and requirements.
+-   **→ [COGNITO_GROUPS.md](./COGNITO_GROUPS.md):** Cognito User Pool Groups configuration and setup.
+-   **→ [phase_05_auth_current_config.md](../implementation/mvp/tasks/phase_05_auth_current_config.md):** Current Cognito configuration details.
+-   **→ [cognito_users.md](../secure_data/cognito_users.md):** Test user credentials (dev environment only, not committed to Git).
 -   **→ [SERVER_ACTIONS.md](../api/SERVER_ACTIONS.md):** Server-side validation and authorization.
 -   **→ [VALIDATION.md](../api/VALIDATION.md):** Zod schemas for input validation.
 -   **→ [GRAPHQL_SCHEMA.md](../database/GRAPHQL_SCHEMA.md):** `@auth` directive usage in GraphQL schema.
