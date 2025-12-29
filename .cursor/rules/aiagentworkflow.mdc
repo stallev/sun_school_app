@@ -204,10 +204,23 @@ The CursorAI agent must follow the steps below for each development task to ensu
   > ⚠️ **CRITICALLY IMPORTANT**: Browser console check is a **mandatory** step when creating or modifying any UI component. This step **CANNOT** be skipped.
   
   - **Method 1: Using MCP tools (preferred)**:
-    - Use `mcp_console-ninja_runtime-errors` to get all runtime errors from the browser.
-    - Use `mcp_console-ninja_runtime-logs` to get all logs from the browser.
-    - Use `mcp_console-ninja_runtime-logs-and-errors` to get all errors and logs simultaneously.
-    - If the component is already open in the browser, use `mcp_console-ninja_runtime-logs-by-location` with file and line specification to check a specific component.
+    - **Console Ninja MCP** (if available):
+      - Use `mcp_console-ninja_runtime-errors` to get all runtime errors from the browser.
+      - Use `mcp_console-ninja_runtime-logs` to get all logs from the browser.
+      - Use `mcp_console-ninja_runtime-logs-and-errors` to get all errors and logs simultaneously.
+      - If the component is already open in the browser, use `mcp_console-ninja_runtime-logs-by-location` with file and line specification to check a specific component.
+    - **DevTools MCP server** (alternative/additional):
+      - Use `browser_console_messages` to get console messages and issues from Chrome DevTools (alternative to Console Ninja).
+      - Use `browser_snapshot` to get accessibility snapshot of the page.
+      - Use `browser_network_requests` to check for failed network requests (API requests, GraphQL/AppSync requests, Cognito requests).
+      - Use `browser_take_screenshot` for visual verification of page state.
+      - Use `browser_navigate` to navigate to specific URLs for testing.
+      - Use `press_key` to test interactive elements via keyboard.
+    - **Note**: Both tools can be used together for comprehensive browser checking. Console Ninja is preferred for runtime errors and logs, while DevTools MCP provides additional capabilities for navigation, accessibility, network requests, and screenshots.
+    - **Prerequisites for DevTools MCP**:
+      - DevTools MCP server must be configured in `~/.cursor/mcp.json` (Windows: `C:\Users\<username>\.cursor\mcp.json`).
+      - Chrome must be running with remote debugging enabled (port 9222). Use `scripts/start-chrome-debug.ps1` to start Chrome with debugging.
+      - See [DEVTOOLS_MCP_SETUP.md](../../docs/infrastructure/DEVTOOLS_MCP_SETUP.md) for setup instructions.
     - **Check should include**:
       - JavaScript errors (SyntaxError, TypeError, ReferenceError, etc.)
       - React errors (hydration errors, render errors, hook errors)
@@ -332,11 +345,12 @@ The CursorAI agent must follow the steps below for each development task to ensu
     - Specify check time and component version.
   
   - **Successful check criteria**:
-    - ✅ Zero errors (Errors) in browser console.
+    - ✅ Zero errors (Errors) in browser console (checked via Console Ninja MCP or DevTools MCP server).
     - ✅ Zero critical warnings (Warnings) that may affect functionality.
-    - ✅ No failed requests in Network tab (if applicable).
+    - ✅ No failed requests in Network tab (checked via DevTools MCP `browser_network_requests` or manually).
     - ✅ Page loads without errors.
     - ✅ All interactive elements work correctly.
+    - ✅ Accessibility snapshot shows correct page structure (if checked via DevTools MCP `browser_snapshot`).
   
   - **Important**: 
     - Browser console check is **MANDATORY** for all UI components.
