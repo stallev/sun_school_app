@@ -89,6 +89,18 @@ Phase 05: Настройка аутентификации (Cognito), Phase 11: �
 - <CRITICAL>[MVP_SCOPE.md](../../../MVP_SCOPE.md) - раздел 2.10.1 Управление преподавателями</CRITICAL>
 - Context7: Next.js 15.5.9 Server Actions документация
 - Context7: AWS Cognito Admin API документация
+- **Код реализации:**
+  - [src/lib/validation/users.ts](../../../../src/lib/validation/users.ts) - схемы валидации для пользователей
+  - [src/lib/db/queries.ts](../../../../src/lib/db/queries.ts) - функции запросов (getUser, listUsers)
+  - [src/lib/db/mutations.ts](../../../../src/lib/db/mutations.ts) - функции мутаций (createUser, updateUser)
+  - [src/lib/db/amplify.ts](../../../../src/lib/db/amplify.ts) - Data Access Layer (amplifyData)
+  - [src/lib/db/errors.ts](../../../../src/lib/db/errors.ts) - обработка ошибок Data Access Layer
+  - [src/lib/auth/cognito.ts](../../../../src/lib/auth/cognito.ts) - проверка прав доступа и работа с Cognito
+  - [src/lib/auth/cognito-client.ts](../../../../src/lib/auth/cognito-client.ts) - клиентские функции Cognito
+  - [src/graphql/queries.ts](../../../../src/graphql/queries.ts) - GraphQL запросы для пользователей
+  - [src/graphql/generated/types.ts](../../../../src/graphql/generated/types.ts) - TypeScript типы из GraphQL схемы
+  - [src/lib/validation/common.ts](../../../../src/lib/validation/common.ts) - общие схемы валидации
+  - [src/lib/validation/utils.ts](../../../../src/lib/validation/utils.ts) - утилиты для работы с валидацией
 
 **Критерии приемки:**
 - Все Server Actions созданы
@@ -195,6 +207,9 @@ Phase 05: Настройка аутентификации (Cognito), Phase 11: �
 - [USER_FLOW.md](../../../user_flows/USER_FLOW.md) - раздел Admin flows
 - [ADMIN_FLOWS.md](../../../user_flows/ADMIN_FLOWS.md) - раздел 2.1 Создание нового преподавателя
 - Context7: Next.js 15.5.9 App Router документация
+- **Код реализации:**
+  - [src/lib/db/queries.ts](../../../../src/lib/db/queries.ts) - для получения данных
+  - [src/lib/validation/users.ts](../../../../src/lib/validation/users.ts) - для валидации форм
 
 **Критерии приемки:**
 - Страница списка создана
@@ -250,6 +265,10 @@ Phase 05: Настройка аутентификации (Cognito), Phase 11: �
 - [ADMIN_FLOWS.md](../../../user_flows/ADMIN_FLOWS.md) - раздел 2.1 Создание нового преподавателя
 - Context7: React Hook Form документация
 - Context7: Zod документация
+- **Код реализации:**
+  - [src/lib/validation/users.ts](../../../../src/lib/validation/users.ts) - схемы валидации для форм
+  - [src/lib/validation/common.ts](../../../../src/lib/validation/common.ts) - общие схемы валидации
+  - [src/lib/validation/utils.ts](../../../../src/lib/validation/utils.ts) - утилиты для работы с валидацией
 
 **Критерии приемки:**
 - Форма создана и работает

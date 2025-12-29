@@ -87,6 +87,17 @@ Phase 16: Управление учениками (Pupils)
 - <CRITICAL>[VALIDATION.md](../../../api/VALIDATION.md) - раздел Family Schemas</CRITICAL>
 - <CRITICAL>[MVP_SCOPE.md](../../../MVP_SCOPE.md) - раздел 2.10.3 Управление семьями</CRITICAL>
 - Context7: Next.js 15.5.9 Server Actions документация
+- **Код реализации:**
+  - [src/lib/validation/families.ts](../../../../src/lib/validation/families.ts) - схемы валидации
+  - [src/lib/db/queries.ts](../../../../src/lib/db/queries.ts) - функции запросов (getFamily, listFamilies)
+  - [src/lib/db/mutations.ts](../../../../src/lib/db/mutations.ts) - функции мутаций (createFamily, updateFamily)
+  - [src/lib/db/amplify.ts](../../../../src/lib/db/amplify.ts) - Data Access Layer (amplifyData)
+  - [src/lib/db/errors.ts](../../../../src/lib/db/errors.ts) - обработка ошибок Data Access Layer
+  - [src/lib/auth/cognito.ts](../../../../src/lib/auth/cognito.ts) - проверка прав доступа
+  - [src/graphql/queries.ts](../../../../src/graphql/queries.ts) - GraphQL запросы для семей
+  - [src/graphql/generated/types.ts](../../../../src/graphql/generated/types.ts) - TypeScript типы из GraphQL схемы
+  - [src/lib/validation/common.ts](../../../../src/lib/validation/common.ts) - общие схемы валидации
+  - [src/lib/validation/utils.ts](../../../../src/lib/validation/utils.ts) - утилиты для работы с валидацией
 
 **Критерии приемки:**
 - Все Server Actions созданы

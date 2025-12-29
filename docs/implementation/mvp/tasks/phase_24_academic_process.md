@@ -93,6 +93,14 @@ Phase 12: Управление учебными годами (Academic Years)
 - <CRITICAL>[MVP_SCOPE.md](../../../MVP_SCOPE.md) - раздел 2.12 Управление учебным процессом</CRITICAL>
 - Phase 12: Управление учебными годами (Academic Years)
 - Context7: Next.js Server Actions документация
+- **Код реализации:**
+  - [src/lib/db/queries.ts](../../../../src/lib/db/queries.ts) - для получения данных
+  - [src/lib/db/mutations.ts](../../../../src/lib/db/mutations.ts) - для обновления данных
+  - [src/lib/db/errors.ts](../../../../src/lib/db/errors.ts) - обработка ошибок
+  - [src/lib/auth/cognito.ts](../../../../src/lib/auth/cognito.ts) - проверка прав доступа
+  - [src/lib/validation/academicYears.ts](../../../../src/lib/validation/academicYears.ts) - схемы валидации для учебных годов
+  - [src/lib/validation/common.ts](../../../../src/lib/validation/common.ts) - общие схемы валидации
+  - [src/lib/validation/utils.ts](../../../../src/lib/validation/utils.ts) - утилиты для работы с валидацией
 
 **Критерии приемки:**
 - Все Server Actions созданы

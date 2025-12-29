@@ -147,6 +147,11 @@ Phase 13: Управление уроками (Lessons)
 - <CRITICAL>[VALIDATION.md](../../../api/VALIDATION.md) - раздел Grade Event Schemas</CRITICAL>
 - <CRITICAL>[MVP_SCOPE.md](../../../MVP_SCOPE.md) - раздел 2.8.2 Управление событиями</CRITICAL>
 - Context7: Next.js Server Actions документация
+- **Код реализации:**
+  - [src/lib/validation/gradeEvents.ts](../../../../src/lib/validation/gradeEvents.ts) - для валидации событий
+  - [src/lib/db/queries.ts](../../../../src/lib/db/queries.ts) - для получения данных уроков и событий
+  - [src/lib/db/mutations.ts](../../../../src/lib/db/mutations.ts) - для создания/обновления событий
+  - [src/lib/auth/cognito.ts](../../../../src/lib/auth/cognito.ts) - проверка прав доступа
 
 **Критерии приемки:**
 - Все Server Actions созданы
