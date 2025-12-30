@@ -165,6 +165,9 @@ export class RateLimitError extends DataAccessError {
  * Attempts to classify and wrap unknown errors into typed error classes
  */
 export function parseError(error: unknown): DataAccessError {
+  // #region agent log
+  fetch('http://127.0.0.1:7242/ingest/34588026-7cdb-499f-afd6-ebf2aee10626',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'errors.ts:167',message:'parseError entry',data:{errorType:error instanceof Error?error.constructor.name:'unknown',errorMessage:error instanceof Error?error.message:String(error),errorKeys:error && typeof error === 'object'?Object.keys(error):[]},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+  // #endregion
   // If already a DataAccessError, return as is
   if (error instanceof DataAccessError) {
     return error;
@@ -173,6 +176,9 @@ export function parseError(error: unknown): DataAccessError {
   // If it's a standard Error, check the message
   if (error instanceof Error) {
     const message = error.message.toLowerCase();
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/34588026-7cdb-499f-afd6-ebf2aee10626',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'errors.ts:175',message:'parseError Error type',data:{message,errorName:error.name,errorStack:error.stack?.substring(0,200)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
 
     // Check for authentication errors
     if (

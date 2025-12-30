@@ -611,44 +611,65 @@ export async function getGradeWithRelations(gradeId: string): Promise<{
   settings: APITypes.GradeSettings | null;
   teachers: APITypes.User[];
 }> {
-  // Execute all queries in parallel
-  const [grade, pupilsResult, academicYearsResult, eventsResult, settings] = await Promise.all([
+  // Execute all queries in parallel, but handle errors gracefully
+  // Some queries may fail due to rate limits or auth issues, but we should still return what we can
+  const [grade, pupilsResult, academicYearsResult, eventsResult, settings] = await Promise.allSettled([
     getGrade(gradeId),
-    getPupilsByGrade(gradeId),
-    getAcademicYearsByGrade(gradeId),
-    getGradeEventsByGrade(gradeId),
-    getGradeSettingsByGrade(gradeId),
+    getPupilsByGrade(gradeId).catch(() => null),
+    getAcademicYearsByGrade(gradeId).catch(() => null),
+    getGradeEventsByGrade(gradeId).catch(() => null),
+    getGradeSettingsByGrade(gradeId).catch(() => null),
   ]);
 
+  // Extract values from settled promises
+  const gradeValue = grade.status === 'fulfilled' ? grade.value : null;
+  const pupilsResultValue = pupilsResult.status === 'fulfilled' ? pupilsResult.value : null;
+  const academicYearsResultValue = academicYearsResult.status === 'fulfilled' ? academicYearsResult.value : null;
+  const eventsResultValue = eventsResult.status === 'fulfilled' ? eventsResult.value : null;
+  const settingsValue = settings.status === 'fulfilled' ? settings.value : null;
+
   // Get teachers via UserGrade junction table
+  // Handle errors gracefully - if this fails, return empty array
   const teachers = await (async () => {
-    const queries = await import('../../graphql/queries');
-    const { executeGraphQL } = await import('./amplify');
-    
-    const query = (queries as Record<string, string>).userGradesByGradeIdAndUserId;
-    if (!query) {
-      throw new Error('Query userGradesByGradeIdAndUserId not found');
+    try {
+      const queries = await import('../../graphql/queries');
+      const { executeGraphQL } = await import('./amplify');
+      
+      const query = (queries as Record<string, string>).userGradesByGradeIdAndUserId;
+      if (!query) {
+        throw new Error('Query userGradesByGradeIdAndUserId not found');
+      }
+      
+      const result = await executeGraphQL<{
+        userGradesByGradeIdAndUserId?: { items?: Array<{ userId: string }> };
+      }>(query, { gradeId });
+      
+      const userGrades = result.data?.userGradesByGradeIdAndUserId?.items || [];
+      const userIds = userGrades.map((ug) => ug.userId).filter(Boolean);
+      
+      if (userIds.length === 0) return [];
+      
+      const users = await Promise.allSettled(
+        userIds.map((id: string) => getUser(id))
+      );
+      return users
+        .filter((u): u is PromiseFulfilledResult<APITypes.User> => 
+          u.status === 'fulfilled' && u.value !== null
+        )
+        .map((u) => u.value);
+    } catch (error) {
+      console.error('Error fetching teachers for grade:', error);
+      return [];
     }
-    
-    const result = await executeGraphQL<{
-      userGradesByGradeIdAndUserId?: { items?: Array<{ userId: string }> };
-    }>(query, { gradeId });
-    
-    const userGrades = result.data?.userGradesByGradeIdAndUserId?.items || [];
-    const userIds = userGrades.map((ug) => ug.userId).filter(Boolean);
-    
-    if (userIds.length === 0) return [];
-    
-    return Promise.all(userIds.map((id: string) => getUser(id)));
   })();
 
   return {
-    grade,
-    pupils: pupilsResult?.items as APITypes.Pupil[] || [],
-    academicYears: academicYearsResult?.items as APITypes.AcademicYear[] || [],
-    events: eventsResult?.items as APITypes.GradeEvent[] || [],
-    settings,
-    teachers: (await Promise.all(teachers)).filter((t): t is APITypes.User => t !== null),
+    grade: gradeValue,
+    pupils: pupilsResultValue?.items as APITypes.Pupil[] || [],
+    academicYears: academicYearsResultValue?.items as APITypes.AcademicYear[] || [],
+    events: eventsResultValue?.items as APITypes.GradeEvent[] || [],
+    settings: settingsValue,
+    teachers,
   };
 }
 

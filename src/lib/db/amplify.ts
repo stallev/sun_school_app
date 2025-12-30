@@ -38,12 +38,22 @@ export async function executeGraphQL<T = unknown>(
   query: string,
   variables?: Record<string, unknown>
 ): Promise<GraphQLResult<T>> {
+  // #region agent log
+  fetch('http://127.0.0.1:7242/ingest/34588026-7cdb-499f-afd6-ebf2aee10626',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'amplify.ts:37',message:'executeGraphQL entry',data:{variables:JSON.stringify(variables||{}),queryLength:query.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+  // #endregion
   try {
     const client = getClient();
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/34588026-7cdb-499f-afd6-ebf2aee10626',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'amplify.ts:43',message:'before client.graphql',data:{hasClient:!!client},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+    // #endregion
     const result = await client.graphql({
       query,
       variables: variables || {},
     });
+
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/34588026-7cdb-499f-afd6-ebf2aee10626',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'amplify.ts:48',message:'after client.graphql',data:{hasErrors:'errors' in result && !!result.errors,errorsCount:('errors' in result && result.errors)?result.errors.length:0,errorMessages:('errors' in result && result.errors)?result.errors.map((e: { message: string }) => e.message).join('; '):'none'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
 
     // Check if result has errors property (GraphQLResult)
     if ('errors' in result && result.errors && result.errors.length > 0) {
@@ -52,6 +62,9 @@ export async function executeGraphQL<T = unknown>(
         message: e.message,
         path: e.path ? (Array.isArray(e.path) ? [...e.path] : undefined) : undefined,
       }));
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/34588026-7cdb-499f-afd6-ebf2aee10626',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'amplify.ts:55',message:'throwing GraphQLError',data:{errors:JSON.stringify(errors)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+      // #endregion
       throw new GraphQLErrorClass(
         `GraphQL errors: ${result.errors.map((e: { message: string }) => e.message).join(', ')}`,
         errors
@@ -61,6 +74,9 @@ export async function executeGraphQL<T = unknown>(
     // Return result as GraphQLResult (assuming it's a query/mutation, not subscription)
     return result as GraphQLResult<T>;
   } catch (error) {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/34588026-7cdb-499f-afd6-ebf2aee10626',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'amplify.ts:64',message:'executeGraphQL catch',data:{errorType:error instanceof Error?error.constructor.name:'unknown',errorMessage:error instanceof Error?error.message:String(error),errorStringified:JSON.stringify(error)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
     // Re-throw if already a DataAccessError, otherwise parse and wrap
     const { parseError } = await import('./errors');
     throw parseError(error);
@@ -108,17 +124,37 @@ export const amplifyData = {
     model: T,
     input: Record<string, unknown>
   ): Promise<unknown> {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/34588026-7cdb-499f-afd6-ebf2aee10626',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'amplify.ts:107',message:'amplifyData.create entry',data:{model,inputKeys:Object.keys(input),inputStructure:JSON.stringify(input)},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix',hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
     const mutationName = `create${model}`;
     const mutations = await import('../../graphql/mutations');
     const mutation = (mutations as Record<string, string>)[mutationName];
+
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/34588026-7cdb-499f-afd6-ebf2aee10626',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'amplify.ts:115',message:'mutation check',data:{mutationName,mutationFound:!!mutation},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix',hypothesisId:'C'})}).catch(()=>{});
+    // #endregion
 
     if (!mutation) {
       throw new Error(`Mutation ${mutationName} not found`);
     }
 
-    const result = await executeGraphQL<Record<string, unknown>>(mutation, {
-      input,
-    });
+    // Check if input already has 'input' and 'condition' keys (from mutations.ts)
+    // If so, use it directly as GraphQL variables
+    // Otherwise, wrap it in { input }
+    const graphQLVariables = 'input' in input && typeof input.input === 'object'
+      ? input
+      : { input };
+
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/34588026-7cdb-499f-afd6-ebf2aee10626',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'amplify.ts:125',message:'before executeGraphQL (fixed)',data:{graphQLVariables:JSON.stringify(graphQLVariables),isWrapped:'input' in input},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix',hypothesisId:'D'})}).catch(()=>{});
+    // #endregion
+
+    const result = await executeGraphQL<Record<string, unknown>>(mutation, graphQLVariables);
+
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/34588026-7cdb-499f-afd6-ebf2aee10626',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'amplify.ts:130',message:'after executeGraphQL (fixed)',data:{hasData:!!result.data,dataKeys:result.data?Object.keys(result.data):[],hasErrors:!!result.errors},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix',hypothesisId:'D'})}).catch(()=>{});
+    // #endregion
 
     const dataKey = mutationName.charAt(0).toLowerCase() + mutationName.slice(1);
     return result.data?.[dataKey];
@@ -200,9 +236,14 @@ export const amplifyData = {
       throw new Error(`Mutation ${mutationName} not found`);
     }
 
-    const result = await executeGraphQL<Record<string, unknown>>(mutation, {
-      input,
-    });
+    // Check if input already has 'input' and 'condition' keys (from mutations.ts)
+    // If so, use it directly as GraphQL variables
+    // Otherwise, wrap it in { input }
+    const graphQLVariables = 'input' in input && typeof input.input === 'object'
+      ? input
+      : { input };
+
+    const result = await executeGraphQL<Record<string, unknown>>(mutation, graphQLVariables);
 
     const dataKey = mutationName.charAt(0).toLowerCase() + mutationName.slice(1);
     return result.data?.[dataKey];

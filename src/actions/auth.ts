@@ -2,7 +2,7 @@
 
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { signOut as amplifySignOut } from 'aws-amplify/auth';
+import { RoutePath } from '@/lib/routes/RoutePath';
 
 /**
  * Store authentication tokens in HttpOnly cookies
@@ -46,9 +46,9 @@ export async function storeAuthTokens(tokens: {
     }
 
     // Determine redirect URL based on user role
-    let redirectUrl = '/grades/my';
+    let redirectUrl: string = RoutePath.grades.my;
     if (tokens.userRole === 'ADMIN' || tokens.userRole === 'SUPERADMIN') {
-      redirectUrl = '/grades-list';
+      redirectUrl = RoutePath.grades.base;
     }
 
     return {
@@ -113,33 +113,73 @@ export async function getCurrentUserAction() {
  */
 export async function signOut() {
   try {
-    // Try to sign out from Amplify (client-side should handle this)
-    try {
-      await amplifySignOut();
-    } catch (error) {
-      // Ignore errors from Amplify signOut, we'll clear cookies anyway
-      console.warn('Amplify signOut error (ignored):', error);
-    }
-    
     const cookieStore = await cookies();
     
-    // Clear authentication cookies
-    cookieStore.delete('cognito-id-token');
-    cookieStore.delete('cognito-access-token');
-    cookieStore.delete('cognito-refresh-token');
+    // Clear authentication cookies with same options as when they were set
+    cookieStore.set('cognito-id-token', '', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 0,
+      path: '/',
+    });
+    cookieStore.set('cognito-access-token', '', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 0,
+      path: '/',
+    });
+    cookieStore.set('cognito-refresh-token', '', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 0,
+      path: '/',
+    });
     
     // Redirect to login page
-    redirect('/auth');
+    redirect(RoutePath.auth);
   } catch (error) {
+    // Type guard for Next.js redirect error
+    // Next.js redirect() throws a special error that should be rethrown, not logged
+    type RedirectError = Error & { digest?: string };
+    const redirectError = error as RedirectError;
+    const isRedirectError = error instanceof Error && (redirectError.digest?.startsWith('NEXT_REDIRECT') || error.message === 'NEXT_REDIRECT');
+    
+    if (isRedirectError) {
+      // Rethrow redirect error - it should propagate to Next.js
+      throw error;
+    }
+    
+    // Only log non-redirect errors
     console.error('Error signing out:', error);
     
     // Even if there's an error, clear cookies and redirect
     const cookieStore = await cookies();
-    cookieStore.delete('cognito-id-token');
-    cookieStore.delete('cognito-access-token');
-    cookieStore.delete('cognito-refresh-token');
+    cookieStore.set('cognito-id-token', '', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 0,
+      path: '/',
+    });
+    cookieStore.set('cognito-access-token', '', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 0,
+      path: '/',
+    });
+    cookieStore.set('cognito-refresh-token', '', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 0,
+      path: '/',
+    });
     
-    redirect('/auth');
+    redirect(RoutePath.auth);
   }
 }
 

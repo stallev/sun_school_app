@@ -62,10 +62,16 @@ export async function createGrade(
   input: APITypes.CreateGradeInput,
   condition?: APITypes.ModelGradeConditionInput
 ): Promise<APITypes.Grade> {
+  // #region agent log
+  fetch('http://127.0.0.1:7242/ingest/34588026-7cdb-499f-afd6-ebf2aee10626',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'mutations.ts:61',message:'createGrade entry',data:{input:JSON.stringify(input),hasCondition:!!condition},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+  // #endregion
   const result = await amplifyData.create('Grade', {
     input,
     condition,
   });
+  // #region agent log
+  fetch('http://127.0.0.1:7242/ingest/34588026-7cdb-499f-afd6-ebf2aee10626',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'mutations.ts:69',message:'createGrade exit',data:{hasResult:!!result},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+  // #endregion
   return result as APITypes.Grade;
 }
 

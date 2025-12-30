@@ -5,6 +5,7 @@
 
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { RoutePath, getPublicRoutes, getProtectedRoutes, getAdminRoutes } from '@/lib/routes/RoutePath';
 
 /**
  * Decode JWT token to get user information
@@ -57,15 +58,15 @@ export async function middleware(request: NextRequest) {
   const idToken = request.cookies.get('cognito-id-token')?.value;
 
   // Public routes that don't require authentication
-  const publicRoutes = ['/auth', '/api'];
+  const publicRoutes = getPublicRoutes();
   const isPublicRoute = publicRoutes.some((route) => pathname.startsWith(route));
 
   // Protected routes (require authentication)
-  const protectedRoutes = ['/grades', '/lessons', '/homework-check', '/pupil-personal-data', '/grade-leaderboard', '/golden-verses-library'];
+  const protectedRoutes = getProtectedRoutes();
   const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route));
 
   // Admin routes (require ADMIN or SUPERADMIN role)
-  const adminRoutes = ['/grades-list', '/teachers-management', '/pupils-management', '/families-management', '/school-process-management'];
+  const adminRoutes = getAdminRoutes();
   const isAdminRoute = adminRoutes.some((route) => pathname.startsWith(route));
 
   // Static files and Next.js internals - allow without authentication
@@ -81,15 +82,15 @@ export async function middleware(request: NextRequest) {
   // Handle public routes
   if (isPublicRoute) {
     // If user is already authenticated and tries to access /auth, redirect based on role
-    if (pathname.startsWith('/auth') && idToken && !isTokenExpired(idToken)) {
+    if (pathname.startsWith(RoutePath.auth) && idToken && !isTokenExpired(idToken)) {
       const decoded = decodeJWT(idToken);
       const groups = decoded?.['cognito:groups'] || [];
       const userRole = groups[0] || 'TEACHER';
 
       if (userRole === 'TEACHER') {
-        return NextResponse.redirect(new URL('/grades/my', request.url));
+        return NextResponse.redirect(new URL(RoutePath.grades.my, request.url));
       } else if (userRole === 'ADMIN' || userRole === 'SUPERADMIN') {
-        return NextResponse.redirect(new URL('/grades-list', request.url));
+        return NextResponse.redirect(new URL(RoutePath.grades.base, request.url));
       }
     }
 
@@ -101,7 +102,7 @@ export async function middleware(request: NextRequest) {
     // Check if user is authenticated
     if (!idToken || isTokenExpired(idToken)) {
       // Redirect to login page
-      const loginUrl = new URL('/auth', request.url);
+      const loginUrl = new URL(RoutePath.auth, request.url);
       loginUrl.searchParams.set('redirect', pathname);
       return NextResponse.redirect(loginUrl);
     }
@@ -110,7 +111,7 @@ export async function middleware(request: NextRequest) {
     const decoded = decodeJWT(idToken);
     if (!decoded) {
       // Invalid token, redirect to login
-      const loginUrl = new URL('/auth', request.url);
+      const loginUrl = new URL(RoutePath.auth, request.url);
       return NextResponse.redirect(loginUrl);
     }
 
@@ -121,7 +122,7 @@ export async function middleware(request: NextRequest) {
     if (isAdminRoute) {
       if (userRole !== 'ADMIN' && userRole !== 'SUPERADMIN') {
         // Teacher trying to access admin route, redirect to their home
-        return NextResponse.redirect(new URL('/grades/my', request.url));
+        return NextResponse.redirect(new URL(RoutePath.grades.my, request.url));
       }
     }
 

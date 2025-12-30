@@ -5,6 +5,7 @@
 
 import Link from 'next/link';
 import { getUserRole } from '@/lib/utils/auth';
+import { RoutePath } from '@/lib/routes/RoutePath';
 import {
   Home,
   Calendar,
@@ -25,49 +26,49 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   {
-    href: '/grades/my',
+    href: RoutePath.grades.my,
     label: 'Мои группы',
     icon: Home,
     roles: ['TEACHER'],
   },
   {
-    href: '/grades-list',
+    href: RoutePath.grades.base,
     label: 'Все группы',
     icon: Home,
     roles: ['ADMIN', 'SUPERADMIN'],
   },
   {
-    href: '/schedule',
+    href: RoutePath.schedule,
     label: 'Расписание',
     icon: Calendar,
     roles: ['TEACHER', 'ADMIN', 'SUPERADMIN'],
   },
   {
-    href: '/golden-verses-library',
+    href: RoutePath.goldenVersesLibrary,
     label: 'Золотые стихи',
     icon: BookOpen,
     roles: ['TEACHER', 'ADMIN', 'SUPERADMIN'],
   },
   {
-    href: '/teachers-management',
+    href: RoutePath.teachersManagement,
     label: 'Преподаватели',
     icon: GraduationCap,
     roles: ['ADMIN', 'SUPERADMIN'],
   },
   {
-    href: '/pupils-management',
+    href: RoutePath.pupilsManagement,
     label: 'Ученики',
     icon: Users,
     roles: ['ADMIN', 'SUPERADMIN'],
   },
   {
-    href: '/families-management',
+    href: RoutePath.familiesManagement,
     label: 'Семьи',
     icon: Building2,
     roles: ['ADMIN', 'SUPERADMIN'],
   },
   {
-    href: '/school-process-management',
+    href: RoutePath.schoolProcessManagement,
     label: 'Настройки',
     icon: Settings,
     roles: ['ADMIN', 'SUPERADMIN'],

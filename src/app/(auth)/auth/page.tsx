@@ -5,6 +5,7 @@
 
 import { redirect } from 'next/navigation';
 import { getAuthenticatedUser } from '@/lib/auth/cognito';
+import { RoutePath } from '@/lib/routes/RoutePath';
 import { SignInForm } from './sign-in-form';
 
 export default async function AuthPage() {
@@ -17,11 +18,11 @@ export default async function AuthPage() {
     const userRole = userGroups[0] || 'TEACHER';
     
     if (userRole === 'TEACHER') {
-      redirect('/grades/my');
+      redirect(RoutePath.grades.my);
     } else if (userRole === 'ADMIN' || userRole === 'SUPERADMIN') {
-      redirect('/grades-list');
+      redirect(RoutePath.grades.base);
     } else {
-      redirect('/grades/my');
+      redirect(RoutePath.grades.my);
     }
   }
 
