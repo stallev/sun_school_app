@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { Search, X, User } from 'lucide-react';
-import { listPupilsForSelectionAction } from '../../../../actions/grades';
+import { listPupilsForSelectionAction } from '@/actions/grades';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';

@@ -5,6 +5,7 @@
  */
 
 import Link from 'next/link';
+import { Pencil } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RoutePath } from '@/lib/routes/RoutePath';
@@ -34,9 +35,21 @@ export const GradeActions = ({ gradeId, isAdmin }: GradeActionsProps) => {
             <Link href={RoutePath.grades.schedule(gradeId)}>Расписание</Link>
           </Button>
           {isAdmin && (
-            <Button asChild className="min-h-[44px] flex-1 sm:flex-initial" variant="outline">
-              <Link href={RoutePath.grades.settings(gradeId)}>Настройки</Link>
-            </Button>
+            <>
+              <Button
+                asChild
+                className="min-h-[44px] flex-1 sm:flex-initial"
+                variant="outline"
+              >
+                <Link href={RoutePath.grades.edit(gradeId)}>
+                  <Pencil className="mr-2 h-4 w-4" />
+                  Редактировать
+                </Link>
+              </Button>
+              <Button asChild className="min-h-[44px] flex-1 sm:flex-initial" variant="outline">
+                <Link href={RoutePath.grades.settings(gradeId)}>Настройки</Link>
+              </Button>
+            </>
           )}
         </div>
       </CardContent>

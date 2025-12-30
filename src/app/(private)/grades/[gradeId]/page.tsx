@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 
 import { notFound, redirect } from 'next/navigation';
 import { getAuthenticatedUser, checkRole } from '@/lib/auth/cognito';
-import { getGradeWithFullDataAction } from '../../../../actions/grades';
+import { getGradeWithFullDataAction } from '@/actions/grades';
 import { RoutePath } from '@/lib/routes/RoutePath';
 import { GradeHeader } from '@/components/molecules/grade-header';
 import { GradeActions } from '@/components/molecules/grade-actions';
@@ -38,7 +38,6 @@ export default async function GradeDetailPage({
 
   // Load grade data with full relations and access check
   const gradeResult = await getGradeWithFullDataAction({ id: gradeId });
-  console.log('gradeResult', gradeResult);
 
   // Handle error states
   if (!gradeResult.success) {

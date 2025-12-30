@@ -10,7 +10,7 @@ import {
   type CreateGradeInput,
   type UpdateGradeInput,
 } from '@/lib/validation/grades';
-import { createGradeAction, updateGradeAction } from '../../../../actions/grades';
+import { createGradeAction, updateGradeAction } from '@/actions/grades';
 import {
   Form,
   FormControl,
@@ -26,6 +26,7 @@ import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import type { Control } from 'react-hook-form';
 import { PupilSelector } from './pupil-selector';
+import { TeacherSelector } from './teacher-selector';
 
 interface GradeFormProps {
   gradeId?: string;
@@ -88,10 +89,15 @@ export const GradeForm = ({
     minAge: initialData?.minAge,
     maxAge: initialData?.maxAge,
     active: initialData?.active ?? true,
-    ...(isEditMode && { 
-      id: gradeId,
-      pupilIds: initialData?.pupilIds || [],
-    }),
+    ...(isEditMode
+      ? {
+          id: gradeId,
+          pupilIds: initialData?.pupilIds || [],
+          teacherIds: initialData?.teacherIds || [],
+        }
+      : {
+          teacherIds: initialData?.teacherIds || [],
+        }),
   };
 
   const form = useForm<CreateGradeInput | UpdateGradeInput>({
@@ -100,6 +106,7 @@ export const GradeForm = ({
   });
 
   const onSubmit = (data: CreateGradeInput | UpdateGradeInput) => {
+    console.log('Form submit triggered, data:', data);
     startTransition(async () => {
       try {
         const result = isEditMode
@@ -134,9 +141,15 @@ export const GradeForm = ({
     });
   };
 
+  const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    console.log('Form submit event handler called');
+    // form.handleSubmit already handles preventDefault internally
+    form.handleSubmit(onSubmit)(e);
+  };
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={handleFormSubmit} className="w-full space-y-4">
         <FormField
           control={form.control}
           name="name"
@@ -215,6 +228,11 @@ export const GradeForm = ({
             </FormItem>
           )}
         />
+
+        {/* Teacher selector - in both create and edit modes */}
+        <div className="space-y-2">
+          <TeacherSelector disabled={isPending} />
+        </div>
 
         {/* Pupil selector - only in edit mode */}
         {isEditMode && (

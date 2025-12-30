@@ -79,7 +79,7 @@ export function SignInForm() {
             idToken: authStatus.idToken,
             accessToken: authStatus.accessToken,
             refreshToken: authStatus.refreshToken,
-            userRole: authStatus.userRole,
+            userRole: authStatus.userRole as 'TEACHER' | 'ADMIN' | 'SUPERADMIN',
           });
 
           if (storeResult && storeResult.success) {
@@ -88,26 +88,40 @@ export function SignInForm() {
             router.refresh();
             return;
           }
+
+          // If storeAuthTokens failed, continue with sign in
+          if (storeResult && !storeResult.success) {
+            console.error('Error storing existing auth tokens:', storeResult.error);
+            // Continue with sign in attempt
+          }
         }
 
         // 1. Sign in on client side (uses Amplify Auth)
+        // For AWS Amplify Gen 1, signIn must be performed on the client
         const signInResult = await signInClient(data.email, data.password);
 
         if (!signInResult.success) {
-          toast.error(signInResult.error || 'Ошибка входа. Попробуйте еще раз.');
+          // Get user-friendly error message
+          const errorMessage = signInResult.error || 'Ошибка входа. Попробуйте еще раз.';
+          console.error('Sign in failed:', errorMessage);
+          toast.error(errorMessage);
           return;
         }
 
         // 2. Store tokens in HttpOnly cookies via Server Action
+        // This ensures tokens are stored securely on the server
         const storeResult = await storeAuthTokens({
           idToken: signInResult.data.idToken,
           accessToken: signInResult.data.accessToken,
           refreshToken: signInResult.data.refreshToken,
-          userRole: signInResult.data.userRole,
+          userRole: signInResult.data.userRole as 'TEACHER' | 'ADMIN' | 'SUPERADMIN',
         });
 
         if (!storeResult || !storeResult.success) {
-          toast.error(storeResult?.error || 'Ошибка сохранения токенов. Попробуйте еще раз.');
+          const errorMessage =
+            storeResult?.error || 'Ошибка сохранения токенов. Попробуйте еще раз.';
+          console.error('Error storing auth tokens:', errorMessage);
+          toast.error(errorMessage);
           return;
         }
 
@@ -116,7 +130,8 @@ export function SignInForm() {
         router.push(storeResult.redirectUrl);
         router.refresh(); // Refresh to update server components
       } catch (error) {
-        console.error('Sign in error:', error);
+        // Handle unexpected errors
+        console.error('Unexpected sign in error:', error);
         const errorMessage = getCognitoErrorMessage(error);
         toast.error(errorMessage);
       }

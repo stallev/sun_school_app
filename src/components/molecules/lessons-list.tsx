@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/table';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import type { LessonWithStats } from '../../actions/grades';
+import type { LessonWithStats } from '@/actions/grades';
 
 interface LessonsListProps {
   lessons: LessonWithStats[];

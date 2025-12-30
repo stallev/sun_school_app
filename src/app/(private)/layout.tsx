@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { MainLayout } from '@/components/organisms/layout/main-layout';
+import { LoadTeachersOnAuth } from '@/components/shared/load-teachers-on-auth';
 import { headers } from 'next/headers';
 
 export const metadata: Metadata = {
@@ -15,6 +16,11 @@ export default async function PrivateLayout({
   const headersList = await headers();
   const pathname = headersList.get('x-pathname') || '/';
 
-  return <MainLayout currentPath={pathname}>{children}</MainLayout>;
+  return (
+    <MainLayout currentPath={pathname}>
+      <LoadTeachersOnAuth />
+      {children}
+    </MainLayout>
+  );
 }
 

@@ -175,7 +175,27 @@ export async function createGradeAction(
       active: validatedData.active,
     });
 
-    // 5. Revalidate cache
+    // 5. Handle teacher assignments if teacherIds provided
+    if (validatedData.teacherIds && validatedData.teacherIds.length > 0) {
+      try {
+        const assignedAt = new Date().toISOString();
+        await Promise.allSettled(
+          validatedData.teacherIds.map((teacherId) =>
+            createUserGrade({
+              userId: teacherId,
+              gradeId: grade.id,
+              assignedAt,
+            })
+          )
+        );
+      } catch (error) {
+        console.error('Error assigning teachers to grade:', error);
+        // Don't fail the entire operation if teacher assignment fails
+        // The grade was created successfully, teacher assignment can be retried
+      }
+    }
+
+    // 6. Revalidate cache
     revalidatePath('/grades');
     revalidatePath('/(private)/grades');
 
@@ -296,14 +316,19 @@ export async function updateGradeAction(
       try {
         // Get current teachers via UserGrade junction table
         const queries = await import('../graphql/queries');
+        const { executeGraphQL } = await import('../lib/db/amplify');
         const query = (queries as Record<string, string>).userGradesByGradeIdAndUserId;
         
         if (query) {
+          // Get all UserGrade records for this grade
+          // Query requires gradeId, userId is optional - omit it to get all
           const result = await executeGraphQL<{
             userGradesByGradeIdAndUserId?: {
               items?: Array<{ id: string; userId: string }>;
             };
-          }>(query, { gradeId: validatedData.id });
+          }>(query, { 
+            gradeId: validatedData.id,
+          });
           
           const currentUserGrades = result.data?.userGradesByGradeIdAndUserId?.items || [];
           const currentTeacherIds = currentUserGrades.map((ug) => ug.userId).filter(Boolean);

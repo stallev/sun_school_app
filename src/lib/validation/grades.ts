@@ -35,6 +35,10 @@ export const createGradeSchema = z
       .max(18, 'Максимальный возраст должен быть не более 18')
       .optional(),
     active: z.boolean(),
+    teacherIds: z
+      .array(uuidSchema)
+      .min(1, 'Необходимо выбрать минимум одного преподавателя')
+      .describe('Массив ID преподавателей для назначения на группу'),
   })
   .refine(
     (data) => {
@@ -82,6 +86,10 @@ export const updateGradeSchema = z
       .max(18)
       .optional(),
     active: z.boolean().optional(),
+    teacherIds: z
+      .array(uuidSchema)
+      .optional()
+      .describe('Массив ID преподавателей для назначения на группу (только в режиме редактирования)'),
     pupilIds: z
       .array(uuidSchema)
       .optional()
@@ -98,6 +106,19 @@ export const updateGradeSchema = z
     {
       message: 'Максимальный возраст должен быть больше или равен минимальному возрасту',
       path: ['maxAge'],
+    }
+  )
+  .refine(
+    (data) => {
+      // If teacherIds is provided, it must have at least 1 teacher
+      if (data.teacherIds !== undefined && data.teacherIds.length === 0) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: 'Необходимо выбрать минимум одного преподавателя',
+      path: ['teacherIds'],
     }
   );
 

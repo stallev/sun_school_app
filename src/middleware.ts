@@ -9,23 +9,41 @@ import { RoutePath, getPublicRoutes, getProtectedRoutes, getAdminRoutes } from '
 
 /**
  * Decode JWT token to get user information
+ * Optimized for middleware performance - minimal operations
  * For MVP, we decode without signature verification
  * In production, you might want to verify the token signature
+ * 
+ * @param token - JWT token string
+ * @returns Decoded payload or null if invalid
  */
-function decodeJWT(token: string): { sub?: string; email?: string; 'cognito:groups'?: string[] } | null {
+function decodeJWT(token: string): {
+  sub?: string;
+  email?: string;
+  'cognito:groups'?: string[];
+  exp?: number;
+} | null {
   try {
+    // Fast path: check if token has required structure
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      return null;
+    }
+
+    // Decode payload (second part)
     const payload = JSON.parse(
-      Buffer.from(token.split('.')[1], 'base64').toString()
+      Buffer.from(parts[1], 'base64').toString()
     );
     return payload;
   } catch (error) {
-    console.error('Error decoding JWT token:', error);
+    // Silently fail in middleware to avoid log spam
     return null;
   }
 }
 
 /**
  * Check if token is expired
+ * Optimized for middleware performance
+ * 
  * @param token - JWT token string
  * @returns true if token is expired or invalid
  */
@@ -37,17 +55,35 @@ function isTokenExpired(token: string): boolean {
     }
 
     // Check expiration (exp is in seconds, Date.now() is in milliseconds)
-    if ('exp' in payload && typeof payload.exp === 'number') {
+    if (payload.exp && typeof payload.exp === 'number') {
       const expirationTime = payload.exp * 1000;
-      return Date.now() >= expirationTime;
+      const now = Date.now();
+      return now >= expirationTime;
     }
 
-    // If no expiration, consider it valid (for MVP)
+    // If no expiration claim, consider it valid (for MVP)
     return false;
   } catch (error) {
-    console.error('Error checking token expiration:', error);
+    // Silently fail in middleware
     return true;
   }
+}
+
+/**
+ * Get user role from Cognito groups with precedence
+ * Precedence: SUPERADMIN > ADMIN > TEACHER
+ * 
+ * @param groups - Array of Cognito groups
+ * @returns User role or 'TEACHER' as default
+ */
+function getUserRole(groups: string[]): 'TEACHER' | 'ADMIN' | 'SUPERADMIN' {
+  if (groups.includes('SUPERADMIN')) {
+    return 'SUPERADMIN';
+  }
+  if (groups.includes('ADMIN')) {
+    return 'ADMIN';
+  }
+  return 'TEACHER';
 }
 
 /**
@@ -84,13 +120,16 @@ export async function middleware(request: NextRequest) {
     // If user is already authenticated and tries to access /auth, redirect based on role
     if (pathname.startsWith(RoutePath.auth) && idToken && !isTokenExpired(idToken)) {
       const decoded = decodeJWT(idToken);
-      const groups = decoded?.['cognito:groups'] || [];
-      const userRole = groups[0] || 'TEACHER';
+      if (decoded) {
+        const groups = decoded['cognito:groups'] || [];
+        const userRole = getUserRole(groups);
 
-      if (userRole === 'TEACHER') {
-        return NextResponse.redirect(new URL(RoutePath.grades.my, request.url));
-      } else if (userRole === 'ADMIN' || userRole === 'SUPERADMIN') {
-        return NextResponse.redirect(new URL(RoutePath.grades.base, request.url));
+        // Redirect based on role
+        if (userRole === 'TEACHER') {
+          return NextResponse.redirect(new URL(RoutePath.grades.my, request.url));
+        } else if (userRole === 'ADMIN' || userRole === 'SUPERADMIN') {
+          return NextResponse.redirect(new URL(RoutePath.grades.base, request.url));
+        }
       }
     }
 
@@ -101,7 +140,7 @@ export async function middleware(request: NextRequest) {
   if (isProtectedRoute || isAdminRoute) {
     // Check if user is authenticated
     if (!idToken || isTokenExpired(idToken)) {
-      // Redirect to login page
+      // Redirect to login page with redirect parameter
       const loginUrl = new URL(RoutePath.auth, request.url);
       loginUrl.searchParams.set('redirect', pathname);
       return NextResponse.redirect(loginUrl);
@@ -116,7 +155,7 @@ export async function middleware(request: NextRequest) {
     }
 
     const groups = decoded['cognito:groups'] || [];
-    const userRole = groups[0] || 'TEACHER';
+    const userRole = getUserRole(groups);
 
     // Check admin routes access
     if (isAdminRoute) {

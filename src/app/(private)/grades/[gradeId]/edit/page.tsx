@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 
 import { notFound, redirect } from 'next/navigation';
 import { getAuthenticatedUser, checkRole } from '@/lib/auth/cognito';
-import { getGradeWithFullDataAction } from '../../../../../actions/grades';
+import { getGradeWithFullDataAction } from '@/actions/grades';
 import { RoutePath } from '@/lib/routes/RoutePath';
 import { GradeForm } from '@/components/admin/grades/grade-form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -59,7 +59,7 @@ export default async function EditGradePage({
     notFound();
   }
 
-  const { grade, pupils } = gradeData;
+  const { grade, pupils, teachers } = gradeData;
 
   // 4. Prepare initial data for form
   const initialData = {
@@ -70,6 +70,7 @@ export default async function EditGradePage({
     maxAge: grade.maxAge ?? undefined,
     active: grade.active,
     pupilIds: pupils.map((pupil) => pupil.id),
+    teacherIds: teachers.map((teacher) => teacher.id),
   };
 
   // 5. Render form
@@ -97,14 +98,16 @@ export default async function EditGradePage({
         </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Информация о группе</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <GradeForm gradeId={gradeId} initialData={initialData} />
-        </CardContent>
-      </Card>
+      <div className="mx-auto md:max-w-2xl">
+        <Card>
+          <CardHeader>
+            <CardTitle>Информация о группе</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <GradeForm gradeId={gradeId} initialData={initialData} />
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

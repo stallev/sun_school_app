@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { RoutePath } from '@/lib/routes/RoutePath';
 import { formatAcademicYearStatus } from '@/lib/utils/grades';
 import { LessonsList } from './lessons-list';
-import type { LessonWithStats, AcademicYearWithLessons } from '../../actions/grades';
+import type { LessonWithStats, AcademicYearWithLessons } from '@/actions/grades';
 
 interface AcademicYearCardProps {
   academicYear: AcademicYearWithLessons['academicYear'];

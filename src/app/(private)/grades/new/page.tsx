@@ -59,14 +59,16 @@ export default async function NewGradePage() {
         </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Информация о группе</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <GradeForm />
-        </CardContent>
-      </Card>
+      <div className="mx-auto md:max-w-2xl">
+        <Card>
+          <CardHeader>
+            <CardTitle>Информация о группе</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <GradeForm />
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

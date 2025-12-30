@@ -6,7 +6,7 @@
 
 import { redirect } from 'next/navigation';
 import { getAuthenticatedUser, checkRole } from '@/lib/auth/cognito';
-import { listGradesAction } from '../../../actions/grades';
+import { listGradesAction } from '@/actions/grades';
 import { RoutePath } from '@/lib/routes/RoutePath';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
