@@ -149,7 +149,7 @@
 | Технология | Версия | Назначение |
 |------------|--------|-----------|
 | **Next.js** | 15.5.9 | Основной фреймворк (App Router, Server Components) |
-| **React** | 19 | UI библиотека с React Compiler |
+| **React** | 19 | UI библиотека |
 | **TypeScript** | Latest | Строгая типизация |
 | **Shadcn UI** | Latest | UI компоненты (Radix UI + Tailwind) |
 | **Tailwind CSS** | Latest | Utility-first CSS |
@@ -574,7 +574,6 @@ docs/
 ```
 
 **Ключевые темы:**
-- React Compiler
 - use() hook
 - Server Components
 - Suspense boundaries

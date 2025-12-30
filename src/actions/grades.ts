@@ -9,13 +9,13 @@
 
 'use server';
 
-import { getAuthenticatedUser, checkRole } from '../src/lib/auth/cognito';
+import { getAuthenticatedUser, checkRole } from '../lib/auth/cognito';
 import {
   createGradeSchema,
   updateGradeSchema,
   gradeIdSchema,
-} from '../src/lib/validation/grades';
-import { createGrade, updateGrade, deleteGrade, updatePupil } from '../src/lib/db/mutations';
+} from '../lib/validation/grades';
+import { createGrade, updateGrade, deleteGrade, updatePupil, createUserGrade, deleteUserGrade } from '../lib/db/mutations';
 import {
   getGrade,
   listGrades,
@@ -26,15 +26,16 @@ import {
   getGoldenVerse,
   listPupils,
   getPupilsByGrade,
-} from '../src/lib/db/queries';
-import { executeGraphQL } from '../src/lib/db/amplify';
+  listUsers,
+} from '../lib/db/queries';
+import { executeGraphQL } from '../lib/db/amplify';
 import {
   serializeGrade,
   getHomeworkCheckStats,
   sortAcademicYearsByStartDate,
-} from '../src/lib/utils/grades';
+} from '../lib/utils/grades';
 import { revalidatePath } from 'next/cache';
-import type * as APITypes from '../src/API';
+import * as APITypes from '../API';
 
 /**
  * Response type for Server Actions
@@ -68,7 +69,7 @@ async function checkTeacherGradeAccess(
   gradeId: string
 ): Promise<boolean> {
   try {
-    const queries = await import('../src/graphql/queries');
+    const queries = await import('../graphql/queries');
     const query = (queries as Record<string, string>).userGradesByGradeIdAndUserId;
 
     if (!query) {
@@ -101,7 +102,7 @@ async function checkTeacherGradeAccess(
  */
 async function getTeacherGradeIds(userId: string): Promise<string[]> {
   try {
-    const queries = await import('../src/graphql/queries');
+    const queries = await import('../graphql/queries');
     const query = (queries as Record<string, string>).userGradesByUserIdAndGradeId;
 
     if (!query) {
@@ -287,6 +288,56 @@ export async function updateGradeAction(
         console.error('Error updating pupil assignments:', error);
         // Don't fail the entire operation if pupil assignment fails
         // The grade update was successful, pupil assignment can be retried
+      }
+    }
+
+    // 6. Handle teacher assignments if teacherIds provided
+    if (validatedData.teacherIds !== undefined) {
+      try {
+        // Get current teachers via UserGrade junction table
+        const queries = await import('../graphql/queries');
+        const query = (queries as Record<string, string>).userGradesByGradeIdAndUserId;
+        
+        if (query) {
+          const result = await executeGraphQL<{
+            userGradesByGradeIdAndUserId?: {
+              items?: Array<{ id: string; userId: string }>;
+            };
+          }>(query, { gradeId: validatedData.id });
+          
+          const currentUserGrades = result.data?.userGradesByGradeIdAndUserId?.items || [];
+          const currentTeacherIds = currentUserGrades.map((ug) => ug.userId).filter(Boolean);
+          
+          const newTeacherIds = validatedData.teacherIds || [];
+          
+          // Find teachers to add (in newTeacherIds but not in currentTeacherIds)
+          const teachersToAdd = newTeacherIds.filter((id) => !currentTeacherIds.includes(id));
+          
+          // Find teachers to remove (in currentTeacherIds but not in newTeacherIds)
+          const teachersToRemove = currentUserGrades.filter(
+            (ug) => !newTeacherIds.includes(ug.userId)
+          );
+
+          // Add teachers to grade
+          const assignedAt = new Date().toISOString();
+          await Promise.allSettled(
+            teachersToAdd.map((teacherId) =>
+              createUserGrade({
+                userId: teacherId,
+                gradeId: validatedData.id,
+                assignedAt,
+              })
+            )
+          );
+
+          // Remove teachers from grade
+          await Promise.allSettled(
+            teachersToRemove.map((userGrade) => deleteUserGrade(userGrade.id))
+          );
+        }
+      } catch (error) {
+        console.error('Error updating teacher assignments:', error);
+        // Don't fail the entire operation if teacher assignment fails
       }
     }
 
@@ -921,6 +972,83 @@ export async function listPupilsForSelectionAction(): Promise<
         error instanceof Error
           ? error.message
           : 'Failed to list pupils: Unknown error',
+    };
+  }
+}
+
+/**
+ * Get list of all teachers for selection
+ * Used in grade form for teacher selection
+ * 
+ * Authorization: ADMIN, SUPERADMIN only
+ */
+export async function listTeachersForSelectionAction(): Promise<
+  ActionResponse<
+    Array<{
+      id: string;
+      name: string;
+      email: string;
+    }>
+  >
+> {
+  try {
+    // 1. Check authentication
+    const user = await getAuthenticatedUser();
+    if (!user) {
+      return {
+        success: false,
+        error: 'Unauthorized: User not authenticated',
+      };
+    }
+
+    // 2. Check authorization (Admin only)
+    const isAdmin = checkRole(user, ['ADMIN', 'SUPERADMIN']);
+    if (!isAdmin) {
+      return {
+        success: false,
+        error: 'Forbidden: Admin access required',
+      };
+    }
+
+    // 3. Get all active teachers
+    const usersResult = await listUsers(
+      {
+        and: [
+          { role: { eq: APITypes.UserRole.TEACHER } },
+          { active: { eq: true } },
+        ],
+      },
+      1000 // Large limit to get all teachers
+    );
+
+    if (!usersResult || !usersResult.items) {
+      return {
+        success: true,
+        data: [],
+      };
+    }
+
+    // 4. Serialize teachers
+    const serializedTeachers = usersResult.items
+      .filter((teacher): teacher is NonNullable<typeof teacher> => teacher !== null)
+      .map((teacher) => ({
+        id: teacher.id,
+        name: teacher.name,
+        email: teacher.email,
+      }));
+
+    return {
+      success: true,
+      data: serializedTeachers,
+    };
+  } catch (error) {
+    console.error('Error listing teachers for selection:', error);
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : 'Failed to list teachers: Unknown error',
     };
   }
 }

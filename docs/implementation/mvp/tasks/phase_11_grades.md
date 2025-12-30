@@ -264,14 +264,14 @@ Phase 10: Создание системы валидации
 </thinking>
 
 **Действия:**
-- [ ] Создать Client Component `components/teacher/grades/grade-form.tsx` (или `components/admin/grades/grade-form.tsx`)
-- [ ] Реализовать форму с полями: название, описание, minAge, maxAge
-- [ ] Интегрировать с React Hook Form
-- [ ] Добавить Zod валидацию через @hookform/resolvers
-- [ ] Добавить обработку ошибок с отображением сообщений
-- [ ] Добавить loading state во время отправки формы
-- [ ] Использовать компоненты Shadcn UI (Form, Input, Button, Dialog)
-- [ ] Интегрировать форму с Server Actions (createGrade, updateGrade)
+- [x] Создать Client Component `components/teacher/grades/grade-form.tsx` (или `components/admin/grades/grade-form.tsx`)
+- [x] Реализовать форму с полями: название, описание, minAge, maxAge
+- [x] Интегрировать с React Hook Form
+- [x] Добавить Zod валидацию через @hookform/resolvers
+- [x] Добавить обработку ошибок с отображением сообщений
+- [x] Добавить loading state во время отправки формы
+- [x] Использовать компоненты Shadcn UI (Form, Input, Button, Dialog)
+- [x] Интегрировать форму с Server Actions (createGrade, updateGrade)
 
 **Документация:**
 - <CRITICAL>[WIREFRAMES.md](../../../ui_ux/WIREFRAMES.md) - раздел Grade Form</CRITICAL>
@@ -329,13 +329,13 @@ Phase 10: Создание системы валидации
 </thinking>
 
 **Действия:**
-- [ ] Создать `app/(private)/grades/new/page.tsx`
-- [ ] Реализовать Server Component для проверки прав доступа (только Admin)
-- [ ] Добавить проверку аутентификации и роли через Cognito
-- [ ] Реализовать редирект для неавторизованных пользователей или не-Admin
-- [ ] Интегрировать форму создания из Task 11.04
-- [ ] Реализовать обработку успешного создания с редиректом на страницу группы
-- [ ] Добавить обработку ошибок
+- [x] Создать `app/(private)/grades/new/page.tsx`
+- [x] Реализовать Server Component для проверки прав доступа (только Admin)
+- [x] Добавить проверку аутентификации и роли через Cognito
+- [x] Реализовать редирект для неавторизованных пользователей или не-Admin
+- [x] Интегрировать форму создания из Task 11.04
+- [x] Реализовать обработку успешного создания с редиректом на страницу группы
+- [x] Добавить обработку ошибок
 
 **Документация:**
 - <CRITICAL>[WIREFRAMES.md](../../../ui_ux/WIREFRAMES.md) - раздел Grade Form</CRITICAL>

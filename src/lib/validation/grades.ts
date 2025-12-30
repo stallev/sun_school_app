@@ -82,6 +82,10 @@ export const updateGradeSchema = z
       .max(18)
       .optional(),
     active: z.boolean().optional(),
+    pupilIds: z
+      .array(uuidSchema)
+      .optional()
+      .describe('Массив ID учеников для назначения на группу (только в режиме редактирования)'),
   })
   .refine(
     (data) => {
