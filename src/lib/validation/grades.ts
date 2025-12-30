@@ -115,9 +115,10 @@ export type AssignTeacherInput = z.infer<typeof assignTeacherSchema>;
 /**
  * Grade ID schema
  * Validates grade ID for delete and get operations
+ * Accepts both UUID and regular string formats
  */
 export const gradeIdSchema = z.object({
-  id: uuidSchema,
+  id: z.string().min(1, 'ID обязательно для заполнения'),
 });
 
 export type GradeIdInput = z.infer<typeof gradeIdSchema>;

@@ -9,6 +9,7 @@
     "lint": "eslint",
     "format": "prettier --write .",
     "seed:books": "tsx scripts/seed-books-cli.ts",
+    "seed:db": "tsx scripts/seed-db-cli.ts",
     "codegen": "graphql-codegen --config codegen.yml"
   },
   "dependencies": {
