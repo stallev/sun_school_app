@@ -123,7 +123,7 @@ graph TB
 
 **Ключевые особенности:**
 - **App Router** — файловая маршрутизация на основе папок в `app/`
-- **React 19** — использование новых возможностей React Compiler
+- **React 19** — использование новых возможностей React
 - **TypeScript** — строгая типизация без `any`
 - **Turbopack** — быстрая сборка для разработки
 
@@ -197,31 +197,63 @@ app/
 
 ### 3.4. Routing и Middleware
 
+**⚠️ КРИТИЧЕСКИ ВАЖНО: RoutePath.ts как единый источник истины**
+
+Все пути страниц приложения **ОБЯЗАТЕЛЬНО** должны быть определены в `src/lib/routes/RoutePath.ts` и использоваться через импорт. **Недопустимо** использование захардкодженных строк путей в коде проекта.
+
+**Правила использования RoutePath.ts:**
+- ✅ Все пути определяются в `RoutePath.ts`
+- ✅ Все пути импортируются из `RoutePath.ts`
+- ❌ Запрещено использование строковых литералов путей напрямую
+- ❌ Запрещено создание путей через конкатенацию строк
+
+**Примеры правильного использования:**
+```typescript
+import { RoutePath } from '@/lib/routes/RoutePath';
+
+// Статический путь
+redirect(RoutePath.auth);
+router.push(RoutePath.grades.base);
+
+// Динамический путь
+router.push(RoutePath.grades.byId(gradeId));
+router.push(RoutePath.grades.settings(gradeId));
+```
+
 **proxy.ts (Middleware):**
 - Защита приватных маршрутов
 - Проверка JWT токена из Cognito
 - Редирект неавторизованных пользователей на `/auth`
 - Проверка роли пользователя для доступа к страницам
+- Использование `RoutePath.ts` для всех путей
 
 ```typescript
+import { RoutePath, getPublicRoutes, getProtectedRoutes, getAdminRoutes } from '@/lib/routes/RoutePath';
+
 // Упрощенный пример proxy.ts
 export async function middleware(request: NextRequest) {
   const token = request.cookies.get('cognito-token')?.value;
+  const publicRoutes = getPublicRoutes();
+  const protectedRoutes = getProtectedRoutes();
   
-  if (!token && request.nextUrl.pathname.startsWith('/(private)')) {
-    return NextResponse.redirect(new URL('/auth', request.url));
+  if (!token && protectedRoutes.some(route => request.nextUrl.pathname.startsWith(route))) {
+    return NextResponse.redirect(new URL(RoutePath.auth, request.url));
   }
   
   // Проверка роли для админских страниц
   const userRole = await getUserRole(token);
+  const adminRoutes = getAdminRoutes();
   
-  if (request.nextUrl.pathname.startsWith('/teachers') && userRole !== 'ADMIN') {
-    return NextResponse.redirect(new URL('/grades/my', request.url));
+  if (adminRoutes.some(route => request.nextUrl.pathname.startsWith(route)) && userRole !== 'ADMIN') {
+    return NextResponse.redirect(new URL(RoutePath.grades.my, request.url));
   }
   
   return NextResponse.next();
 }
 ```
+
+**Документация:**
+- См. [`docs/guidelines/react/ROUTE_PATHS.md`](../guidelines/react/ROUTE_PATHS.md) - подробные правила использования RoutePath.ts
 
 ---
 

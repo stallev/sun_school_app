@@ -35,6 +35,10 @@ export const createGradeSchema = z
       .max(18, 'Максимальный возраст должен быть не более 18')
       .optional(),
     active: z.boolean(),
+    teacherIds: z
+      .array(uuidSchema)
+      .min(1, 'Необходимо выбрать минимум одного преподавателя')
+      .describe('Массив ID преподавателей для назначения на группу'),
   })
   .refine(
     (data) => {
@@ -82,6 +86,14 @@ export const updateGradeSchema = z
       .max(18)
       .optional(),
     active: z.boolean().optional(),
+    teacherIds: z
+      .array(uuidSchema)
+      .optional()
+      .describe('Массив ID преподавателей для назначения на группу (только в режиме редактирования)'),
+    pupilIds: z
+      .array(uuidSchema)
+      .optional()
+      .describe('Массив ID учеников для назначения на группу (только в режиме редактирования)'),
   })
   .refine(
     (data) => {
@@ -94,6 +106,19 @@ export const updateGradeSchema = z
     {
       message: 'Максимальный возраст должен быть больше или равен минимальному возрасту',
       path: ['maxAge'],
+    }
+  )
+  .refine(
+    (data) => {
+      // If teacherIds is provided, it must have at least 1 teacher
+      if (data.teacherIds !== undefined && data.teacherIds.length === 0) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: 'Необходимо выбрать минимум одного преподавателя',
+      path: ['teacherIds'],
     }
   );
 
@@ -115,9 +140,10 @@ export type AssignTeacherInput = z.infer<typeof assignTeacherSchema>;
 /**
  * Grade ID schema
  * Validates grade ID for delete and get operations
+ * Accepts both UUID and regular string formats
  */
 export const gradeIdSchema = z.object({
-  id: uuidSchema,
+  id: z.string().min(1, 'ID обязательно для заполнения'),
 });
 
 export type GradeIdInput = z.infer<typeof gradeIdSchema>;

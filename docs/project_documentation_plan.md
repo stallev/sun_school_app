@@ -806,7 +806,7 @@ All **Must-have** and **Should-have** documents are now complete. All **Could-ha
 
 ### Core Technologies (Documented)
 - ✅ **Next.js 15.5.9** - App Router, Server Components, Server Actions (ARCHITECTURE.md, COMPONENT_LIBRARY.md)
-- ✅ **React 19** - React Compiler, Server Components (COMPONENT_LIBRARY.md, DESIGN_SYSTEM.md)
+- ✅ **React 19** - Server Components (COMPONENT_LIBRARY.md, DESIGN_SYSTEM.md)
 - ✅ **AWS Amplify Gen 1** - Backend infrastructure (AWS_AMPLIFY.md)
 - ✅ **AWS AppSync** - GraphQL API (GRAPHQL_SCHEMA.md, DATA_MODELING.md)
 - ✅ **AWS DynamoDB** - NoSQL database (DYNAMODB_SCHEMA.md, DATA_MODELING.md, ERD.md)

@@ -16,13 +16,24 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { Menu } from 'lucide-react';
+import { Menu, Home, Calendar, BookOpen, Users, GraduationCap, Building2, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+// Icon mapping: string identifier -> React component
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+  Home,
+  Calendar,
+  BookOpen,
+  Users,
+  GraduationCap,
+  Building2,
+  Settings,
+};
 
 export interface NavItem {
   href: string;
   label: string;
-  icon?: React.ComponentType<{ className?: string }> | null;
+  icon?: string; // Changed from React component to string identifier
   roles: string[];
 }
 
@@ -58,7 +69,8 @@ export const MobileNav = ({ navItems, userRole }: MobileNavProps) => {
         </SheetHeader>
         <nav className="flex flex-col space-y-1 p-4">
           {filteredItems.map((item) => {
-            const Icon = item.icon;
+            // Map string icon identifier to React component
+            const Icon = item.icon ? iconMap[item.icon] : null;
             const isActive =
               pathname === item.href ||
               (item.href !== '/' && pathname?.startsWith(item.href));

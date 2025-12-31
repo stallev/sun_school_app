@@ -7,12 +7,13 @@
 
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useTransition } from 'react';
+import { useTransition, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { signInSchema, type SignInInput } from '@/lib/validation/auth';
 import { storeAuthTokens } from '@/actions/auth';
-import { signInClient } from '@/lib/auth/cognito-client';
+import { signInClient, checkAuthStatusClient } from '@/lib/auth/cognito-client';
 import { configureAmplify } from '@/lib/amplify/config';
+import { RoutePath } from '@/lib/routes/RoutePath';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -36,6 +37,29 @@ export function SignInForm() {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
+  // Check if user is already authenticated on mount
+  useEffect(() => {
+    async function checkAuth() {
+      try {
+        const authStatus = await checkAuthStatusClient();
+        if (authStatus) {
+          // User is already authenticated, redirect based on role
+          const redirectUrl =
+            authStatus.userRole === 'TEACHER'
+              ? RoutePath.grades.my
+              : RoutePath.grades.base;
+          router.push(redirectUrl);
+          router.refresh();
+        }
+      } catch (error) {
+        // User is not authenticated, continue showing the form
+        console.error('Error checking auth status:', error);
+      }
+    }
+
+    checkAuth();
+  }, [router]);
+
   const form = useForm<SignInInput>({
     resolver: zodResolver(signInSchema),
     defaultValues: {
@@ -47,24 +71,57 @@ export function SignInForm() {
   async function onSubmit(data: SignInInput) {
     startTransition(async () => {
       try {
+        // Check if user is already authenticated before attempting sign in
+        const authStatus = await checkAuthStatusClient();
+        if (authStatus) {
+          // User is already authenticated, store tokens and redirect
+          const storeResult = await storeAuthTokens({
+            idToken: authStatus.idToken,
+            accessToken: authStatus.accessToken,
+            refreshToken: authStatus.refreshToken,
+            userRole: authStatus.userRole as 'TEACHER' | 'ADMIN' | 'SUPERADMIN',
+          });
+
+          if (storeResult && storeResult.success) {
+            toast.success('Вы уже авторизованы!');
+            router.push(storeResult.redirectUrl);
+            router.refresh();
+            return;
+          }
+
+          // If storeAuthTokens failed, continue with sign in
+          if (storeResult && !storeResult.success) {
+            console.error('Error storing existing auth tokens:', storeResult.error);
+            // Continue with sign in attempt
+          }
+        }
+
         // 1. Sign in on client side (uses Amplify Auth)
+        // For AWS Amplify Gen 1, signIn must be performed on the client
         const signInResult = await signInClient(data.email, data.password);
 
         if (!signInResult.success) {
-          toast.error(signInResult.error || 'Ошибка входа. Попробуйте еще раз.');
+          // Get user-friendly error message
+          const errorMessage = signInResult.error || 'Ошибка входа. Попробуйте еще раз.';
+          console.error('Sign in failed:', errorMessage);
+          toast.error(errorMessage);
           return;
         }
 
         // 2. Store tokens in HttpOnly cookies via Server Action
+        // This ensures tokens are stored securely on the server
         const storeResult = await storeAuthTokens({
           idToken: signInResult.data.idToken,
           accessToken: signInResult.data.accessToken,
           refreshToken: signInResult.data.refreshToken,
-          userRole: signInResult.data.userRole,
+          userRole: signInResult.data.userRole as 'TEACHER' | 'ADMIN' | 'SUPERADMIN',
         });
 
         if (!storeResult || !storeResult.success) {
-          toast.error(storeResult?.error || 'Ошибка сохранения токенов. Попробуйте еще раз.');
+          const errorMessage =
+            storeResult?.error || 'Ошибка сохранения токенов. Попробуйте еще раз.';
+          console.error('Error storing auth tokens:', errorMessage);
+          toast.error(errorMessage);
           return;
         }
 
@@ -73,7 +130,8 @@ export function SignInForm() {
         router.push(storeResult.redirectUrl);
         router.refresh(); // Refresh to update server components
       } catch (error) {
-        console.error('Sign in error:', error);
+        // Handle unexpected errors
+        console.error('Unexpected sign in error:', error);
         const errorMessage = getCognitoErrorMessage(error);
         toast.error(errorMessage);
       }

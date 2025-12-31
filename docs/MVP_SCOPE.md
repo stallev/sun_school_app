@@ -405,7 +405,7 @@ MVP (Minimum Viable Product) Sunday School App предназначен для �
 
 - ✅ Next.js 16 с App Router
 - ✅ TypeScript (строгая типизация)
-- ✅ React 19 с React Compiler
+- ✅ React 19
 - ✅ Shadcn UI компоненты
 - ✅ Tailwind CSS для стилей
 - ✅ Zustand для клиентского состояния (минимально)

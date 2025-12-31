@@ -5,9 +5,9 @@
 
 'use server';
 
-import { booksSeedData, type BookSeedData } from '../scripts/seed-books-data';
-import { getAuthenticatedUser, checkRole } from '../src/lib/auth/cognito';
-import { amplifyData } from '../src/lib/db/amplify';
+import { booksSeedData, type BookSeedData } from '../../scripts/seed-books-data';
+import { getAuthenticatedUser, checkRole } from '../lib/auth/cognito';
+import { amplifyData } from '../lib/db/amplify';
 import { z } from 'zod';
 
 /**

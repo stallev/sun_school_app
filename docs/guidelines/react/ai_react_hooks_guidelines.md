@@ -495,228 +495,9 @@ export const useDebounce = <T>(
 
 ---
 
-## 7. ⚡ React Compiler and Hooks (Next.js 16+)
+## 7. 🎯 Performance Optimization Hooks
 
-### 7.1. React Compiler Overview for Hooks
-
-**⚠️ IMPORTANT**: If `reactCompiler: true` is enabled in `next.config.ts`, React Compiler automatically optimizes hooks and components using hooks.
-
-**What React Compiler does for hooks:**
-- Automatically memoizes values returned from hooks
-- Automatically memoizes functions inside hooks
-- Optimizes dependencies in `useEffect`, `useMemo`, `useCallback`
-- Prevents unnecessary re-renders
-
-### 7.2. Hook Writing Rules for React Compiler
-
-#### ✅ Recommended Patterns:
-
-1. **Pure functions in hooks** - avoid mutations:
-```typescript
-// ✅ GOOD: Immutable state update
-export const useCounter = (initialValue = 0) => {
-  const [count, setCount] = useState(initialValue);
-  
-  const increment = () => {
-    setCount(prev => prev + 1); // Functional update
-  };
-  
-  return { count, increment };
-};
-
-// ❌ BAD: State mutation
-export const useCounter = (initialValue = 0) => {
-  const [state, setState] = useState({ count: initialValue });
-  
-  const increment = () => {
-    state.count++; // Mutation!
-    setState(state);
-  };
-  
-  return { count: state.count, increment };
-};
-```
-
-2. **Stable dependencies** - use primitives or stable references:
-```typescript
-// ✅ GOOD: Primitive dependencies
-export const useApi = (url: string) => {
-  useEffect(() => {
-    fetch(url).then(/* ... */);
-  }, [url]); // Primitive value
-  
-  // ...
-};
-
-// ❌ BAD: Unstable objects in dependencies
-export const useApi = (config: { url: string }) => {
-  useEffect(() => {
-    fetch(config.url).then(/* ... */);
-  }, [config]); // New object on every render!
-  
-  // ...
-};
-```
-
-3. **Avoid redundant useCallback/useMemo**:
-```typescript
-// ✅ GOOD with React Compiler: Simple code
-export const useToggle = (initialValue = false) => {
-  const [isOn, setIsOn] = useState(initialValue);
-  
-  const toggle = () => setIsOn(prev => !prev);
-  const turnOn = () => setIsOn(true);
-  const turnOff = () => setIsOn(false);
-  
-  return { isOn, toggle, turnOn, turnOff };
-};
-
-// ❌ REDUNDANT with React Compiler:
-export const useToggle = (initialValue = false) => {
-  const [isOn, setIsOn] = useState(initialValue);
-  
-  const toggle = useCallback(() => setIsOn(prev => !prev), []);
-  const turnOn = useCallback(() => setIsOn(true), []);
-  const turnOff = useCallback(() => setIsOn(false), []);
-  
-  return { isOn, toggle, turnOn, turnOff };
-};
-```
-
-#### ❌ Patterns to Avoid:
-
-1. **Mutations in hooks**:
-```typescript
-// ❌ BAD: Array mutation
-export const useList = () => {
-  const [items, setItems] = useState<string[]>([]);
-  
-  const addItem = (item: string) => {
-    items.push(item); // Mutation!
-    setItems(items);
-  };
-  
-  return { items, addItem };
-};
-
-// ✅ GOOD: Immutable update
-export const useList = () => {
-  const [items, setItems] = useState<string[]>([]);
-  
-  const addItem = (item: string) => {
-    setItems(prev => [...prev, item]); // New array
-  };
-  
-  return { items, addItem };
-};
-```
-
-2. **Unstable objects in return values**:
-```typescript
-// ❌ BAD: New object on every call
-export const useCounter = () => {
-  const [count, setCount] = useState(0);
-  
-  return { count, setCount }; // New object every time
-};
-
-// ✅ GOOD: React Compiler optimizes automatically
-// But you can use useMemo for explicit stability (optional)
-export const useCounter = () => {
-  const [count, setCount] = useState(0);
-  
-  return { count, setCount }; // Compiler optimizes
-};
-```
-
-### 7.3. When useCallback/useMemo Are Still Needed in Hooks
-
-React Compiler doesn't replace all optimizations. Manual optimizations are still needed for:
-
-1. **Dependencies on external libraries**:
-```typescript
-// If library requires stable reference
-const stableCallback = useCallback(() => {
-  thirdPartyLibrary.onEvent(handler);
-}, [handler]);
-```
-
-2. **Passing functions as props to memoized components** (without React Compiler):
-```typescript
-// If component uses memo and requires stable reference
-const handleClick = useCallback(() => {
-  // ...
-}, [deps]);
-```
-
-3. **Heavy computations in hooks**:
-```typescript
-// If computation is VERY heavy
-const expensiveValue = useMemo(() => {
-  return heavyComputation(data);
-}, [data]);
-```
-
-### 7.4. useEffect and React Compiler
-
-React Compiler optimizes dependencies in `useEffect`, but it's important to specify them correctly:
-
-```typescript
-// ✅ GOOD: Explicit dependencies
-export const useApi = (url: string, options?: RequestInit) => {
-  useEffect(() => {
-    fetch(url, options).then(/* ... */);
-  }, [url, options]); // Explicit dependencies
-  
-  // ...
-};
-
-// ✅ GOOD: Destructuring for stability
-export const useApi = ({ url, method }: ApiConfig) => {
-  useEffect(() => {
-    fetch(url, { method }).then(/* ... */);
-  }, [url, method]); // Primitive values
-  
-  // ...
-};
-```
-
-### 7.5. Migrating Existing Hooks
-
-When enabling React Compiler:
-
-1. **Remove redundant useCallback**:
-```typescript
-// Before:
-const toggle = useCallback(() => setIsOn(prev => !prev), []);
-
-// After:
-const toggle = () => setIsOn(prev => !prev);
-```
-
-2. **Remove redundant useMemo** (except for very heavy computations):
-```typescript
-// Before:
-const processed = useMemo(() => processData(data), [data]);
-
-// After:
-const processed = processData(data);
-```
-
-3. **Ensure immutability**:
-```typescript
-// Check all state updates for immutability
-setState(prev => ({ ...prev, newField: value })); // ✅
-setState(prev => { prev.newField = value; return prev; }); // ❌
-```
-
----
-
-## 8. 🎯 Performance Optimization Hooks (Legacy - without React Compiler)
-
-> ⚠️ **Note**: If `reactCompiler: true` is enabled in `next.config.ts`, most optimizations in this section are redundant. See section 7 "React Compiler and Hooks".
-
-### 8.1. Memo Hook
+### 7.1. Memo Hook
 ```typescript
 interface UseMemoOptions<T> {
   dependencies: any[];
@@ -745,7 +526,7 @@ export const useMemo = <T>(options: UseMemoOptions<T>): T => {
 };
 ```
 
-### 8.2. Callback Hook
+### 7.2. Callback Hook
 ```typescript
 export const useCallback = <T extends (...args: any[]) => any>(
   callback: T,
@@ -911,19 +692,16 @@ describe('useCounter', () => {
 
 When generating React hooks:
 
-1. **Check React Compiler**: If `reactCompiler: true` is enabled in `next.config.ts`, avoid manual memoization (`useCallback`, `useMemo`) unless specifically needed
-2. **Identify Hook Purpose**: Determine if it's for data, UI, form, or utility
-3. **Create TypeScript Interface**: Define explicit input and return types
-4. **Follow Naming Conventions**: Use `use` prefix and descriptive names
-5. **Write Pure Functions**: Hooks should use immutable updates, avoid mutations
-6. **Optimize Performance**: 
-   - With React Compiler: Write clean code, compiler handles optimization
-   - Without React Compiler: Use `useCallback`, `useMemo`, and `useRef` appropriately
-7. **Handle Edge Cases**: Consider loading states, errors, and cleanup
-8. **Stable Dependencies**: Use primitives or stable references in useEffect dependencies
-9. **Write Tests**: Include comprehensive test coverage
-10. **Document Usage**: Add JSDoc comments with examples (in English)
-11. **Return Consistent Structure**: Follow established patterns for return values
+1. **Identify Hook Purpose**: Determine if it's for data, UI, form, or utility
+2. **Create TypeScript Interface**: Define explicit input and return types
+3. **Follow Naming Conventions**: Use `use` prefix and descriptive names
+4. **Write Pure Functions**: Hooks should use immutable updates, avoid mutations
+5. **Optimize Performance**: Use `useCallback`, `useMemo`, and `useRef` appropriately to prevent unnecessary re-renders
+6. **Handle Edge Cases**: Consider loading states, errors, and cleanup
+7. **Stable Dependencies**: Use primitives or stable references in useEffect dependencies
+8. **Write Tests**: Include comprehensive test coverage
+9. **Document Usage**: Add JSDoc comments with examples (in English)
+10. **Return Consistent Structure**: Follow established patterns for return values
 
 > **Example Prompt**: "Generate a custom hook for managing API data with loading states, error handling, and caching capabilities that can be used across different React frameworks."
 
@@ -932,8 +710,6 @@ When generating React hooks:
 ## 12. 📚 References
 
 - [React Hooks Documentation](https://react.dev/reference/react)
-- [React Compiler](https://react.dev/learn/react-compiler) - Automatic optimization of React components and hooks
-- [Next.js React Compiler](https://nextjs.org/docs/app/api-reference/next-config-js/reactCompiler) - React Compiler configuration in Next.js
 - [Custom Hooks Guide](https://react.dev/learn/reusing-logic-with-custom-hooks)
 - [Testing Library Hooks](https://testing-library.com/docs/react-testing-library/api/#renderhook)
 - [React Hook Form](https://react-hook-form.com/)

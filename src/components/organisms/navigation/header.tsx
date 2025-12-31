@@ -6,6 +6,7 @@
 import Link from 'next/link';
 import { getAuthenticatedUser } from '@/lib/auth/cognito';
 import { getUserRole } from '@/lib/utils/auth';
+import { RoutePath } from '@/lib/routes/RoutePath';
 import { Logo } from '@/components/atoms/logo';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -20,68 +21,60 @@ import {
 import { LogOut } from 'lucide-react';
 import { signOut } from '@/actions/auth';
 import { MobileNav } from './mobile-nav';
-import {
-  Home,
-  Calendar,
-  BookOpen,
-  Users,
-  GraduationCap,
-  Building2,
-  Settings,
-} from 'lucide-react';
 
 interface HeaderProps {
   onMobileMenuToggle?: () => void;
 }
 
 // Navigation items configuration (shared with Sidebar)
+// Using string identifiers for icons to avoid serialization issues when passing to Client Components
 const navItems = [
   {
-    href: '/grades/my',
+    href: RoutePath.grades.my,
     label: 'Мои группы',
-    icon: Home,
+    icon: 'Home',
     roles: ['TEACHER'],
   },
   {
-    href: '/grades-list',
+    href: RoutePath.grades.base,
     label: 'Все группы',
-    icon: Home,
+    icon: 'Home',
     roles: ['ADMIN', 'SUPERADMIN'],
   },
   {
-    href: '/schedule',
+    href: RoutePath.schedule,
     label: 'Расписание',
-    icon: Calendar,
+    icon: 'Calendar',
     roles: ['TEACHER', 'ADMIN', 'SUPERADMIN'],
   },
   {
-    href: '/golden-verses-library',
+    href: RoutePath.goldenVersesLibrary,
     label: 'Золотые стихи',
-    icon: BookOpen,
+    icon: 'BookOpen',
     roles: ['TEACHER', 'ADMIN', 'SUPERADMIN'],
   },
   {
-    href: '/teachers-management',
+    href: RoutePath.teachersManagement,
     label: 'Преподаватели',
-    icon: GraduationCap,
+    icon: 'GraduationCap',
     roles: ['ADMIN', 'SUPERADMIN'],
   },
   {
-    href: '/pupils-management',
+    href: RoutePath.pupilsManagement,
     label: 'Ученики',
-    icon: Users,
+    icon: 'Users',
     roles: ['ADMIN', 'SUPERADMIN'],
   },
   {
-    href: '/families-management',
+    href: RoutePath.familiesManagement,
     label: 'Семьи',
-    icon: Building2,
+    icon: 'Building2',
     roles: ['ADMIN', 'SUPERADMIN'],
   },
   {
-    href: '/school-process-management',
+    href: RoutePath.schoolProcessManagement,
     label: 'Настройки',
-    icon: Settings,
+    icon: 'Settings',
     roles: ['ADMIN', 'SUPERADMIN'],
   },
 ];
@@ -123,8 +116,17 @@ export const Header = async ({}: HeaderProps) => {
 
         {/* User Info and Actions */}
         <div className="flex items-center gap-4">
-          {/* Desktop: User Dropdown */}
+          {/* Desktop: User Dropdown and Sign Out Button */}
           <div className="hidden items-center gap-4 md:flex">
+            {/* Sign Out Button - always visible */}
+            <form action={signOut}>
+              <Button type="submit" variant="outline" size="sm" className="gap-2">
+                <LogOut className="h-4 w-4" />
+                <span>Выход</span>
+              </Button>
+            </form>
+            
+            {/* User Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-10 w-10 rounded-full">
