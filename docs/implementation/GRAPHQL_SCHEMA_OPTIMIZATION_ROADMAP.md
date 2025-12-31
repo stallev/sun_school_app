@@ -29,12 +29,53 @@
 
 ---
 
+## Список страниц и количество запросов
+
+Данная секция содержит полный список всех страниц приложения с указанием количества запросов к AppSync для каждой страницы. Целевой показатель: **80%+ страниц используют 1 запрос**, остальные - максимум 2 запроса.
+
+### Страницы для Teacher и Admin
+
+| Страница | Маршрут | Запросов | Основные сущности | Вложенные запросы |
+|----------|---------|----------|-------------------|-------------------|
+| Страница группы | `/grades/:gradeId` | 1 | Grade, AcademicYears, Lessons, Pupils, Events, Settings, Teachers | `getGradeWithNestedData()` |
+| Список уроков | `/grades/:gradeId/academic-years/:yearId/lessons` | 1 | AcademicYear, Lessons | `getAcademicYearWithLessons()` |
+| Обзор урока | `/lessons/:lessonId` | 1 | Lesson, HomeworkChecks, GoldenVerses, Files | `getLessonWithRelations()` |
+| Редактирование урока | `/lessons/:lessonId/edit` | 1 | Lesson, GoldenVerses, Files | `getLessonWithRelations()` |
+| Сводная таблица | `/lessons/:lessonId/complete-table` | 1 | Lesson, HomeworkChecks, Pupils | `getLessonWithRelations()` |
+| Проверка ДЗ | `/lessons/:lessonId/homework-check` | 1 | Lesson, HomeworkChecks, Pupils, GoldenVerses | `getLessonWithRelations()` |
+| Рейтинг группы | `/grades/:gradeId/rating` | 1 | Grade, Pupils, Lessons, HomeworkChecks | `getGradeWithNestedData()` |
+| Календарь | `/grades/:gradeId/schedule` | 1 | Grade, Events | `getGradeWithNestedData()` |
+| Настройки группы | `/grades/:gradeId/settings` | 1 | Grade, Settings | `getGradeWithNestedData()` |
+| Карточка ученика | `/pupil-personal-data/:id` | 1 | Pupil, HomeworkChecks, Achievements, Families | `getPupilWithNestedData()` |
+| Библиотека стихов | `/golden-verses` | 1-2 | GoldenVerses, Books | `listGoldenVerses()` + `listBooks()` (если нужны все книги) |
+| Статистика стихов | `/golden-verses/statistics` | 1-2 | GoldenVerses, Books, Lessons | `getGradeWithNestedData()` + `listBooks()` |
+
+### Страницы для Admin
+
+| Страница | Маршрут | Запросов | Основные сущности | Вложенные запросы |
+|----------|---------|----------|-------------------|-------------------|
+| Список групп | `/grades` | 1 | Grades | `listGrades()` |
+| Управление преподавателями | `/teachers` | 1-2 | Users, UserGrades, Grades | `listUsers()` + `listUserGrades()` (если нужны группы) |
+| Управление учениками | `/pupils` | 1-2 | Pupils, Grades | `listPupils()` + `listGrades()` (если нужны группы) |
+| Управление семьями | `/families` | 1-2 | Families, FamilyMembers, Pupils | `listFamilies()` + `listFamilyMembers()` (если нужны ученики) |
+| Управление процессом | `/school-process-management` | 1-2 | Grades, AcademicYears | `listGrades()` + `listAcademicYears()` |
+
+### Примечания
+
+- **Целевое количество запросов:** 1 запрос для 80%+ страниц, максимум 2 запроса для остальных
+- **Вложенные запросы:** Используются для получения связанных данных в одном запросе через `@hasMany` и `@belongsTo` связи
+- **Оптимизация:** После реализации всех изменений roadmap, все страницы должны использовать вложенные запросы вместо множественных отдельных запросов
+- **Снижение нагрузки:** Ожидаемое снижение количества запросов с 10-110 до 1-2 на страницу
+
+---
+
 ## Содержание
 
-1. [Раздел 1: Изменения в GraphQL схеме (поэтапный деплой backend)](#раздел-1-изменения-в-graphql-схеме)
-2. [Раздел 2: Изменения в src/graphql/generated/](#раздел-2-изменения-в-srcgraphqlgenerated)
-3. [Раздел 3: Изменения в реализованном функционале](#раздел-3-изменения-в-реализованном-функционале)
-4. [Раздел 4: Изменения в документации phase_11-25](#раздел-4-изменения-в-документации-phase_11-25)
+1. [Список страниц и количество запросов](#список-страниц-и-количество-запросов)
+2. [Раздел 1: Изменения в GraphQL схеме (поэтапный деплой backend)](#раздел-1-изменения-в-graphql-схеме)
+3. [Раздел 2: Изменения в src/graphql/generated/](#раздел-2-изменения-в-srcgraphqlgenerated)
+4. [Раздел 3: Изменения в реализованном функционале](#раздел-3-изменения-в-реализованном-функционале)
+5. [Раздел 4: Изменения в документации phase_11-25](#раздел-4-изменения-в-документации-phase_11-25)
 
 ---
 
@@ -645,7 +686,43 @@ aws dynamodb describe-table --table-name "$TABLE_NAME" --query 'Table.GlobalSeco
 
 ---
 
-### Task 1.3.7: Финальный деплой @belongsTo связей
+### Task 1.3.7: Добавление @belongsTo в GoldenVerse
+
+**Статус:** [ ] Не начато | [ ] В процессе | [ ] Выполнено | [ ] Проверено
+
+**Описание:**
+Добавить @belongsTo связь book в модель GoldenVerse для получения данных книги в одном запросе.
+
+**Файлы для изменения:**
+- [amplify/backend/api/sunsch/schema.graphql](../../amplify/backend/api/sunsch/schema.graphql) - модель GoldenVerse (строка ~215-239)
+
+**Текущее состояние (найти строки ~231-235):**
+```graphql
+  # Связи
+  # Примечание: book @belongsTo убрано для устранения циклической зависимости
+  # Используйте queries через индекс byBookId для получения связанной книги
+```
+
+**Изменить на:**
+```graphql
+  # Связи
+  book: Book @belongsTo(fields: ["bookId"])
+```
+
+**Действия:**
+- [ ] Открыть файл `amplify/backend/api/sunsch/schema.graphql`
+- [ ] Найти модель `GoldenVerse` (строка ~215)
+- [ ] Найти раздел связей (строки ~231-235)
+- [ ] Заменить комментарии на @belongsTo связь
+- [ ] Сохранить файл
+
+**Проверка:**
+- [ ] book: Book @belongsTo(fields: ["bookId"]) добавлено
+- [ ] Старые комментарии удалены
+
+---
+
+### Task 1.3.8: Финальный деплой @belongsTo связей
 
 **Статус:** [ ] Не начато | [ ] В процессе | [ ] Выполнено | [ ] Проверено
 
@@ -683,6 +760,7 @@ TABLES=(
   "FamilyMember-{apiId}-{env}"
   "UserGrade-{apiId}-{env}"
   "UserFamily-{apiId}-{env}"
+  "GoldenVerse-{apiId}-{env}"
 )
 
 for TABLE_NAME in "${TABLES[@]}"; do
@@ -708,6 +786,9 @@ aws dynamodb describe-table --table-name "UserGrade-{apiId}-{env}" --query 'Tabl
 
 # UserFamily: byUserId, byFamilyId
 aws dynamodb describe-table --table-name "UserFamily-{apiId}-{env}" --query 'Table.GlobalSecondaryIndexes[*].IndexName'
+
+# GoldenVerse: byBookId
+aws dynamodb describe-table --table-name "GoldenVerse-{apiId}-{env}" --query 'Table.GlobalSecondaryIndexes[*].IndexName'
 ```
 
 **Проверка:**
@@ -1817,11 +1898,11 @@ npm install react-dropzone
 
 | Раздел | Задачи | Выполнено | Процент |
 |--------|--------|-----------|---------|
-| 1. GraphQL схема | 10 | 0 | 0% |
+| 1. GraphQL схема | 11 | 0 | 0% |
 | 2. Generated файлы | 3 | 0 | 0% |
 | 3. Функционал | 7 | 0 | 0% |
 | 4. Документация | 15 | 0 | 0% |
-| **ИТОГО** | **35** | **0** | **0%** |
+| **ИТОГО** | **36** | **0** | **0%** |
 
 ## Критерии завершения
 
