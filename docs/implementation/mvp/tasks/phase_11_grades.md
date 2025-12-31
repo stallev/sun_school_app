@@ -87,6 +87,7 @@ Phase 10: Создание системы валидации
 - <CRITICAL>[SERVER_ACTIONS.md](../../../api/SERVER_ACTIONS.md) - раздел Grades</CRITICAL>
 - <CRITICAL>[VALIDATION.md](../../../api/VALIDATION.md) - раздел Grade Schemas</CRITICAL>
 - [MVP_SCOPE.md](../../../MVP_SCOPE.md) - раздел 2.2.1 Группы
+- [GRAPHQL_SCHEMA_OPTIMIZATION_ROADMAP.md](../../GRAPHQL_SCHEMA_OPTIMIZATION_ROADMAP.md) - оптимизация запросов
 - Context7: Next.js 15.5.9 Server Actions документация
 - **Код реализации:**
   - [src/lib/validation/grades.ts](../../../../src/lib/validation/grades.ts) - схемы валидации для групп
@@ -100,6 +101,10 @@ Phase 10: Создание системы валидации
   - [src/graphql/generated/types.ts](../../../../src/graphql/generated/types.ts) - TypeScript типы из GraphQL схемы
   - [src/lib/validation/common.ts](../../../../src/lib/validation/common.ts) - общие схемы валидации
   - [src/lib/validation/utils.ts](../../../../src/lib/validation/utils.ts) - утилиты для работы с валидацией
+
+**Важно:** После реализации оптимизации GraphQL схемы используйте вложенные запросы вместо множественных:
+- getGradeWithNestedData() - один запрос вместо ~110
+- Данные содержат все связанные сущности включая files для уроков
 
 **Критерии приемки:**
 - Все Server Actions созданы

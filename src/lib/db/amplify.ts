@@ -95,6 +95,7 @@ const _MODEL_NAMES = {
   Book: 'Book',
   GoldenVerse: 'GoldenVerse',
   LessonGoldenVerse: 'LessonGoldenVerse',
+  LessonFile: 'LessonFile',
   Pupil: 'Pupil',
   HomeworkCheck: 'HomeworkCheck',
   Achievement: 'Achievement',

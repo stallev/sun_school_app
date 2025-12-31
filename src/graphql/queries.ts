@@ -1,5 +1,5 @@
 /* tslint:disable */
- 
+/* eslint-disable */
 // this is an auto generated file. This will be overwritten
 
 import * as APITypes from "../API";
@@ -73,6 +73,20 @@ export const getGrade = /* GraphQL */ `query GetGrade($id: ID!) {
       __typename
     }
     pupils {
+      nextToken
+      __typename
+    }
+    events {
+      items {
+        id
+        eventType
+        title
+        description
+        eventDate
+        createdAt
+        updatedAt
+        __typename
+      }
       nextToken
       __typename
     }
@@ -182,6 +196,75 @@ export const getLesson = /* GraphQL */ `query GetLesson($id: ID!) {
     content
     lessonDate
     order
+    homeworkChecks {
+      items {
+        id
+        lessonId
+        pupilId
+        gradeId
+        goldenVerse1Score
+        goldenVerse2Score
+        goldenVerse3Score
+        testScore
+        notebookScore
+        singing
+        points
+        pupil {
+          id
+          firstName
+          lastName
+          middleName
+          __typename
+        }
+        createdAt
+        updatedAt
+        __typename
+      }
+      nextToken
+      __typename
+    }
+    goldenVerses {
+      items {
+        id
+        lessonId
+        goldenVerseId
+        order
+        goldenVerse {
+          id
+          reference
+          bookId
+          chapter
+          verseStart
+          verseEnd
+          text
+          __typename
+        }
+        createdAt
+        updatedAt
+        __typename
+      }
+      nextToken
+      __typename
+    }
+    files {
+      items {
+        id
+        lessonId
+        fileName
+        fileType
+        mimeType
+        fileSize
+        s3Key
+        s3Url
+        order
+        description
+        createdAt
+        updatedAt
+        __typename
+      }
+      nextToken
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -264,6 +347,21 @@ export const getGoldenVerse = /* GraphQL */ `query GetGoldenVerse($id: ID!) {
     verseStart
     verseEnd
     text
+    book {
+      id
+      fullName
+      shortName
+      abbreviation
+      testament
+      order
+      createdAt
+      updatedAt
+      __typename
+    }
+    lessons {
+      nextToken
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -313,6 +411,53 @@ export const getPupil = /* GraphQL */ `query GetPupil($id: ID!) {
       nextToken
       __typename
     }
+    homeworkChecks {
+      items {
+        id
+        lessonId
+        pupilId
+        gradeId
+        goldenVerse1Score
+        goldenVerse2Score
+        goldenVerse3Score
+        testScore
+        notebookScore
+        singing
+        points
+        lesson {
+          id
+          title
+          lessonDate
+          order
+          __typename
+        }
+        createdAt
+        updatedAt
+        __typename
+      }
+      nextToken
+      __typename
+    }
+    achievements {
+      items {
+        id
+        pupilId
+        achievementId
+        awardedAt
+        achievement {
+          id
+          name
+          description
+          icon
+          criteria
+          __typename
+        }
+        createdAt
+        __typename
+      }
+      nextToken
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -359,6 +504,32 @@ export const getHomeworkCheck = /* GraphQL */ `query GetHomeworkCheck($id: ID!) 
     notebookScore
     singing
     points
+    lesson {
+      id
+      academicYearId
+      gradeId
+      teacherId
+      title
+      content
+      lessonDate
+      order
+      createdAt
+      updatedAt
+      __typename
+    }
+    pupil {
+      id
+      gradeId
+      firstName
+      lastName
+      middleName
+      dateOfBirth
+      photo
+      active
+      createdAt
+      updatedAt
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -405,6 +576,10 @@ export const getAchievement = /* GraphQL */ `query GetAchievement($id: ID!) {
     description
     icon
     criteria
+    pupils {
+      nextToken
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -913,6 +1088,45 @@ export const lessonsByTeacherIdAndCreatedAt = /* GraphQL */ `query LessonsByTeac
 ` as GeneratedQuery<
   APITypes.LessonsByTeacherIdAndCreatedAtQueryVariables,
   APITypes.LessonsByTeacherIdAndCreatedAtQuery
+>;
+export const lessonFilesByLessonIdAndOrder = /* GraphQL */ `query LessonFilesByLessonIdAndOrder(
+  $lessonId: ID!
+  $order: ModelIntKeyConditionInput
+  $sortDirection: ModelSortDirection
+  $filter: ModelLessonFileFilterInput
+  $limit: Int
+  $nextToken: String
+) {
+  lessonFilesByLessonIdAndOrder(
+    lessonId: $lessonId
+    order: $order
+    sortDirection: $sortDirection
+    filter: $filter
+    limit: $limit
+    nextToken: $nextToken
+  ) {
+    items {
+      id
+      lessonId
+      fileName
+      fileType
+      mimeType
+      fileSize
+      s3Key
+      s3Url
+      order
+      description
+      createdAt
+      updatedAt
+      __typename
+    }
+    nextToken
+    __typename
+  }
+}
+` as GeneratedQuery<
+  APITypes.LessonFilesByLessonIdAndOrderQueryVariables,
+  APITypes.LessonFilesByLessonIdAndOrderQuery
 >;
 export const booksByShortName = /* GraphQL */ `query BooksByShortName(
   $shortName: String!

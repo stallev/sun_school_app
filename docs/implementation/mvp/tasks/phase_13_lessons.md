@@ -92,6 +92,7 @@ Phase 12: Управление учебными годами (Academic Years)
 - ⚠️ **Важно:** Для получения связанных данных (золотые стихи, проверки ДЗ) используй queries через индексы, а не прямые связи `@belongsTo` и `@hasMany`. См. [SCHEMA_DIFFERENCES.md](../../../database/SCHEMA_DIFFERENCES.md)
 - <CRITICAL>[VALIDATION.md](../../../api/VALIDATION.md) - раздел Lesson Schemas</CRITICAL>
 - <CRITICAL>[MVP_SCOPE.md](../../../MVP_SCOPE.md) - раздел 2.3 Управление уроками</CRITICAL>
+- [GRAPHQL_SCHEMA_OPTIMIZATION_ROADMAP.md](../../GRAPHQL_SCHEMA_OPTIMIZATION_ROADMAP.md) - оптимизация запросов
 - Context7: Next.js 15.5.9 Server Actions документация
 - **Код реализации:**
   - [src/lib/validation/lessons.ts](../../../../src/lib/validation/lessons.ts) - схемы валидации
@@ -658,6 +659,36 @@ Phase 12: Управление учебными годами (Academic Years)
 <output_format>
 После выполнения задачи должно быть проведено комплексное тестирование всего функционала управления уроками. Все функции должны работать корректно, BlockNote редактор должен работать, выбор золотых стихов должен работать, права доступа должны проверяться правильно. Система должна быть готова к использованию.
 </output_format>
+
+---
+
+### Task 13.11: Реализация прикрепления файлов к урокам
+
+**Статус:** [ ] Не начато | [ ] В процессе | [ ] Выполнено | [ ] Проверено
+
+**Описание:**
+Реализовать функционал прикрепления файлов (изображения, PDF, документы) к урокам.
+
+**Файлы для изменения:**
+- [src/actions/lesson-files.ts](../../../../src/actions/lesson-files.ts)
+- [src/components/teacher/LessonFileUploader/](../../../../src/components/teacher/LessonFileUploader/)
+- [src/components/teacher/LessonFileList/](../../../../src/components/teacher/LessonFileList/)
+
+**Документация:**
+- [GRAPHQL_SCHEMA_OPTIMIZATION_ROADMAP.md](../../GRAPHQL_SCHEMA_OPTIMIZATION_ROADMAP.md) - раздел 3.2
+
+**Действия:**
+- [ ] Создать Server Actions для файлов (upload, delete, getUrl)
+- [ ] Создать компонент LessonFileUploader
+- [ ] Создать компонент LessonFileList
+- [ ] Интегрировать в форму редактирования урока
+- [ ] Проверить ограничения (10MB, 10 файлов)
+
+**Критерии приемки:**
+- Файлы можно загружать к урокам
+- Файлы можно удалять
+- Ограничения размера и количества файлов работают корректно
+- Компоненты интегрированы в форму редактирования урока
 
 ---
 

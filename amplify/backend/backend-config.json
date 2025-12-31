@@ -36,8 +36,8 @@
         ],
         "passwordProtectionSettings": {
           "passwordPolicyCharacters": [
-            "REQUIRE_UPPERCASE",
-            "REQUIRE_NUMBERS"
+            "REQUIRES_UPPERCASE",
+            "REQUIRES_NUMBERS"
           ],
           "passwordPolicyMinLength": 8
         },
@@ -54,6 +54,13 @@
       },
       "providerPlugin": "awscloudformation",
       "service": "Cognito"
+    }
+  },
+  "storage": {
+    "schoolstorage": {
+      "dependsOn": [],
+      "providerPlugin": "awscloudformation",
+      "service": "S3"
     }
   }
 }

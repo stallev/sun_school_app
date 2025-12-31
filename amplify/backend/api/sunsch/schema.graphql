@@ -87,8 +87,8 @@ type Grade
   teachers: [UserGrade] @hasMany(indexName: "byGradeId", fields: ["id"])
   academicYears: [AcademicYear] @hasMany(indexName: "byGradeId", fields: ["id"])
   pupils: [Pupil] @hasMany(indexName: "byGradeId", fields: ["id"])
-  # Примечание: events убрано из @hasMany для устранения циклической зависимости
-  # Используйте queries через индекс byGradeId для получения событий группы
+  # Связь events восстановлена
+  events: [GradeEvent] @hasMany(indexName: "byGradeId", fields: ["id"])
   settings: GradeSettings @hasOne(fields: ["id"])
   
   createdAt: AWSDateTime!
@@ -109,8 +109,8 @@ type UserGrade
   gradeId: ID! @index(name: "byGradeId", sortKeyFields: ["userId"])
   
   # Связи
-  # Примечание: user @belongsTo и grade @belongsTo убраны для устранения циклической зависимости
-  # Используйте queries через индексы byUserId и byGradeId для получения связанных данных
+  user: User @belongsTo(fields: ["userId"])
+  grade: Grade @belongsTo(fields: ["gradeId"])
   
   assignedAt: AWSDateTime!
   createdAt: AWSDateTime!
@@ -171,10 +171,49 @@ type Lesson
   
   # Связи
   # Примечание: academicYear @belongsTo и teacher @belongsTo убраны для устранения циклической зависимости
-  # Используйте queries через индексы byAcademicYearId и byTeacherId для получения связанных данных
-  # Примечание: gradeId используется только для денормализации и индекса, связь с Grade через AcademicYear
-  # Примечание: goldenVerses и homeworkChecks убраны из @hasMany для устранения циклической зависимости
-  # Используйте queries через индексы byLessonId для получения связанных данных
+  
+  # Восстановленные @hasMany связи
+  homeworkChecks: [HomeworkCheck] @hasMany(indexName: "byLessonId", fields: ["id"])
+  goldenVerses: [LessonGoldenVerse] @hasMany(indexName: "byLessonId", fields: ["id"])
+  files: [LessonFile] @hasMany(indexName: "byLessonId", fields: ["id"])
+  
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+}
+
+# ============================================
+# LESSON FILE (ФАЙЛЫ УРОКОВ)
+# ============================================
+
+# Файлы, прикрепленные к урокам (изображения, PDF, документы)
+# Хранение файлов в AWS S3 Storage
+type LessonFile
+  @model(queries: null)
+  @auth(rules: [
+    # Разделенные правила для предотвращения циклических зависимостей CloudFormation
+    { allow: groups, groups: ["ADMIN"], operations: [create, read, update, delete] },
+    { allow: groups, groups: ["SUPERADMIN"], operations: [create, read, update, delete] },
+    { allow: groups, groups: ["TEACHER"], operations: [create, read, update, delete] }
+  ]) {
+  id: ID!
+  lessonId: ID! @index(name: "byLessonId", sortKeyFields: ["order"])
+  
+  # Метаданные файла
+  fileName: String! # Оригинальное имя файла (например, "План_урока.pdf")
+  fileType: String! # Тип файла: "image", "pdf", "document"
+  mimeType: String! # MIME тип (например, "image/jpeg", "application/pdf")
+  fileSize: Int! # Размер файла в байтах
+  
+  # Хранение в S3
+  s3Key: String! # Ключ файла в S3 (путь в bucket)
+  s3Url: String! # Полный URL файла в S3 для доступа
+  
+  # Отображение
+  order: Int! # Порядок отображения файлов (для сортировки)
+  description: String # Описание файла (опционально)
+  
+  # Связи
+  lesson: Lesson @belongsTo(fields: ["lessonId"])
   
   createdAt: AWSDateTime!
   updatedAt: AWSDateTime!
@@ -229,10 +268,8 @@ type GoldenVerse
   text: String! # Текст стиха
   
   # Связи
-  # Примечание: book @belongsTo убрано для устранения циклической зависимости
-  # Используйте queries через индекс byBookId для получения связанной книги
-  # Примечание: lessons убрано из @hasMany для устранения циклической зависимости
-  # Используйте queries через индекс byGoldenVerseId для получения связанных уроков
+  book: Book @belongsTo(fields: ["bookId"])
+  lessons: [LessonGoldenVerse] @hasMany(indexName: "byGoldenVerseId", fields: ["id"])
   
   createdAt: AWSDateTime!
   updatedAt: AWSDateTime!
@@ -253,8 +290,8 @@ type LessonGoldenVerse
   order: Int! # Порядок стиха в уроке (1, 2, 3...)
   
   # Связи
-  # Примечание: @belongsTo убраны для устранения циклической зависимости
-  # Используйте queries через индексы byLessonId и byGoldenVerseId для получения связанных данных
+  lesson: Lesson @belongsTo(fields: ["lessonId"])
+  goldenVerse: GoldenVerse @belongsTo(fields: ["goldenVerseId"])
   
   createdAt: AWSDateTime!
 }
@@ -283,11 +320,11 @@ type Pupil
   # Примечание: Индекс по active не создается через @index (Boolean не поддерживается), используется фильтрация в queries
   
   # Связи
-  # Примечание: grade @belongsTo убрано для устранения циклической зависимости
-  # Используйте queries через индекс byGradeId для получения связанной группы
-  # Примечание: homeworkChecks и achievements убраны из @hasMany для устранения циклической зависимости
-  # Используйте queries через индексы byPupilId для получения связанных данных
   families: [FamilyMember] @hasMany(indexName: "byPupilId", fields: ["id"])
+  
+  # Восстановленные @hasMany связи
+  homeworkChecks: [HomeworkCheck] @hasMany(indexName: "byPupilId", fields: ["id"])
+  achievements: [PupilAchievement] @hasMany(indexName: "byPupilId", fields: ["id"])
   
   createdAt: AWSDateTime!
   updatedAt: AWSDateTime!
@@ -328,8 +365,8 @@ type HomeworkCheck
   points: Int! # Баллы за урок (сумма всех компонентов)
   
   # Связи
-  # Примечание: @belongsTo убраны для устранения циклической зависимости
-  # Используйте queries через индексы byLessonId и byPupilId для получения связанных данных
+  lesson: Lesson @belongsTo(fields: ["lessonId"])
+  pupil: Pupil @belongsTo(fields: ["pupilId"])
   # Примечание: gradeId используется только для денормализации и GSI-3 (аналитика), связь с Grade через Lesson
   
   createdAt: AWSDateTime!
@@ -356,8 +393,7 @@ type Achievement
   criteria: String! # JSON критерии получения
   
   # Связи
-  # Примечание: pupils убрано из @hasMany для устранения циклической зависимости
-  # Используйте queries через индекс byAchievementId для получения связанных учеников
+  pupils: [PupilAchievement] @hasMany(indexName: "byAchievementId", fields: ["id"])
   
   createdAt: AWSDateTime!
   updatedAt: AWSDateTime!
@@ -378,8 +414,8 @@ type PupilAchievement
   awardedAt: AWSDateTime! # Дата получения достижения
   
   # Связи
-  # Примечание: @belongsTo убраны для устранения циклической зависимости
-  # Используйте queries через индексы byPupilId и byAchievementId для получения связанных данных
+  pupil: Pupil @belongsTo(fields: ["pupilId"])
+  achievement: Achievement @belongsTo(fields: ["achievementId"])
   
   createdAt: AWSDateTime!
 }
@@ -437,8 +473,8 @@ type FamilyMember
   pupilId: ID! @index(name: "byPupilId")
   
   # Связи
-  # Примечание: family @belongsTo и pupil @belongsTo убраны для устранения циклической зависимости
-  # Используйте queries через индексы byFamilyId и byPupilId для получения связанных данных
+  family: Family @belongsTo(fields: ["familyId"])
+  pupil: Pupil @belongsTo(fields: ["pupilId"])
   
   createdAt: AWSDateTime!
 }
@@ -458,8 +494,8 @@ type UserFamily
   phone: String! @index(name: "byPhone") # Номер телефона, использованный для связи
   
   # Связи
-  # Примечание: user @belongsTo и family @belongsTo убраны для устранения циклической зависимости
-  # Используйте queries через индексы byUserId и byFamilyId для получения связанных данных
+  user: User @belongsTo(fields: ["userId"])
+  family: Family @belongsTo(fields: ["familyId"])
   
   createdAt: AWSDateTime!
 }

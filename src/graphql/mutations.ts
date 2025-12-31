@@ -1,5 +1,5 @@
 /* tslint:disable */
- 
+/* eslint-disable */
 // this is an auto generated file. This will be overwritten
 
 import * as APITypes from "../API";
@@ -127,6 +127,10 @@ export const createGrade = /* GraphQL */ `mutation CreateGrade(
       nextToken
       __typename
     }
+    events {
+      nextToken
+      __typename
+    }
     settings {
       id
       gradeId
@@ -175,6 +179,10 @@ export const updateGrade = /* GraphQL */ `mutation UpdateGrade(
       __typename
     }
     pupils {
+      nextToken
+      __typename
+    }
+    events {
       nextToken
       __typename
     }
@@ -229,6 +237,10 @@ export const deleteGrade = /* GraphQL */ `mutation DeleteGrade(
       nextToken
       __typename
     }
+    events {
+      nextToken
+      __typename
+    }
     settings {
       id
       gradeId
@@ -265,6 +277,28 @@ export const createUserGrade = /* GraphQL */ `mutation CreateUserGrade(
     id
     userId
     gradeId
+    user {
+      id
+      email
+      name
+      role
+      photo
+      active
+      createdAt
+      updatedAt
+      __typename
+    }
+    grade {
+      id
+      name
+      description
+      minAge
+      maxAge
+      active
+      createdAt
+      updatedAt
+      __typename
+    }
     assignedAt
     createdAt
     updatedAt
@@ -283,6 +317,28 @@ export const updateUserGrade = /* GraphQL */ `mutation UpdateUserGrade(
     id
     userId
     gradeId
+    user {
+      id
+      email
+      name
+      role
+      photo
+      active
+      createdAt
+      updatedAt
+      __typename
+    }
+    grade {
+      id
+      name
+      description
+      minAge
+      maxAge
+      active
+      createdAt
+      updatedAt
+      __typename
+    }
     assignedAt
     createdAt
     updatedAt
@@ -301,6 +357,28 @@ export const deleteUserGrade = /* GraphQL */ `mutation DeleteUserGrade(
     id
     userId
     gradeId
+    user {
+      id
+      email
+      name
+      role
+      photo
+      active
+      createdAt
+      updatedAt
+      __typename
+    }
+    grade {
+      id
+      name
+      description
+      minAge
+      maxAge
+      active
+      createdAt
+      updatedAt
+      __typename
+    }
     assignedAt
     createdAt
     updatedAt
@@ -396,6 +474,18 @@ export const createLesson = /* GraphQL */ `mutation CreateLesson(
     content
     lessonDate
     order
+    homeworkChecks {
+      nextToken
+      __typename
+    }
+    goldenVerses {
+      nextToken
+      __typename
+    }
+    files {
+      nextToken
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -418,6 +508,18 @@ export const updateLesson = /* GraphQL */ `mutation UpdateLesson(
     content
     lessonDate
     order
+    homeworkChecks {
+      nextToken
+      __typename
+    }
+    goldenVerses {
+      nextToken
+      __typename
+    }
+    files {
+      nextToken
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -440,6 +542,18 @@ export const deleteLesson = /* GraphQL */ `mutation DeleteLesson(
     content
     lessonDate
     order
+    homeworkChecks {
+      nextToken
+      __typename
+    }
+    goldenVerses {
+      nextToken
+      __typename
+    }
+    files {
+      nextToken
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -448,6 +562,117 @@ export const deleteLesson = /* GraphQL */ `mutation DeleteLesson(
 ` as GeneratedMutation<
   APITypes.DeleteLessonMutationVariables,
   APITypes.DeleteLessonMutation
+>;
+export const createLessonFile = /* GraphQL */ `mutation CreateLessonFile(
+  $input: CreateLessonFileInput!
+  $condition: ModelLessonFileConditionInput
+) {
+  createLessonFile(input: $input, condition: $condition) {
+    id
+    lessonId
+    fileName
+    fileType
+    mimeType
+    fileSize
+    s3Key
+    s3Url
+    order
+    description
+    lesson {
+      id
+      academicYearId
+      gradeId
+      teacherId
+      title
+      content
+      lessonDate
+      order
+      createdAt
+      updatedAt
+      __typename
+    }
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+` as GeneratedMutation<
+  APITypes.CreateLessonFileMutationVariables,
+  APITypes.CreateLessonFileMutation
+>;
+export const updateLessonFile = /* GraphQL */ `mutation UpdateLessonFile(
+  $input: UpdateLessonFileInput!
+  $condition: ModelLessonFileConditionInput
+) {
+  updateLessonFile(input: $input, condition: $condition) {
+    id
+    lessonId
+    fileName
+    fileType
+    mimeType
+    fileSize
+    s3Key
+    s3Url
+    order
+    description
+    lesson {
+      id
+      academicYearId
+      gradeId
+      teacherId
+      title
+      content
+      lessonDate
+      order
+      createdAt
+      updatedAt
+      __typename
+    }
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+` as GeneratedMutation<
+  APITypes.UpdateLessonFileMutationVariables,
+  APITypes.UpdateLessonFileMutation
+>;
+export const deleteLessonFile = /* GraphQL */ `mutation DeleteLessonFile(
+  $input: DeleteLessonFileInput!
+  $condition: ModelLessonFileConditionInput
+) {
+  deleteLessonFile(input: $input, condition: $condition) {
+    id
+    lessonId
+    fileName
+    fileType
+    mimeType
+    fileSize
+    s3Key
+    s3Url
+    order
+    description
+    lesson {
+      id
+      academicYearId
+      gradeId
+      teacherId
+      title
+      content
+      lessonDate
+      order
+      createdAt
+      updatedAt
+      __typename
+    }
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+` as GeneratedMutation<
+  APITypes.DeleteLessonFileMutationVariables,
+  APITypes.DeleteLessonFileMutation
 >;
 export const createBook = /* GraphQL */ `mutation CreateBook(
   $input: CreateBookInput!
@@ -533,6 +758,21 @@ export const createGoldenVerse = /* GraphQL */ `mutation CreateGoldenVerse(
     verseStart
     verseEnd
     text
+    book {
+      id
+      fullName
+      shortName
+      abbreviation
+      testament
+      order
+      createdAt
+      updatedAt
+      __typename
+    }
+    lessons {
+      nextToken
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -554,6 +794,21 @@ export const updateGoldenVerse = /* GraphQL */ `mutation UpdateGoldenVerse(
     verseStart
     verseEnd
     text
+    book {
+      id
+      fullName
+      shortName
+      abbreviation
+      testament
+      order
+      createdAt
+      updatedAt
+      __typename
+    }
+    lessons {
+      nextToken
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -575,6 +830,21 @@ export const deleteGoldenVerse = /* GraphQL */ `mutation DeleteGoldenVerse(
     verseStart
     verseEnd
     text
+    book {
+      id
+      fullName
+      shortName
+      abbreviation
+      testament
+      order
+      createdAt
+      updatedAt
+      __typename
+    }
+    lessons {
+      nextToken
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -593,6 +863,31 @@ export const createLessonGoldenVerse = /* GraphQL */ `mutation CreateLessonGolde
     lessonId
     goldenVerseId
     order
+    lesson {
+      id
+      academicYearId
+      gradeId
+      teacherId
+      title
+      content
+      lessonDate
+      order
+      createdAt
+      updatedAt
+      __typename
+    }
+    goldenVerse {
+      id
+      reference
+      bookId
+      chapter
+      verseStart
+      verseEnd
+      text
+      createdAt
+      updatedAt
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -611,6 +906,31 @@ export const updateLessonGoldenVerse = /* GraphQL */ `mutation UpdateLessonGolde
     lessonId
     goldenVerseId
     order
+    lesson {
+      id
+      academicYearId
+      gradeId
+      teacherId
+      title
+      content
+      lessonDate
+      order
+      createdAt
+      updatedAt
+      __typename
+    }
+    goldenVerse {
+      id
+      reference
+      bookId
+      chapter
+      verseStart
+      verseEnd
+      text
+      createdAt
+      updatedAt
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -629,6 +949,31 @@ export const deleteLessonGoldenVerse = /* GraphQL */ `mutation DeleteLessonGolde
     lessonId
     goldenVerseId
     order
+    lesson {
+      id
+      academicYearId
+      gradeId
+      teacherId
+      title
+      content
+      lessonDate
+      order
+      createdAt
+      updatedAt
+      __typename
+    }
+    goldenVerse {
+      id
+      reference
+      bookId
+      chapter
+      verseStart
+      verseEnd
+      text
+      createdAt
+      updatedAt
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -652,6 +997,14 @@ export const createPupil = /* GraphQL */ `mutation CreatePupil(
     photo
     active
     families {
+      nextToken
+      __typename
+    }
+    homeworkChecks {
+      nextToken
+      __typename
+    }
+    achievements {
       nextToken
       __typename
     }
@@ -681,6 +1034,14 @@ export const updatePupil = /* GraphQL */ `mutation UpdatePupil(
       nextToken
       __typename
     }
+    homeworkChecks {
+      nextToken
+      __typename
+    }
+    achievements {
+      nextToken
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -704,6 +1065,14 @@ export const deletePupil = /* GraphQL */ `mutation DeletePupil(
     photo
     active
     families {
+      nextToken
+      __typename
+    }
+    homeworkChecks {
+      nextToken
+      __typename
+    }
+    achievements {
       nextToken
       __typename
     }
@@ -732,6 +1101,32 @@ export const createHomeworkCheck = /* GraphQL */ `mutation CreateHomeworkCheck(
     notebookScore
     singing
     points
+    lesson {
+      id
+      academicYearId
+      gradeId
+      teacherId
+      title
+      content
+      lessonDate
+      order
+      createdAt
+      updatedAt
+      __typename
+    }
+    pupil {
+      id
+      gradeId
+      firstName
+      lastName
+      middleName
+      dateOfBirth
+      photo
+      active
+      createdAt
+      updatedAt
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -757,6 +1152,32 @@ export const updateHomeworkCheck = /* GraphQL */ `mutation UpdateHomeworkCheck(
     notebookScore
     singing
     points
+    lesson {
+      id
+      academicYearId
+      gradeId
+      teacherId
+      title
+      content
+      lessonDate
+      order
+      createdAt
+      updatedAt
+      __typename
+    }
+    pupil {
+      id
+      gradeId
+      firstName
+      lastName
+      middleName
+      dateOfBirth
+      photo
+      active
+      createdAt
+      updatedAt
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -782,6 +1203,32 @@ export const deleteHomeworkCheck = /* GraphQL */ `mutation DeleteHomeworkCheck(
     notebookScore
     singing
     points
+    lesson {
+      id
+      academicYearId
+      gradeId
+      teacherId
+      title
+      content
+      lessonDate
+      order
+      createdAt
+      updatedAt
+      __typename
+    }
+    pupil {
+      id
+      gradeId
+      firstName
+      lastName
+      middleName
+      dateOfBirth
+      photo
+      active
+      createdAt
+      updatedAt
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -801,6 +1248,10 @@ export const createAchievement = /* GraphQL */ `mutation CreateAchievement(
     description
     icon
     criteria
+    pupils {
+      nextToken
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -820,6 +1271,10 @@ export const updateAchievement = /* GraphQL */ `mutation UpdateAchievement(
     description
     icon
     criteria
+    pupils {
+      nextToken
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -839,6 +1294,10 @@ export const deleteAchievement = /* GraphQL */ `mutation DeleteAchievement(
     description
     icon
     criteria
+    pupils {
+      nextToken
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -857,6 +1316,29 @@ export const createPupilAchievement = /* GraphQL */ `mutation CreatePupilAchieve
     pupilId
     achievementId
     awardedAt
+    pupil {
+      id
+      gradeId
+      firstName
+      lastName
+      middleName
+      dateOfBirth
+      photo
+      active
+      createdAt
+      updatedAt
+      __typename
+    }
+    achievement {
+      id
+      name
+      description
+      icon
+      criteria
+      createdAt
+      updatedAt
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -875,6 +1357,29 @@ export const updatePupilAchievement = /* GraphQL */ `mutation UpdatePupilAchieve
     pupilId
     achievementId
     awardedAt
+    pupil {
+      id
+      gradeId
+      firstName
+      lastName
+      middleName
+      dateOfBirth
+      photo
+      active
+      createdAt
+      updatedAt
+      __typename
+    }
+    achievement {
+      id
+      name
+      description
+      icon
+      criteria
+      createdAt
+      updatedAt
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -893,6 +1398,29 @@ export const deletePupilAchievement = /* GraphQL */ `mutation DeletePupilAchieve
     pupilId
     achievementId
     awardedAt
+    pupil {
+      id
+      gradeId
+      firstName
+      lastName
+      middleName
+      dateOfBirth
+      photo
+      active
+      createdAt
+      updatedAt
+      __typename
+    }
+    achievement {
+      id
+      name
+      description
+      icon
+      criteria
+      createdAt
+      updatedAt
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -1015,6 +1543,37 @@ export const createFamilyMember = /* GraphQL */ `mutation CreateFamilyMember(
     id
     familyId
     pupilId
+    family {
+      id
+      name
+      phone
+      email
+      address
+      motherFirstName
+      motherLastName
+      motherMiddleName
+      motherPhone
+      fatherFirstName
+      fatherLastName
+      fatherMiddleName
+      fatherPhone
+      createdAt
+      updatedAt
+      __typename
+    }
+    pupil {
+      id
+      gradeId
+      firstName
+      lastName
+      middleName
+      dateOfBirth
+      photo
+      active
+      createdAt
+      updatedAt
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -1032,6 +1591,37 @@ export const updateFamilyMember = /* GraphQL */ `mutation UpdateFamilyMember(
     id
     familyId
     pupilId
+    family {
+      id
+      name
+      phone
+      email
+      address
+      motherFirstName
+      motherLastName
+      motherMiddleName
+      motherPhone
+      fatherFirstName
+      fatherLastName
+      fatherMiddleName
+      fatherPhone
+      createdAt
+      updatedAt
+      __typename
+    }
+    pupil {
+      id
+      gradeId
+      firstName
+      lastName
+      middleName
+      dateOfBirth
+      photo
+      active
+      createdAt
+      updatedAt
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -1049,6 +1639,37 @@ export const deleteFamilyMember = /* GraphQL */ `mutation DeleteFamilyMember(
     id
     familyId
     pupilId
+    family {
+      id
+      name
+      phone
+      email
+      address
+      motherFirstName
+      motherLastName
+      motherMiddleName
+      motherPhone
+      fatherFirstName
+      fatherLastName
+      fatherMiddleName
+      fatherPhone
+      createdAt
+      updatedAt
+      __typename
+    }
+    pupil {
+      id
+      gradeId
+      firstName
+      lastName
+      middleName
+      dateOfBirth
+      photo
+      active
+      createdAt
+      updatedAt
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -1067,6 +1688,35 @@ export const createUserFamily = /* GraphQL */ `mutation CreateUserFamily(
     userId
     familyId
     phone
+    user {
+      id
+      email
+      name
+      role
+      photo
+      active
+      createdAt
+      updatedAt
+      __typename
+    }
+    family {
+      id
+      name
+      phone
+      email
+      address
+      motherFirstName
+      motherLastName
+      motherMiddleName
+      motherPhone
+      fatherFirstName
+      fatherLastName
+      fatherMiddleName
+      fatherPhone
+      createdAt
+      updatedAt
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -1085,6 +1735,35 @@ export const updateUserFamily = /* GraphQL */ `mutation UpdateUserFamily(
     userId
     familyId
     phone
+    user {
+      id
+      email
+      name
+      role
+      photo
+      active
+      createdAt
+      updatedAt
+      __typename
+    }
+    family {
+      id
+      name
+      phone
+      email
+      address
+      motherFirstName
+      motherLastName
+      motherMiddleName
+      motherPhone
+      fatherFirstName
+      fatherLastName
+      fatherMiddleName
+      fatherPhone
+      createdAt
+      updatedAt
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -1103,6 +1782,35 @@ export const deleteUserFamily = /* GraphQL */ `mutation DeleteUserFamily(
     userId
     familyId
     phone
+    user {
+      id
+      email
+      name
+      role
+      photo
+      active
+      createdAt
+      updatedAt
+      __typename
+    }
+    family {
+      id
+      name
+      phone
+      email
+      address
+      motherFirstName
+      motherLastName
+      motherMiddleName
+      motherPhone
+      fatherFirstName
+      fatherLastName
+      fatherMiddleName
+      fatherPhone
+      createdAt
+      updatedAt
+      __typename
+    }
     createdAt
     updatedAt
     __typename

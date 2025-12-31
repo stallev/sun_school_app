@@ -86,6 +86,7 @@ Phase 14: Проверка домашних заданий (Homework Checks)
 **Документация:**
 - <CRITICAL>[MVP_SCOPE.md](../../../MVP_SCOPE.md) - раздел 2.6.1 Система баллов</CRITICAL>
 - <CRITICAL>[MVP_SCOPE.md](../../../MVP_SCOPE.md) - раздел 2.11.3 Настройка баллов</CRITICAL>
+- [GRAPHQL_SCHEMA_OPTIMIZATION_ROADMAP.md](../../GRAPHQL_SCHEMA_OPTIMIZATION_ROADMAP.md) - оптимизация запросов
 - **Код реализации:**
   - [src/lib/db/queries.ts](../../../../src/lib/db/queries.ts) - для получения данных проверок ДЗ и настроек группы
   - [src/lib/db/mutations.ts](../../../../src/lib/db/mutations.ts) - для обновления данных
@@ -324,6 +325,11 @@ Phase 14: Проверка домашних заданий (Homework Checks)
 - <CRITICAL>[app_functionality.md](../../../app_functionality.md) - раздел 4.9 Личные данные ученика</CRITICAL>
 - [DATA_MODELING.md](../../../database/DATA_MODELING.md)
 - Context7: AWS Amplify Gen 1 amplifyData документация
+
+**Важно:** После реализации оптимизации GraphQL схемы:
+- Используйте getPupilWithNestedData() для получения ученика с достижениями и проверками ДЗ
+- Pupil содержит вложенные данные: homeworkChecks, achievements, families
+- Не требуются отдельные запросы для получения связанных данных
 
 **Критерии приемки:**
 - История выдачи кирпичиков сохраняется корректно

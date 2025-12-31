@@ -673,3 +673,429 @@ export async function getGradeWithRelations(gradeId: string): Promise<{
   };
 }
 
+// ============================================
+// Nested Queries (single query with nested fields)
+// ============================================
+
+import type {
+  GradeNestedData,
+  LessonNestedData,
+  PupilNestedData,
+} from '../../types/nested-queries';
+
+/**
+ * Get grade with nested data using single GraphQL query
+ * Includes: pupils, academicYears (with lessons, homeworkChecks, goldenVerses, files), events, settings, teachers
+ */
+export async function getGradeWithNestedData(
+  gradeId: string
+): Promise<GradeNestedData | null> {
+  const { executeGraphQL } = await import('./amplify');
+  
+  // Custom GraphQL query with nested fields
+  const query = `query GetGradeWithNestedData($id: ID!) {
+    getGrade(id: $id) {
+      id
+      name
+      description
+      minAge
+      maxAge
+      active
+      createdAt
+      updatedAt
+      pupils {
+        items {
+          id
+          gradeId
+          firstName
+          lastName
+          middleName
+          dateOfBirth
+          photo
+          active
+          createdAt
+          updatedAt
+        }
+        nextToken
+      }
+      academicYears {
+        items {
+          id
+          gradeId
+          name
+          startDate
+          endDate
+          status
+          createdAt
+          updatedAt
+          lessons {
+            items {
+              id
+              academicYearId
+              gradeId
+              teacherId
+              title
+              content
+              lessonDate
+              order
+              createdAt
+              updatedAt
+              homeworkChecks {
+                items {
+                  id
+                  lessonId
+                  pupilId
+                  gradeId
+                  goldenVerse1Score
+                  goldenVerse2Score
+                  goldenVerse3Score
+                  testScore
+                  notebookScore
+                  singing
+                  points
+                  createdAt
+                  updatedAt
+                  pupil {
+                    id
+                    firstName
+                    lastName
+                    middleName
+                    dateOfBirth
+                    photo
+                    active
+                  }
+                }
+                nextToken
+              }
+              goldenVerses {
+                items {
+                  id
+                  lessonId
+                  goldenVerseId
+                  order
+                  createdAt
+                  goldenVerse {
+                    id
+                    reference
+                    bookId
+                    chapter
+                    verseStart
+                    verseEnd
+                    text
+                    createdAt
+                    updatedAt
+                    book {
+                      id
+                      fullName
+                      shortName
+                      abbreviation
+                      testament
+                      order
+                    }
+                  }
+                }
+                nextToken
+              }
+              files {
+                items {
+                  id
+                  lessonId
+                  fileName
+                  fileType
+                  mimeType
+                  fileSize
+                  s3Key
+                  s3Url
+                  order
+                  description
+                  createdAt
+                  updatedAt
+                }
+                nextToken
+              }
+            }
+            nextToken
+          }
+        }
+        nextToken
+      }
+      events {
+        items {
+          id
+          gradeId
+          eventType
+          title
+          description
+          eventDate
+          createdAt
+          updatedAt
+        }
+        nextToken
+      }
+      settings {
+        id
+        gradeId
+        enableGoldenVerse
+        enableTest
+        enableNotebook
+        enableSinging
+        pointsGoldenVerse
+        pointsTest
+        pointsNotebook
+        pointsSinging
+        labelGoldenVerse
+        labelTest
+        labelNotebook
+        labelSinging
+        createdAt
+        updatedAt
+      }
+      teachers {
+        items {
+          id
+          userId
+          gradeId
+          assignedAt
+          createdAt
+          updatedAt
+          user {
+            id
+            email
+            name
+            role
+            photo
+            active
+            createdAt
+            updatedAt
+          }
+        }
+        nextToken
+      }
+    }
+  }`;
+
+  const result = await executeGraphQL<{
+    getGrade?: GradeNestedData | null;
+  }>(query, { id: gradeId });
+
+  return result.data?.getGrade || null;
+}
+
+/**
+ * Get lesson with nested data using single GraphQL query
+ * Includes: homeworkChecks (with pupil), goldenVerses (with goldenVerse and book), files
+ */
+export async function getLessonWithNestedData(
+  lessonId: string
+): Promise<LessonNestedData | null> {
+  const { executeGraphQL } = await import('./amplify');
+  
+  // Custom GraphQL query with nested fields
+  const query = `query GetLessonWithNestedData($id: ID!) {
+    getLesson(id: $id) {
+      id
+      academicYearId
+      gradeId
+      teacherId
+      title
+      content
+      lessonDate
+      order
+      createdAt
+      updatedAt
+      homeworkChecks {
+        items {
+          id
+          lessonId
+          pupilId
+          gradeId
+          goldenVerse1Score
+          goldenVerse2Score
+          goldenVerse3Score
+          testScore
+          notebookScore
+          singing
+          points
+          createdAt
+          updatedAt
+          pupil {
+            id
+            gradeId
+            firstName
+            lastName
+            middleName
+            dateOfBirth
+            photo
+            active
+            createdAt
+            updatedAt
+          }
+        }
+        nextToken
+      }
+      goldenVerses {
+        items {
+          id
+          lessonId
+          goldenVerseId
+          order
+          createdAt
+          goldenVerse {
+            id
+            reference
+            bookId
+            chapter
+            verseStart
+            verseEnd
+            text
+            createdAt
+            updatedAt
+            book {
+              id
+              fullName
+              shortName
+              abbreviation
+              testament
+              order
+              createdAt
+              updatedAt
+            }
+          }
+        }
+        nextToken
+      }
+      files {
+        items {
+          id
+          lessonId
+          fileName
+          fileType
+          mimeType
+          fileSize
+          s3Key
+          s3Url
+          order
+          description
+          createdAt
+          updatedAt
+        }
+        nextToken
+      }
+    }
+  }`;
+
+  const result = await executeGraphQL<{
+    getLesson?: LessonNestedData | null;
+  }>(query, { id: lessonId });
+
+  return result.data?.getLesson || null;
+}
+
+/**
+ * Get pupil with nested data using single GraphQL query
+ * Includes: homeworkChecks (with lesson), achievements (with achievement), families (with family)
+ */
+export async function getPupilWithNestedData(
+  pupilId: string
+): Promise<PupilNestedData | null> {
+  const { executeGraphQL } = await import('./amplify');
+  
+  // Custom GraphQL query with nested fields
+  const query = `query GetPupilWithNestedData($id: ID!) {
+    getPupil(id: $id) {
+      id
+      gradeId
+      firstName
+      lastName
+      middleName
+      dateOfBirth
+      photo
+      active
+      createdAt
+      updatedAt
+      homeworkChecks {
+        items {
+          id
+          lessonId
+          pupilId
+          gradeId
+          goldenVerse1Score
+          goldenVerse2Score
+          goldenVerse3Score
+          testScore
+          notebookScore
+          singing
+          points
+          createdAt
+          updatedAt
+          lesson {
+            id
+            academicYearId
+            gradeId
+            teacherId
+            title
+            content
+            lessonDate
+            order
+            createdAt
+            updatedAt
+          }
+        }
+        nextToken
+      }
+      achievements {
+        items {
+          id
+          pupilId
+          achievementId
+          awardedAt
+          createdAt
+          achievement {
+            id
+            name
+            description
+            icon
+            criteria
+            createdAt
+            updatedAt
+          }
+        }
+        nextToken
+      }
+      families {
+        items {
+          id
+          familyId
+          pupilId
+          createdAt
+          updatedAt
+          family {
+            id
+            name
+            phone
+            email
+            address
+            motherFirstName
+            motherLastName
+            motherMiddleName
+            motherPhone
+            fatherFirstName
+            fatherLastName
+            fatherMiddleName
+            fatherPhone
+            createdAt
+            updatedAt
+          }
+        }
+        nextToken
+      }
+    }
+  }`;
+
+  const result = await executeGraphQL<{
+    getPupil?: PupilNestedData | null;
+  }>(query, { id: pupilId });
+
+  return result.data?.getPupil || null;
+}
+

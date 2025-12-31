@@ -86,6 +86,7 @@ Phase 11: Управление группами (Grades)
 - ⚠️ **Важно:** Для получения связанных данных (проверки ДЗ, достижения, группа) используй queries через индексы, а не прямые связи `@belongsTo` и `@hasMany`. См. [SCHEMA_DIFFERENCES.md](../../../database/SCHEMA_DIFFERENCES.md)
 - <CRITICAL>[VALIDATION.md](../../../api/VALIDATION.md) - раздел Pupil Schemas</CRITICAL>
 - <CRITICAL>[MVP_SCOPE.md](../../../MVP_SCOPE.md) - раздел 2.10.2 Управление учениками</CRITICAL>
+- [GRAPHQL_SCHEMA_OPTIMIZATION_ROADMAP.md](../../GRAPHQL_SCHEMA_OPTIMIZATION_ROADMAP.md) - оптимизация запросов
 - Context7: Next.js 15.5.9 Server Actions документация
 - **Код реализации:**
   - [src/lib/validation/pupils.ts](../../../../src/lib/validation/pupils.ts) - схемы валидации
@@ -98,6 +99,12 @@ Phase 11: Управление группами (Grades)
   - [src/graphql/generated/types.ts](../../../../src/graphql/generated/types.ts) - TypeScript типы из GraphQL схемы
   - [src/lib/validation/common.ts](../../../../src/lib/validation/common.ts) - общие схемы валидации
   - [src/lib/validation/utils.ts](../../../../src/lib/validation/utils.ts) - утилиты для работы с валидацией
+
+**Важно:** После реализации оптимизации GraphQL схемы:
+- Используйте getPupilWithNestedData() для получения ученика со всеми связанными данными
+- Pupil содержит вложенные данные: homeworkChecks (с lesson), achievements (с achievement), families (с family)
+- HomeworkCheck содержит вложенные данные pupil благодаря @belongsTo
+- Не требуются отдельные запросы для получения связанных данных
 
 **Критерии приемки:**
 - Все Server Actions созданы

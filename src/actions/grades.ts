@@ -20,6 +20,7 @@ import {
   getGrade,
   listGrades,
   getGradeWithRelations,
+  getGradeWithNestedData,
   getLessonsByAcademicYear,
   getHomeworkChecksByLesson,
   getLessonGoldenVersesByLesson,
@@ -36,6 +37,7 @@ import {
 } from '../lib/utils/grades';
 import { revalidatePath } from 'next/cache';
 import * as APITypes from '../API';
+import type { GradeNestedData, UserGradeNestedData } from '../types/nested-queries';
 
 /**
  * Response type for Server Actions
@@ -755,18 +757,29 @@ export async function getGradeWithFullDataAction(
       }
     }
 
-    // 5. Get grade with relations
-    const gradeData = await getGradeWithRelations(id);
+    // 5. Get grade with nested data using single GraphQL query
+    const gradeNestedData = await getGradeWithNestedData(id);
 
-    if (!gradeData.grade) {
+    if (!gradeNestedData) {
       return {
         success: false,
         error: 'Grade not found',
       };
     }
 
-    // 6. Serialize grade
-    const serializedGrade = serializeGrade(gradeData.grade);
+    // 6. Serialize grade (extract base Grade fields from GradeNestedData)
+    const baseGrade: APITypes.Grade = {
+      id: gradeNestedData.id,
+      name: gradeNestedData.name,
+      description: gradeNestedData.description ?? null,
+      minAge: gradeNestedData.minAge ?? null,
+      maxAge: gradeNestedData.maxAge ?? null,
+      active: gradeNestedData.active,
+      createdAt: gradeNestedData.createdAt,
+      updatedAt: gradeNestedData.updatedAt,
+      __typename: 'Grade',
+    };
+    const serializedGrade = serializeGrade(baseGrade);
     if (!serializedGrade) {
       return {
         success: false,
@@ -774,52 +787,120 @@ export async function getGradeWithFullDataAction(
       };
     }
 
-    // 7. Get lessons for each academic year and calculate statistics
+    // 7. Extract and serialize pupils
+    const serializedPupils = (gradeNestedData.pupils?.items || [])
+      .filter((pupil): pupil is APITypes.Pupil => pupil !== null)
+      .map((pupil) => ({
+        id: pupil.id,
+        gradeId: pupil.gradeId,
+        firstName: pupil.firstName,
+        lastName: pupil.lastName,
+        middleName: pupil.middleName ?? null,
+        dateOfBirth: pupil.dateOfBirth,
+        photo: pupil.photo ?? null,
+        active: pupil.active,
+        createdAt: pupil.createdAt,
+        updatedAt: pupil.updatedAt,
+      }));
+
+    // 8. Extract and serialize teachers from UserGrade nested data
+    const serializedTeachers = (gradeNestedData.teachers?.items || [])
+      .filter((userGrade): userGrade is UserGradeNestedData => 
+        userGrade !== null && userGrade.user !== null && userGrade.user !== undefined
+      )
+      .map((userGrade) => {
+        const user = userGrade.user!;
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          role: user.role,
+          photo: user.photo ?? null,
+          active: user.active,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
+        };
+      });
+
+    // 9. Get total pupils count for statistics
+    const totalPupils = serializedPupils.length;
+
+    // 10. Process academic years with lessons
     const academicYearsWithLessons: AcademicYearWithLessons[] = [];
 
-    // Sort academic years by start date (newest first)
-    const sortedAcademicYears = sortAcademicYearsByStartDate(gradeData.academicYears);
+    // Get academic years from nested data
+    const academicYearsItems = (gradeNestedData.academicYears?.items || [])
+      .filter((ay): ay is NonNullable<typeof ay> => ay !== null);
 
-    // Get total pupils count for statistics
-    const totalPupils = gradeData.pupils.length;
+    // Convert to APITypes.AcademicYear for sorting
+    const academicYearsForSorting: APITypes.AcademicYear[] = academicYearsItems.map((ay) => ({
+      id: ay.id,
+      gradeId: ay.gradeId,
+      name: ay.name,
+      startDate: ay.startDate,
+      endDate: ay.endDate,
+      status: ay.status,
+      createdAt: ay.createdAt,
+      updatedAt: ay.updatedAt,
+      __typename: 'AcademicYear',
+    }));
+
+    // Sort academic years by start date (newest first)
+    const sortedAcademicYears = sortAcademicYearsByStartDate(academicYearsForSorting);
 
     // Process each academic year
-    for (const academicYear of sortedAcademicYears) {
-      // Get lessons for this academic year
-      const lessonsResult = await getLessonsByAcademicYear(academicYear.id);
-      const lessons = (lessonsResult?.items as APITypes.Lesson[]) || [];
+    for (const sortedYear of sortedAcademicYears) {
+      // Find corresponding nested data
+      const academicYear = academicYearsItems.find((ay) => ay.id === sortedYear.id);
+      if (!academicYear) continue;
 
-      // Process each lesson sequentially to avoid AppSync rate limits and auth context loss
-      // TODO: Replace with controlled parallelism (p-limit) in Phase 2
+      // Get lessons from nested data
+      const lessons = (academicYear.lessons?.items || [])
+        .filter((lesson): lesson is NonNullable<typeof lesson> => lesson !== null);
+
       const lessonsWithStats: LessonWithStats[] = [];
+
+      // Process each lesson
       for (const lesson of lessons) {
-        // Get homework checks for this lesson
-        const homeworkChecksResult = await getHomeworkChecksByLesson(lesson.id);
-        const homeworkChecks =
-          (homeworkChecksResult?.items as APITypes.HomeworkCheck[]) || [];
+        // Extract homework checks from nested data
+        const homeworkChecksItems = (lesson.homeworkChecks?.items || [])
+          .filter((hc): hc is NonNullable<typeof hc> => hc !== null);
+        
+        const homeworkChecks: APITypes.HomeworkCheck[] = homeworkChecksItems.map((hc) => ({
+          id: hc.id,
+          lessonId: hc.lessonId,
+          pupilId: hc.pupilId,
+          gradeId: hc.gradeId,
+          goldenVerse1Score: hc.goldenVerse1Score ?? null,
+          goldenVerse2Score: hc.goldenVerse2Score ?? null,
+          goldenVerse3Score: hc.goldenVerse3Score ?? null,
+          testScore: hc.testScore ?? null,
+          notebookScore: hc.notebookScore ?? null,
+          singing: hc.singing ?? null,
+          points: hc.points ?? null,
+          createdAt: hc.createdAt,
+          updatedAt: hc.updatedAt,
+          __typename: 'HomeworkCheck',
+          pupil: hc.pupil || null, // pupil is already included via @belongsTo
+        }));
 
         // Calculate statistics
         const homeworkStats = getHomeworkCheckStats(homeworkChecks, totalPupils);
 
-        // Get golden verses for this lesson
-        const goldenVersesResult = await getLessonGoldenVersesByLesson(lesson.id);
-        const lessonGoldenVerses =
-          (goldenVersesResult?.items as APITypes.LessonGoldenVerse[]) || [];
+        // Extract golden verses from nested data
+        const lessonGoldenVersesItems = (lesson.goldenVerses?.items || [])
+          .filter((lgv): lgv is NonNullable<typeof lgv> => lgv !== null);
 
-        // Get golden verse references by fetching GoldenVerse objects sequentially
+        // Transform golden verses to required format
         const goldenVerses: Array<{
           id: string;
           reference: string;
           order: number;
-        }> = [];
-        for (const lgv of lessonGoldenVerses) {
-          const goldenVerse = await getGoldenVerse(lgv.goldenVerseId);
-          goldenVerses.push({
-            id: lgv.goldenVerseId,
-            reference: goldenVerse?.reference || `Стих #${lgv.order || 0}`,
-            order: lgv.order || 0,
-          });
-        }
+        }> = lessonGoldenVersesItems.map((lgv) => ({
+          id: lgv.goldenVerseId,
+          reference: lgv.goldenVerse?.reference || `Стих #${lgv.order || 0}`,
+          order: lgv.order || 0,
+        }));
         goldenVerses.sort((a, b) => a.order - b.order);
 
         // Serialize lesson for Server Component
@@ -827,7 +908,7 @@ export async function getGradeWithFullDataAction(
           id: lesson.id,
           academicYearId: lesson.academicYearId,
           gradeId: lesson.gradeId,
-          teacherId: lesson.teacherId,
+          teacherId: lesson.teacherId || '',
           title: lesson.title,
           content: lesson.content ?? null,
           lessonDate: lesson.lessonDate,
@@ -845,14 +926,14 @@ export async function getGradeWithFullDataAction(
 
       // Serialize academic year for Server Component
       const serializedAcademicYear = {
-        id: academicYear.id,
-        gradeId: academicYear.gradeId,
-        name: academicYear.name,
-        startDate: academicYear.startDate,
-        endDate: academicYear.endDate,
-        status: academicYear.status,
-        createdAt: academicYear.createdAt,
-        updatedAt: academicYear.updatedAt,
+        id: sortedYear.id,
+        gradeId: sortedYear.gradeId,
+        name: sortedYear.name,
+        startDate: sortedYear.startDate,
+        endDate: sortedYear.endDate,
+        status: sortedYear.status,
+        createdAt: sortedYear.createdAt,
+        updatedAt: sortedYear.updatedAt,
       };
 
       academicYearsWithLessons.push({
@@ -861,32 +942,7 @@ export async function getGradeWithFullDataAction(
       });
     }
 
-    // 8. Serialize pupils and teachers for Server Component
-    const serializedPupils = gradeData.pupils.map((pupil) => ({
-      id: pupil.id,
-      gradeId: pupil.gradeId,
-      firstName: pupil.firstName,
-      lastName: pupil.lastName,
-      middleName: pupil.middleName ?? null,
-      dateOfBirth: pupil.dateOfBirth,
-      photo: pupil.photo ?? null,
-      active: pupil.active,
-      createdAt: pupil.createdAt,
-      updatedAt: pupil.updatedAt,
-    }));
-
-    const serializedTeachers = gradeData.teachers.map((teacher) => ({
-      id: teacher.id,
-      email: teacher.email,
-      name: teacher.name,
-      role: teacher.role,
-      photo: teacher.photo ?? null,
-      active: teacher.active,
-      createdAt: teacher.createdAt,
-      updatedAt: teacher.updatedAt,
-    }));
-
-    // 9. Return full data
+    // 11. Return full data
     return {
       success: true,
       data: {
@@ -894,7 +950,7 @@ export async function getGradeWithFullDataAction(
         pupils: serializedPupils,
         teachers: serializedTeachers,
         academicYears: academicYearsWithLessons,
-        settings: gradeData.settings,
+        settings: gradeNestedData.settings ?? null,
       },
     };
   } catch (error) {

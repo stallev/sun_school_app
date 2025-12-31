@@ -86,6 +86,7 @@ Phase 13: Управление уроками (Lessons)
 - <CRITICAL>[SERVER_ACTIONS.md](../../../api/SERVER_ACTIONS.md) - раздел Golden Verses и раздел 6 "Working with Related Data via Indexes"</CRITICAL>
 - ⚠️ **Важно:** Для получения связанных данных (книга, уроки) используй queries через индексы, а не прямые связи `@belongsTo` и `@hasMany`. См. [SCHEMA_DIFFERENCES.md](../../../database/SCHEMA_DIFFERENCES.md)
 - <CRITICAL>[MVP_SCOPE.md](../../../MVP_SCOPE.md) - раздел 2.9 Библиотека золотых стихов</CRITICAL>
+- [GRAPHQL_SCHEMA_OPTIMIZATION_ROADMAP.md](../../GRAPHQL_SCHEMA_OPTIMIZATION_ROADMAP.md) - оптимизация запросов
 - Context7: Next.js 15.5.9 Server Actions документация
 - **Код реализации:**
   - [src/lib/validation/goldenVerses.ts](../../../../src/lib/validation/goldenVerses.ts) - схемы валидации
@@ -398,6 +399,13 @@ Phase 13: Управление уроками (Lessons)
 
 **Документация:**
 - <CRITICAL>[MVP_SCOPE.md](../../../MVP_SCOPE.md) - раздел 2.3.1 Выбор золотых стихов</CRITICAL>
+
+**Важно:** После реализации оптимизации GraphQL схемы:
+- Используйте getLessonWithNestedData() для получения урока с золотыми стихами
+- Lesson содержит вложенные данные goldenVerses с данными goldenVerse и book
+- LessonGoldenVerse содержит вложенные данные lesson и goldenVerse благодаря @belongsTo
+- GoldenVerse содержит вложенные данные book благодаря @belongsTo
+- Не требуются отдельные запросы для получения связанных данных
 
 **Критерии приемки:**
 - Интеграция работает корректно

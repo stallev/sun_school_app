@@ -91,6 +91,7 @@ Phase 12: Управление учебными годами (Academic Years)
 - <CRITICAL>[SERVER_ACTIONS.md](../../../api/SERVER_ACTIONS.md) - раздел Academic Process и раздел 6 "Working with Related Data via Indexes"</CRITICAL>
 - ⚠️ **Важно:** Для получения связанных данных используй queries через индексы, а не прямые связи `@belongsTo` и `@hasMany`. См. [SCHEMA_DIFFERENCES.md](../../../database/SCHEMA_DIFFERENCES.md)
 - <CRITICAL>[MVP_SCOPE.md](../../../MVP_SCOPE.md) - раздел 2.12 Управление учебным процессом</CRITICAL>
+- [GRAPHQL_SCHEMA_OPTIMIZATION_ROADMAP.md](../../GRAPHQL_SCHEMA_OPTIMIZATION_ROADMAP.md) - оптимизация запросов
 - Phase 12: Управление учебными годами (Academic Years)
 - Context7: Next.js Server Actions документация
 - **Код реализации:**
@@ -101,6 +102,12 @@ Phase 12: Управление учебными годами (Academic Years)
   - [src/lib/validation/academicYears.ts](../../../../src/lib/validation/academicYears.ts) - схемы валидации для учебных годов
   - [src/lib/validation/common.ts](../../../../src/lib/validation/common.ts) - общие схемы валидации
   - [src/lib/validation/utils.ts](../../../../src/lib/validation/utils.ts) - утилиты для работы с валидацией
+
+**Важно:** После реализации оптимизации GraphQL схемы:
+- Используйте getGradeWithNestedData() для получения всех данных учебного процесса
+- Grade содержит вложенные данные: academicYears.lessons с homeworkChecks, goldenVerses, files
+- Все данные для отображения учебного процесса доступны в одном запросе
+- Не требуются отдельные запросы для получения связанных данных
 
 **Критерии приемки:**
 - Все Server Actions созданы

@@ -86,6 +86,7 @@ Phase 16: Управление учениками (Pupils)
 - ⚠️ **Важно:** Для получения связанных данных (члены семьи, ученики) используй queries через индексы, а не прямые связи `@belongsTo` и `@hasMany`. См. [SCHEMA_DIFFERENCES.md](../../../database/SCHEMA_DIFFERENCES.md)
 - <CRITICAL>[VALIDATION.md](../../../api/VALIDATION.md) - раздел Family Schemas</CRITICAL>
 - <CRITICAL>[MVP_SCOPE.md](../../../MVP_SCOPE.md) - раздел 2.10.3 Управление семьями</CRITICAL>
+- [GRAPHQL_SCHEMA_OPTIMIZATION_ROADMAP.md](../../GRAPHQL_SCHEMA_OPTIMIZATION_ROADMAP.md) - оптимизация запросов
 - Context7: Next.js 15.5.9 Server Actions документация
 - **Код реализации:**
   - [src/lib/validation/families.ts](../../../../src/lib/validation/families.ts) - схемы валидации
@@ -98,6 +99,12 @@ Phase 16: Управление учениками (Pupils)
   - [src/graphql/generated/types.ts](../../../../src/graphql/generated/types.ts) - TypeScript типы из GraphQL схемы
   - [src/lib/validation/common.ts](../../../../src/lib/validation/common.ts) - общие схемы валидации
   - [src/lib/validation/utils.ts](../../../../src/lib/validation/utils.ts) - утилиты для работы с валидацией
+
+**Важно:** После реализации оптимизации GraphQL схемы:
+- Используйте вложенные запросы для получения FamilyMember с данными family и pupil
+- FamilyMember содержит вложенные данные family и pupil благодаря @belongsTo
+- UserFamily содержит вложенные данные user и family благодаря @belongsTo
+- Не требуются отдельные запросы для получения связанных данных
 
 **Критерии приемки:**
 - Все Server Actions созданы

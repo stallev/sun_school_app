@@ -87,6 +87,7 @@ Phase 13: Управление уроками (Lessons)
 - ⚠️ **Важно:** Для получения связанных данных (урок, ученик) используй queries через индексы, а не прямые связи `@belongsTo` и `@hasMany`. См. [SCHEMA_DIFFERENCES.md](../../../database/SCHEMA_DIFFERENCES.md)
 - <CRITICAL>[VALIDATION.md](../../../api/VALIDATION.md) - раздел Homework Schemas</CRITICAL>
 - <CRITICAL>[MVP_SCOPE.md](../../../MVP_SCOPE.md) - раздел 2.4 Проверка домашних заданий</CRITICAL>
+- [GRAPHQL_SCHEMA_OPTIMIZATION_ROADMAP.md](../../GRAPHQL_SCHEMA_OPTIMIZATION_ROADMAP.md) - оптимизация запросов
 - Context7: Next.js 15.5.9 Server Actions документация
 - **Код реализации:**
   - [src/lib/validation/homework.ts](../../../../src/lib/validation/homework.ts) - схемы валидации
@@ -99,6 +100,11 @@ Phase 13: Управление уроками (Lessons)
   - [src/graphql/generated/types.ts](../../../../src/graphql/generated/types.ts) - TypeScript типы из GraphQL схемы
   - [src/lib/validation/common.ts](../../../../src/lib/validation/common.ts) - общие схемы валидации
   - [src/lib/validation/utils.ts](../../../../src/lib/validation/utils.ts) - утилиты для работы с валидацией
+
+**Важно:** После реализации оптимизации GraphQL схемы:
+- Используйте getLessonWithNestedData() для получения урока с данными учеников
+- HomeworkCheck содержит вложенные данные pupil благодаря @belongsTo
+- Не требуются отдельные запросы для получения данных учеников
 
 **Критерии приемки:**
 - Все Server Actions созданы
