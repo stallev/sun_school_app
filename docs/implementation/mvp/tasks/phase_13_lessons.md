@@ -348,6 +348,7 @@ Phase 12: Управление учебными годами (Academic Years)
 - <CRITICAL>[WIREFRAMES.md](../../../ui_ux/WIREFRAMES.md) - раздел Lesson Detail</CRITICAL>
 - [USER_FLOW.md](../../../user_flows/USER_FLOW.md) - раздел View Lesson
 - [TEACHER_FLOWS.md](../../../user_flows/TEACHER_FLOWS.md) - раздел 2.3 Подготовка к уроку
+- [Loading Patterns Guidelines](../../../guidelines/nextjs/ai_loading_patterns.md) - guidelines for loading states and skeleton components
 - Context7: BlockNote рендеринг документация
 - Context7: Next.js 15.5.9 динамические маршруты документация
 - **Код реализации:**

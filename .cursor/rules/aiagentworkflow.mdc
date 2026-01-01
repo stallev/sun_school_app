@@ -69,6 +69,7 @@ The CursorAI agent must follow the steps below for each development task to ensu
     - [`docs/implementation/mvp/implementation_phases_list.md`](docs/implementation/mvp/implementation_phases_list.md) - MVP implementation plan.
     - [`docs/implementation/mvp/tasks/`](docs/implementation/mvp/tasks/) - project task list by phases.
     - [`docs/guidelines/react/`](docs/guidelines/react/) - guidelines for React components, hooks, utilities.
+    - [`docs/guidelines/nextjs/ai_loading_patterns.md`](docs/guidelines/nextjs/ai_loading_patterns.md) - guidelines for loading states and skeleton components in Next.js App Router.
     - [`amplify/data/schema.graphql`](amplify/data/schema.graphql) - GraphQL database schema.
     - [`docs/database/GRAPHQL_SCHEMA.md`](docs/database/GRAPHQL_SCHEMA.md) - complete GraphQL API documentation.
   - Determine task type:

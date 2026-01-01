@@ -88,6 +88,7 @@ Phase 15: Система баллов и кирпичиков, Phase 16: Упр�
 - <CRITICAL>[MVP_SCOPE.md](../../../MVP_SCOPE.md) - раздел 2.5 Личные карточки учеников</CRITICAL>
 - <CRITICAL>[TEACHER_FLOWS.md](../../../user_flows/TEACHER_FLOWS.md) - раздел 5.1 Просмотр личной карточки ученика</CRITICAL>
 - [GRAPHQL_SCHEMA_OPTIMIZATION_ROADMAP.md](../../GRAPHQL_SCHEMA_OPTIMIZATION_ROADMAP.md) - оптимизация запросов
+- [Loading Patterns Guidelines](../../../guidelines/nextjs/ai_loading_patterns.md) - guidelines for loading states and skeleton components
 - Context7: Next.js 15.5.9 App Router документация
 - Context7: Shadcn UI компоненты документация
 - **Код реализации:**

@@ -41,6 +41,24 @@ Guidelines for optimizing bundle size and analyzing JavaScript bundles:
 - Bundle size analysis
 - Dependency management
 
+### 3. [Loading Patterns Guidelines](./ai_loading_patterns.md)
+**Next.js Loading Patterns and Skeleton Components**
+
+Comprehensive guidelines for implementing loading states and skeleton components:
+- Instant page rendering requirements
+- Using loading.tsx files in App Router
+- Suspense boundaries for granular control
+- Creating skeleton components that match content structure
+- Best practices for perceived performance
+- Integration with Server Components
+
+**Key Topics:**
+- loading.tsx file patterns
+- Skeleton component design
+- Responsive skeleton components
+- Accessibility for loading states
+- Examples for grades pages
+
 ## 🎯 Key Principles
 
 All Next.js guidelines follow these core principles:
@@ -61,7 +79,8 @@ When working on Next.js tasks, refer to these guidelines:
 
 1. **For page optimization**: Use [ISR Optimization Guidelines](./ai_isr_optimization_guidelines.md)
 2. **For bundle optimization**: Use [Bundle Optimization Guidelines](./ai_bundle_analyze_steps.md)
-3. **For component creation**: Refer to [React Guidelines](../react/README.md)
+3. **For loading states**: Use [Loading Patterns Guidelines](./ai_loading_patterns.md)
+4. **For component creation**: Refer to [React Guidelines](../react/README.md)
 
 ### For Developers
 
@@ -74,7 +93,8 @@ When working on Next.js tasks, refer to these guidelines:
 
 1. **Start with**: [ISR Optimization Guidelines](./ai_isr_optimization_guidelines.md) - for understanding page performance optimization
 2. **Then read**: [Bundle Optimization Guidelines](./ai_bundle_analyze_steps.md) - for understanding bundle size optimization
-3. **Also refer to**: [React Guidelines](../react/README.md) - for component development patterns
+3. **Then read**: [Loading Patterns Guidelines](./ai_loading_patterns.md) - for implementing instant page rendering with skeleton components
+4. **Also refer to**: [React Guidelines](../react/README.md) - for component development patterns
 
 ## 🔗 Related Documentation
 

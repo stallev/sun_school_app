@@ -1,12 +1,20 @@
 /**
  * Grades List Component
- * Server Component for displaying a list of grades
+ * Server Component for displaying a list of grades as a table
  * Mobile-first responsive design
  */
 
 import Link from 'next/link';
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { RoutePath } from '@/lib/routes/RoutePath';
 import type * as APITypes from '@/API';
 
@@ -45,46 +53,53 @@ export const GradesList = ({ grades }: GradesListProps) => {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 p-4 md:grid-cols-2 md:gap-6 md:p-6 lg:grid-cols-3 lg:gap-8 lg:p-8">
-      {grades.map((grade) => (
-        <Link
-          key={grade.id}
-          href={RoutePath.grades.byId(grade.id)}
-          className="block"
-        >
-          <Card className="flex flex-col transition-all hover:shadow-lg cursor-pointer h-full">
-            <CardHeader>
-              <div className="flex items-start justify-between gap-2">
-                <CardTitle className="text-base md:text-lg lg:text-xl">
-                  {grade.name}
-                </CardTitle>
-                <Badge variant={grade.active ? 'default' : 'secondary'}>
-                  {grade.active ? 'Активна' : 'Неактивна'}
-                </Badge>
-              </div>
-              {grade.description && (
-                <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
-                  {truncateText(grade.description, 100)}
-                </p>
-              )}
-            </CardHeader>
-            <CardContent className="flex-1">
-              {(grade.minAge !== null && grade.minAge !== undefined) ||
-              (grade.maxAge !== null && grade.maxAge !== undefined) ? (
-                <div className="text-sm text-muted-foreground">
-                  Возраст: {formatAgeRange(grade.minAge, grade.maxAge)}
-                </div>
-              ) : null}
-            </CardContent>
-            <CardFooter>
-              <div className="w-full min-h-[44px] flex items-center justify-center rounded-md border bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground">
-                Открыть
-              </div>
-            </CardFooter>
-          </Card>
-        </Link>
-      ))}
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg font-semibold md:text-xl">Список групп</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="min-w-[200px]">Название</TableHead>
+                <TableHead className="min-w-[250px]">Описание</TableHead>
+                <TableHead className="min-w-[120px]">Возраст</TableHead>
+                <TableHead className="min-w-[100px] text-center">Статус</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {grades.map((grade) => (
+                <TableRow key={grade.id}>
+                  <TableCell className="font-medium">
+                    <Link
+                      href={RoutePath.grades.byId(grade.id)}
+                      className="text-primary hover:underline transition-colors"
+                    >
+                      {grade.name}
+                    </Link>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {grade.description ? truncateText(grade.description, 100) : '—'}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {(grade.minAge !== null && grade.minAge !== undefined) ||
+                    (grade.maxAge !== null && grade.maxAge !== undefined)
+                      ? formatAgeRange(grade.minAge, grade.maxAge)
+                      : '—'}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Badge variant={grade.active ? 'default' : 'secondary'} className="text-xs">
+                      {grade.active ? 'Активна' : 'Неактивна'}
+                    </Badge>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

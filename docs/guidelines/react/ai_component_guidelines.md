@@ -682,6 +682,187 @@ export const App = (): JSX.Element => (
 
 ---
 
+## 10. ⏳ Loading States and Skeleton Components
+
+### 10.1. Instant Page Rendering Requirement
+
+**⚠️ MANDATORY REQUIREMENT**: When a user clicks a link that navigates to an application page, that page **MUST** open immediately, even if the page content is not yet fully loaded and rendered. Instead of missing content, a **skeleton placeholder** should be displayed for each content block. When content loads, the skeleton should disappear smoothly.
+
+**Key Principles:**
+- **Instant Navigation**: Pages should render immediately upon navigation
+- **Skeleton Placeholders**: Each content block should have a corresponding skeleton
+- **Smooth Transitions**: Skeleton should smoothly transition to actual content
+- **Perceived Performance**: Users should see immediate feedback, improving UX
+
+### 10.2. Skeleton Component Pattern
+
+Skeleton components should mirror the structure of the actual content they represent:
+
+```typescript
+import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
+
+interface GradeCardSkeletonProps {
+  className?: string;
+}
+
+/**
+ * Skeleton component for grade card
+ * Mirrors the structure of GradeCard component
+ */
+export const GradeCardSkeleton = ({ className }: GradeCardSkeletonProps) => {
+  return (
+    <Card className={className}>
+      <CardHeader>
+        <div className="flex items-start justify-between gap-2">
+          <Skeleton className="h-6 w-32" /> {/* Title */}
+          <Skeleton className="h-5 w-16 rounded-full" /> {/* Badge */}
+        </div>
+        <Skeleton className="h-4 w-full mt-2" /> {/* Description line 1 */}
+        <Skeleton className="h-4 w-3/4 mt-1" /> {/* Description line 2 */}
+      </CardHeader>
+      <CardContent>
+        <Skeleton className="h-4 w-24" /> {/* Age range */}
+      </CardContent>
+    </Card>
+  );
+};
+```
+
+### 10.3. Next.js App Router Loading Patterns
+
+#### 10.3.1. Using loading.tsx Files
+
+In Next.js App Router, create `loading.tsx` files in route directories to automatically show loading states during navigation:
+
+```typescript
+// app/(private)/grades/loading.tsx
+import { GradeListSkeleton } from '@/components/molecules/grades/grade-list-skeleton';
+
+/**
+ * Loading state for grades list page
+ * Automatically shown during navigation to /grades
+ */
+export default function GradesLoading() {
+  return (
+    <div className="container mx-auto p-4 md:p-6 lg:p-8">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <div className="h-9 w-32 bg-muted animate-pulse rounded-md mb-2" />
+          <div className="h-4 w-64 bg-muted animate-pulse rounded-md" />
+        </div>
+        <div className="h-11 w-32 bg-muted animate-pulse rounded-md" />
+      </div>
+      <GradeListSkeleton />
+    </div>
+  );
+}
+```
+
+#### 10.3.2. Using Suspense Boundaries
+
+For more granular control, use Suspense boundaries within pages:
+
+```typescript
+import { Suspense } from 'react';
+import { GradeDetailContent } from './grade-detail-content';
+import { GradeDetailSkeleton } from '@/components/molecules/grades/grade-detail-skeleton';
+
+export default function GradeDetailPage({ params }: { params: Promise<{ gradeId: string }> }) {
+  return (
+    <div className="container mx-auto max-w-5xl p-4 md:p-6 lg:p-8">
+      <Suspense fallback={<GradeDetailSkeleton />}>
+        <GradeDetailContent params={params} />
+      </Suspense>
+    </div>
+  );
+}
+```
+
+### 10.4. Skeleton Component Best Practices
+
+1. **Match Structure**: Skeleton should match the exact structure of the actual content
+2. **Appropriate Sizing**: Use realistic dimensions that match actual content
+3. **Animation**: Use `animate-pulse` class for smooth pulsing animation
+4. **Accessibility**: Include `aria-label` for screen readers:
+   ```typescript
+   <Skeleton 
+     className="h-6 w-32" 
+     aria-label="Loading grade information"
+   />
+   ```
+5. **Responsive Design**: Ensure skeleton is responsive like actual content
+6. **Multiple Variants**: Create skeleton variants for different content states (empty, loading, error)
+
+### 10.5. Integration with shadcn/ui Skeleton
+
+The project uses shadcn/ui Skeleton component:
+
+```typescript
+import { Skeleton } from '@/components/ui/skeleton';
+
+/**
+ * Basic skeleton usage
+ */
+export const BasicSkeleton = () => (
+  <div className="space-y-4">
+    <Skeleton className="h-12 w-full" />
+    <Skeleton className="h-12 w-full" />
+    <Skeleton className="h-12 w-3/4" />
+  </div>
+);
+```
+
+### 10.6. Example: Complete Skeleton Implementation
+
+```typescript
+// components/molecules/grades/grade-list-skeleton.tsx
+import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card';
+
+/**
+ * Skeleton for grades list
+ * Displays 6 skeleton cards in a responsive grid
+ */
+export const GradeListSkeleton = () => {
+  return (
+    <div className="grid grid-cols-1 gap-4 p-4 md:grid-cols-2 md:gap-6 md:p-6 lg:grid-cols-3 lg:gap-8 lg:p-8">
+      {Array.from({ length: 6 }).map((_, index) => (
+        <Card key={index} className="flex flex-col h-full">
+          <CardHeader>
+            <div className="flex items-start justify-between gap-2">
+              <Skeleton className="h-6 w-32" />
+              <Skeleton className="h-5 w-16 rounded-full" />
+            </div>
+            <Skeleton className="h-4 w-full mt-2" />
+            <Skeleton className="h-4 w-3/4 mt-1" />
+          </CardHeader>
+          <CardContent className="flex-1">
+            <Skeleton className="h-4 w-24" />
+          </CardContent>
+          <CardFooter>
+            <Skeleton className="h-11 w-full rounded-md" />
+          </CardFooter>
+        </Card>
+      ))}
+    </div>
+  );
+};
+```
+
+### 10.7. AI Assistant Instructions
+
+When creating components that load data:
+
+1. **Create Skeleton Component**: Always create a corresponding skeleton component
+2. **Match Structure**: Ensure skeleton mirrors the actual component structure
+3. **Add loading.tsx**: Create `loading.tsx` files for route-level loading states
+4. **Use Suspense**: Consider Suspense boundaries for granular loading control
+5. **Test Navigation**: Verify instant page rendering on link clicks
+6. **Responsive Design**: Ensure skeleton is responsive like actual content
+
+---
+
 ## 11. 🤖 AI Assistant Instructions
 
 When generating React components:

@@ -163,6 +163,7 @@ Phase 10: Создание системы валидации
 - [ADMIN_FLOWS.md](../../../user_flows/ADMIN_FLOWS.md) - раздел 3.1 Создание новой группы
 - [MVP_SCOPE.md](../../../MVP_SCOPE.md) - раздел 2.2.1
 - [ISR Optimization Guidelines](../../../guidelines/nextjs/ai_isr_optimization_guidelines.md) - оптимизация производительности страниц через ISR
+- [Loading Patterns Guidelines](../../../guidelines/nextjs/ai_loading_patterns.md) - guidelines for loading states and skeleton components
 - Context7: Next.js 15.5.9 App Router документация
 - **Код реализации:**
   - [src/lib/db/queries.ts](../../../../src/lib/db/queries.ts) - для получения данных групп
@@ -225,6 +226,7 @@ Phase 10: Создание системы валидации
 - [USER_FLOW.md](../../../user_flows/USER_FLOW.md) - раздел Grade View
 - [TEACHER_FLOWS.md](../../../user_flows/TEACHER_FLOWS.md) - раздел 2.1 Вход в систему и навигация
 - [ISR Optimization Guidelines](../../../guidelines/nextjs/ai_isr_optimization_guidelines.md) - оптимизация производительности страниц через ISR
+- [Loading Patterns Guidelines](../../../guidelines/nextjs/ai_loading_patterns.md) - guidelines for loading states and skeleton components
 - Context7: Next.js 15.5.9 динамические маршруты документация
 - **Код реализации:**
   - [src/lib/db/queries.ts](../../../../src/lib/db/queries.ts) - для получения данных группы
@@ -350,6 +352,7 @@ Phase 10: Создание системы валидации
 - <CRITICAL>[WIREFRAMES.md](../../../ui_ux/WIREFRAMES.md) - раздел Grade Form</CRITICAL>
 - [USER_FLOW.md](../../../user_flows/USER_FLOW.md) - раздел Admin flows
 - [ADMIN_FLOWS.md](../../../user_flows/ADMIN_FLOWS.md) - раздел 3.1 Создание новой группы
+- [Loading Patterns Guidelines](../../../guidelines/nextjs/ai_loading_patterns.md) - guidelines for loading states and skeleton components
 - Context7: Next.js 15.5.9 App Router документация
 - **Код реализации:**
   - [src/lib/routes/RoutePath.ts](../../../../src/lib/routes/RoutePath.ts) - маршруты приложения

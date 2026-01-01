@@ -158,6 +158,7 @@ Phase 16: Управление учениками (Pupils)
 - <CRITICAL>[WIREFRAMES.md](../../../ui_ux/WIREFRAMES.md) - раздел Families List</CRITICAL>
 - [USER_FLOW.md](../../../user_flows/USER_FLOW.md) - раздел Admin flows
 - [ADMIN_FLOWS.md](../../../user_flows/ADMIN_FLOWS.md) - раздел 5.1 Создание новой семьи
+- [Loading Patterns Guidelines](../../../guidelines/nextjs/ai_loading_patterns.md) - guidelines for loading states and skeleton components
 - Context7: Next.js 15.5.9 App Router документация
 
 **Критерии приемки:**

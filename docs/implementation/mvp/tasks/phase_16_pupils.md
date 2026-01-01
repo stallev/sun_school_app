@@ -158,6 +158,7 @@ Phase 11: Управление группами (Grades)
 - <CRITICAL>[WIREFRAMES.md](../../../ui_ux/WIREFRAMES.md) - раздел Pupils List</CRITICAL>
 - [USER_FLOW.md](../../../user_flows/USER_FLOW.md) - раздел Admin flows
 - [ADMIN_FLOWS.md](../../../user_flows/ADMIN_FLOWS.md) - раздел 4.1 Создание нового ученика
+- [Loading Patterns Guidelines](../../../guidelines/nextjs/ai_loading_patterns.md) - guidelines for loading states and skeleton components
 - Context7: Next.js 15.5.9 App Router документация
 - **Код реализации:**
   - [src/lib/db/queries.ts](../../../../src/lib/db/queries.ts) - для получения данных групп

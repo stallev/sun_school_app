@@ -5,6 +5,8 @@
  * Redirects to single grade if Teacher has only one grade
  */
 
+export const revalidate = 60
+
 import { redirect } from 'next/navigation';
 import { getAuthenticatedUser, checkRole } from '@/lib/auth/cognito';
 import { listGradesAction } from '@/actions/grades';
