@@ -1,4 +1,5 @@
 /* tslint:disable */
+/* eslint-disable */
 //  This file was automatically generated and should not be edited.
 
 export type CreateUserInput = {
@@ -223,6 +224,7 @@ export type Pupil = {
   families?: ModelFamilyMemberConnection | null,
   homeworkChecks?: ModelHomeworkCheckConnection | null,
   achievements?: ModelPupilAchievementConnection | null,
+  bricksIssues?: ModelBricksIssueConnection | null,
   createdAt: string,
   updatedAt: string,
 };
@@ -309,6 +311,26 @@ export type Achievement = {
   icon?: string | null,
   criteria: string,
   pupils?: ModelPupilAchievementConnection | null,
+  createdAt: string,
+  updatedAt: string,
+};
+
+export type ModelBricksIssueConnection = {
+  __typename: "ModelBricksIssueConnection",
+  items:  Array<BricksIssue | null >,
+  nextToken?: string | null,
+};
+
+export type BricksIssue = {
+  __typename: "BricksIssue",
+  id: string,
+  pupilId: string,
+  academicYearId: string,
+  gradeId: string,
+  quantity: number,
+  issuedAt: string,
+  issuedBy: string,
+  pupil?: Pupil | null,
   createdAt: string,
   updatedAt: string,
 };
@@ -970,6 +992,48 @@ export type DeletePupilAchievementInput = {
   id: string,
 };
 
+export type CreateBricksIssueInput = {
+  id?: string | null,
+  pupilId: string,
+  academicYearId: string,
+  gradeId: string,
+  quantity: number,
+  issuedAt: string,
+  issuedBy: string,
+  createdAt?: string | null,
+  updatedAt?: string | null,
+};
+
+export type ModelBricksIssueConditionInput = {
+  pupilId?: ModelIDInput | null,
+  academicYearId?: ModelIDInput | null,
+  gradeId?: ModelIDInput | null,
+  quantity?: ModelIntInput | null,
+  issuedAt?: ModelStringInput | null,
+  issuedBy?: ModelIDInput | null,
+  createdAt?: ModelStringInput | null,
+  updatedAt?: ModelStringInput | null,
+  and?: Array< ModelBricksIssueConditionInput | null > | null,
+  or?: Array< ModelBricksIssueConditionInput | null > | null,
+  not?: ModelBricksIssueConditionInput | null,
+};
+
+export type UpdateBricksIssueInput = {
+  id: string,
+  pupilId?: string | null,
+  academicYearId?: string | null,
+  gradeId?: string | null,
+  quantity?: number | null,
+  issuedAt?: string | null,
+  issuedBy?: string | null,
+  createdAt?: string | null,
+  updatedAt?: string | null,
+};
+
+export type DeleteBricksIssueInput = {
+  id: string,
+};
+
 export type CreateFamilyInput = {
   id?: string | null,
   name: string,
@@ -1353,6 +1417,21 @@ export type ModelAchievementConnection = {
   __typename: "ModelAchievementConnection",
   items:  Array<Achievement | null >,
   nextToken?: string | null,
+};
+
+export type ModelBricksIssueFilterInput = {
+  id?: ModelIDInput | null,
+  pupilId?: ModelIDInput | null,
+  academicYearId?: ModelIDInput | null,
+  gradeId?: ModelIDInput | null,
+  quantity?: ModelIntInput | null,
+  issuedAt?: ModelStringInput | null,
+  issuedBy?: ModelIDInput | null,
+  createdAt?: ModelStringInput | null,
+  updatedAt?: ModelStringInput | null,
+  and?: Array< ModelBricksIssueFilterInput | null > | null,
+  or?: Array< ModelBricksIssueFilterInput | null > | null,
+  not?: ModelBricksIssueFilterInput | null,
 };
 
 export type ModelFamilyFilterInput = {
@@ -1752,6 +1831,20 @@ export type ModelSubscriptionPupilAchievementFilterInput = {
   updatedAt?: ModelSubscriptionStringInput | null,
   and?: Array< ModelSubscriptionPupilAchievementFilterInput | null > | null,
   or?: Array< ModelSubscriptionPupilAchievementFilterInput | null > | null,
+};
+
+export type ModelSubscriptionBricksIssueFilterInput = {
+  id?: ModelSubscriptionIDInput | null,
+  pupilId?: ModelSubscriptionIDInput | null,
+  academicYearId?: ModelSubscriptionIDInput | null,
+  gradeId?: ModelSubscriptionIDInput | null,
+  quantity?: ModelSubscriptionIntInput | null,
+  issuedAt?: ModelSubscriptionStringInput | null,
+  issuedBy?: ModelSubscriptionIDInput | null,
+  createdAt?: ModelSubscriptionStringInput | null,
+  updatedAt?: ModelSubscriptionStringInput | null,
+  and?: Array< ModelSubscriptionBricksIssueFilterInput | null > | null,
+  or?: Array< ModelSubscriptionBricksIssueFilterInput | null > | null,
 };
 
 export type ModelSubscriptionFamilyFilterInput = {
@@ -2805,6 +2898,10 @@ export type CreatePupilMutation = {
       __typename: "ModelPupilAchievementConnection",
       nextToken?: string | null,
     } | null,
+    bricksIssues?:  {
+      __typename: "ModelBricksIssueConnection",
+      nextToken?: string | null,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -2838,6 +2935,10 @@ export type UpdatePupilMutation = {
       __typename: "ModelPupilAchievementConnection",
       nextToken?: string | null,
     } | null,
+    bricksIssues?:  {
+      __typename: "ModelBricksIssueConnection",
+      nextToken?: string | null,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -2869,6 +2970,10 @@ export type DeletePupilMutation = {
     } | null,
     achievements?:  {
       __typename: "ModelPupilAchievementConnection",
+      nextToken?: string | null,
+    } | null,
+    bricksIssues?:  {
+      __typename: "ModelBricksIssueConnection",
       nextToken?: string | null,
     } | null,
     createdAt: string,
@@ -3204,6 +3309,105 @@ export type DeletePupilAchievementMutation = {
       description: string,
       icon?: string | null,
       criteria: string,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    createdAt: string,
+    updatedAt: string,
+  } | null,
+};
+
+export type CreateBricksIssueMutationVariables = {
+  input: CreateBricksIssueInput,
+  condition?: ModelBricksIssueConditionInput | null,
+};
+
+export type CreateBricksIssueMutation = {
+  createBricksIssue?:  {
+    __typename: "BricksIssue",
+    id: string,
+    pupilId: string,
+    academicYearId: string,
+    gradeId: string,
+    quantity: number,
+    issuedAt: string,
+    issuedBy: string,
+    pupil?:  {
+      __typename: "Pupil",
+      id: string,
+      gradeId: string,
+      firstName: string,
+      lastName: string,
+      middleName?: string | null,
+      dateOfBirth: string,
+      photo?: string | null,
+      active: boolean,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    createdAt: string,
+    updatedAt: string,
+  } | null,
+};
+
+export type UpdateBricksIssueMutationVariables = {
+  input: UpdateBricksIssueInput,
+  condition?: ModelBricksIssueConditionInput | null,
+};
+
+export type UpdateBricksIssueMutation = {
+  updateBricksIssue?:  {
+    __typename: "BricksIssue",
+    id: string,
+    pupilId: string,
+    academicYearId: string,
+    gradeId: string,
+    quantity: number,
+    issuedAt: string,
+    issuedBy: string,
+    pupil?:  {
+      __typename: "Pupil",
+      id: string,
+      gradeId: string,
+      firstName: string,
+      lastName: string,
+      middleName?: string | null,
+      dateOfBirth: string,
+      photo?: string | null,
+      active: boolean,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    createdAt: string,
+    updatedAt: string,
+  } | null,
+};
+
+export type DeleteBricksIssueMutationVariables = {
+  input: DeleteBricksIssueInput,
+  condition?: ModelBricksIssueConditionInput | null,
+};
+
+export type DeleteBricksIssueMutation = {
+  deleteBricksIssue?:  {
+    __typename: "BricksIssue",
+    id: string,
+    pupilId: string,
+    academicYearId: string,
+    gradeId: string,
+    quantity: number,
+    issuedAt: string,
+    issuedBy: string,
+    pupil?:  {
+      __typename: "Pupil",
+      id: string,
+      gradeId: string,
+      firstName: string,
+      lastName: string,
+      middleName?: string | null,
+      dateOfBirth: string,
+      photo?: string | null,
+      active: boolean,
       createdAt: string,
       updatedAt: string,
     } | null,
@@ -4098,6 +4302,10 @@ export type GetPupilQuery = {
       __typename: "ModelPupilAchievementConnection",
       nextToken?: string | null,
     } | null,
+    bricksIssues?:  {
+      __typename: "ModelBricksIssueConnection",
+      nextToken?: string | null,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -4244,6 +4452,63 @@ export type ListAchievementsQuery = {
       description: string,
       icon?: string | null,
       criteria: string,
+      createdAt: string,
+      updatedAt: string,
+    } | null >,
+    nextToken?: string | null,
+  } | null,
+};
+
+export type GetBricksIssueQueryVariables = {
+  id: string,
+};
+
+export type GetBricksIssueQuery = {
+  getBricksIssue?:  {
+    __typename: "BricksIssue",
+    id: string,
+    pupilId: string,
+    academicYearId: string,
+    gradeId: string,
+    quantity: number,
+    issuedAt: string,
+    issuedBy: string,
+    pupil?:  {
+      __typename: "Pupil",
+      id: string,
+      gradeId: string,
+      firstName: string,
+      lastName: string,
+      middleName?: string | null,
+      dateOfBirth: string,
+      photo?: string | null,
+      active: boolean,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    createdAt: string,
+    updatedAt: string,
+  } | null,
+};
+
+export type ListBricksIssuesQueryVariables = {
+  filter?: ModelBricksIssueFilterInput | null,
+  limit?: number | null,
+  nextToken?: string | null,
+};
+
+export type ListBricksIssuesQuery = {
+  listBricksIssues?:  {
+    __typename: "ModelBricksIssueConnection",
+    items:  Array< {
+      __typename: "BricksIssue",
+      id: string,
+      pupilId: string,
+      academicYearId: string,
+      gradeId: string,
+      quantity: number,
+      issuedAt: string,
+      issuedBy: string,
       createdAt: string,
       updatedAt: string,
     } | null >,
@@ -5039,6 +5304,90 @@ export type PupilAchievementsByAchievementIdQuery = {
       pupilId: string,
       achievementId: string,
       awardedAt: string,
+      createdAt: string,
+      updatedAt: string,
+    } | null >,
+    nextToken?: string | null,
+  } | null,
+};
+
+export type BricksIssuesByPupilIdAndIssuedAtQueryVariables = {
+  pupilId: string,
+  issuedAt?: ModelStringKeyConditionInput | null,
+  sortDirection?: ModelSortDirection | null,
+  filter?: ModelBricksIssueFilterInput | null,
+  limit?: number | null,
+  nextToken?: string | null,
+};
+
+export type BricksIssuesByPupilIdAndIssuedAtQuery = {
+  bricksIssuesByPupilIdAndIssuedAt?:  {
+    __typename: "ModelBricksIssueConnection",
+    items:  Array< {
+      __typename: "BricksIssue",
+      id: string,
+      pupilId: string,
+      academicYearId: string,
+      gradeId: string,
+      quantity: number,
+      issuedAt: string,
+      issuedBy: string,
+      createdAt: string,
+      updatedAt: string,
+    } | null >,
+    nextToken?: string | null,
+  } | null,
+};
+
+export type BricksIssuesByAcademicYearIdAndIssuedAtQueryVariables = {
+  academicYearId: string,
+  issuedAt?: ModelStringKeyConditionInput | null,
+  sortDirection?: ModelSortDirection | null,
+  filter?: ModelBricksIssueFilterInput | null,
+  limit?: number | null,
+  nextToken?: string | null,
+};
+
+export type BricksIssuesByAcademicYearIdAndIssuedAtQuery = {
+  bricksIssuesByAcademicYearIdAndIssuedAt?:  {
+    __typename: "ModelBricksIssueConnection",
+    items:  Array< {
+      __typename: "BricksIssue",
+      id: string,
+      pupilId: string,
+      academicYearId: string,
+      gradeId: string,
+      quantity: number,
+      issuedAt: string,
+      issuedBy: string,
+      createdAt: string,
+      updatedAt: string,
+    } | null >,
+    nextToken?: string | null,
+  } | null,
+};
+
+export type BricksIssuesByGradeIdAndIssuedAtQueryVariables = {
+  gradeId: string,
+  issuedAt?: ModelStringKeyConditionInput | null,
+  sortDirection?: ModelSortDirection | null,
+  filter?: ModelBricksIssueFilterInput | null,
+  limit?: number | null,
+  nextToken?: string | null,
+};
+
+export type BricksIssuesByGradeIdAndIssuedAtQuery = {
+  bricksIssuesByGradeIdAndIssuedAt?:  {
+    __typename: "ModelBricksIssueConnection",
+    items:  Array< {
+      __typename: "BricksIssue",
+      id: string,
+      pupilId: string,
+      academicYearId: string,
+      gradeId: string,
+      quantity: number,
+      issuedAt: string,
+      issuedBy: string,
       createdAt: string,
       updatedAt: string,
     } | null >,
@@ -6242,6 +6591,10 @@ export type OnCreatePupilSubscription = {
       __typename: "ModelPupilAchievementConnection",
       nextToken?: string | null,
     } | null,
+    bricksIssues?:  {
+      __typename: "ModelBricksIssueConnection",
+      nextToken?: string | null,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -6274,6 +6627,10 @@ export type OnUpdatePupilSubscription = {
       __typename: "ModelPupilAchievementConnection",
       nextToken?: string | null,
     } | null,
+    bricksIssues?:  {
+      __typename: "ModelBricksIssueConnection",
+      nextToken?: string | null,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -6304,6 +6661,10 @@ export type OnDeletePupilSubscription = {
     } | null,
     achievements?:  {
       __typename: "ModelPupilAchievementConnection",
+      nextToken?: string | null,
+    } | null,
+    bricksIssues?:  {
+      __typename: "ModelBricksIssueConnection",
       nextToken?: string | null,
     } | null,
     createdAt: string,
@@ -6630,6 +6991,102 @@ export type OnDeletePupilAchievementSubscription = {
       description: string,
       icon?: string | null,
       criteria: string,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    createdAt: string,
+    updatedAt: string,
+  } | null,
+};
+
+export type OnCreateBricksIssueSubscriptionVariables = {
+  filter?: ModelSubscriptionBricksIssueFilterInput | null,
+};
+
+export type OnCreateBricksIssueSubscription = {
+  onCreateBricksIssue?:  {
+    __typename: "BricksIssue",
+    id: string,
+    pupilId: string,
+    academicYearId: string,
+    gradeId: string,
+    quantity: number,
+    issuedAt: string,
+    issuedBy: string,
+    pupil?:  {
+      __typename: "Pupil",
+      id: string,
+      gradeId: string,
+      firstName: string,
+      lastName: string,
+      middleName?: string | null,
+      dateOfBirth: string,
+      photo?: string | null,
+      active: boolean,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    createdAt: string,
+    updatedAt: string,
+  } | null,
+};
+
+export type OnUpdateBricksIssueSubscriptionVariables = {
+  filter?: ModelSubscriptionBricksIssueFilterInput | null,
+};
+
+export type OnUpdateBricksIssueSubscription = {
+  onUpdateBricksIssue?:  {
+    __typename: "BricksIssue",
+    id: string,
+    pupilId: string,
+    academicYearId: string,
+    gradeId: string,
+    quantity: number,
+    issuedAt: string,
+    issuedBy: string,
+    pupil?:  {
+      __typename: "Pupil",
+      id: string,
+      gradeId: string,
+      firstName: string,
+      lastName: string,
+      middleName?: string | null,
+      dateOfBirth: string,
+      photo?: string | null,
+      active: boolean,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    createdAt: string,
+    updatedAt: string,
+  } | null,
+};
+
+export type OnDeleteBricksIssueSubscriptionVariables = {
+  filter?: ModelSubscriptionBricksIssueFilterInput | null,
+};
+
+export type OnDeleteBricksIssueSubscription = {
+  onDeleteBricksIssue?:  {
+    __typename: "BricksIssue",
+    id: string,
+    pupilId: string,
+    academicYearId: string,
+    gradeId: string,
+    quantity: number,
+    issuedAt: string,
+    issuedBy: string,
+    pupil?:  {
+      __typename: "Pupil",
+      id: string,
+      gradeId: string,
+      firstName: string,
+      lastName: string,
+      middleName?: string | null,
+      dateOfBirth: string,
+      photo?: string | null,
+      active: boolean,
       createdAt: string,
       updatedAt: string,
     } | null,

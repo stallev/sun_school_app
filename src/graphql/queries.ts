@@ -1,4 +1,5 @@
 /* tslint:disable */
+/* eslint-disable */
 // this is an auto generated file. This will be overwritten
 
 import * as APITypes from "../API";
@@ -76,16 +77,6 @@ export const getGrade = /* GraphQL */ `query GetGrade($id: ID!) {
       __typename
     }
     events {
-      items {
-        id
-        eventType
-        title
-        description
-        eventDate
-        createdAt
-        updatedAt
-        __typename
-      }
       nextToken
       __typename
     }
@@ -196,71 +187,14 @@ export const getLesson = /* GraphQL */ `query GetLesson($id: ID!) {
     lessonDate
     order
     homeworkChecks {
-      items {
-        id
-        lessonId
-        pupilId
-        gradeId
-        goldenVerse1Score
-        goldenVerse2Score
-        goldenVerse3Score
-        testScore
-        notebookScore
-        singing
-        points
-        pupil {
-          id
-          firstName
-          lastName
-          middleName
-          __typename
-        }
-        createdAt
-        updatedAt
-        __typename
-      }
       nextToken
       __typename
     }
     goldenVerses {
-      items {
-        id
-        lessonId
-        goldenVerseId
-        order
-        goldenVerse {
-          id
-          reference
-          bookId
-          chapter
-          verseStart
-          verseEnd
-          text
-          __typename
-        }
-        createdAt
-        updatedAt
-        __typename
-      }
       nextToken
       __typename
     }
     files {
-      items {
-        id
-        lessonId
-        fileName
-        fileType
-        mimeType
-        fileSize
-        s3Key
-        s3Url
-        order
-        description
-        createdAt
-        updatedAt
-        __typename
-      }
       nextToken
       __typename
     }
@@ -411,49 +345,14 @@ export const getPupil = /* GraphQL */ `query GetPupil($id: ID!) {
       __typename
     }
     homeworkChecks {
-      items {
-        id
-        lessonId
-        pupilId
-        gradeId
-        goldenVerse1Score
-        goldenVerse2Score
-        goldenVerse3Score
-        testScore
-        notebookScore
-        singing
-        points
-        lesson {
-          id
-          title
-          lessonDate
-          order
-          __typename
-        }
-        createdAt
-        updatedAt
-        __typename
-      }
       nextToken
       __typename
     }
     achievements {
-      items {
-        id
-        pupilId
-        achievementId
-        awardedAt
-        achievement {
-          id
-          name
-          description
-          icon
-          criteria
-          __typename
-        }
-        createdAt
-        __typename
-      }
+      nextToken
+      __typename
+    }
+    bricksIssues {
       nextToken
       __typename
     }
@@ -611,6 +510,63 @@ export const listAchievements = /* GraphQL */ `query ListAchievements(
 ` as GeneratedQuery<
   APITypes.ListAchievementsQueryVariables,
   APITypes.ListAchievementsQuery
+>;
+export const getBricksIssue = /* GraphQL */ `query GetBricksIssue($id: ID!) {
+  getBricksIssue(id: $id) {
+    id
+    pupilId
+    academicYearId
+    gradeId
+    quantity
+    issuedAt
+    issuedBy
+    pupil {
+      id
+      gradeId
+      firstName
+      lastName
+      middleName
+      dateOfBirth
+      photo
+      active
+      createdAt
+      updatedAt
+      __typename
+    }
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+` as GeneratedQuery<
+  APITypes.GetBricksIssueQueryVariables,
+  APITypes.GetBricksIssueQuery
+>;
+export const listBricksIssues = /* GraphQL */ `query ListBricksIssues(
+  $filter: ModelBricksIssueFilterInput
+  $limit: Int
+  $nextToken: String
+) {
+  listBricksIssues(filter: $filter, limit: $limit, nextToken: $nextToken) {
+    items {
+      id
+      pupilId
+      academicYearId
+      gradeId
+      quantity
+      issuedAt
+      issuedBy
+      createdAt
+      updatedAt
+      __typename
+    }
+    nextToken
+    __typename
+  }
+}
+` as GeneratedQuery<
+  APITypes.ListBricksIssuesQueryVariables,
+  APITypes.ListBricksIssuesQuery
 >;
 export const getFamily = /* GraphQL */ `query GetFamily($id: ID!) {
   getFamily(id: $id) {
@@ -1581,6 +1537,114 @@ export const pupilAchievementsByAchievementId = /* GraphQL */ `query PupilAchiev
 ` as GeneratedQuery<
   APITypes.PupilAchievementsByAchievementIdQueryVariables,
   APITypes.PupilAchievementsByAchievementIdQuery
+>;
+export const bricksIssuesByPupilIdAndIssuedAt = /* GraphQL */ `query BricksIssuesByPupilIdAndIssuedAt(
+  $pupilId: ID!
+  $issuedAt: ModelStringKeyConditionInput
+  $sortDirection: ModelSortDirection
+  $filter: ModelBricksIssueFilterInput
+  $limit: Int
+  $nextToken: String
+) {
+  bricksIssuesByPupilIdAndIssuedAt(
+    pupilId: $pupilId
+    issuedAt: $issuedAt
+    sortDirection: $sortDirection
+    filter: $filter
+    limit: $limit
+    nextToken: $nextToken
+  ) {
+    items {
+      id
+      pupilId
+      academicYearId
+      gradeId
+      quantity
+      issuedAt
+      issuedBy
+      createdAt
+      updatedAt
+      __typename
+    }
+    nextToken
+    __typename
+  }
+}
+` as GeneratedQuery<
+  APITypes.BricksIssuesByPupilIdAndIssuedAtQueryVariables,
+  APITypes.BricksIssuesByPupilIdAndIssuedAtQuery
+>;
+export const bricksIssuesByAcademicYearIdAndIssuedAt = /* GraphQL */ `query BricksIssuesByAcademicYearIdAndIssuedAt(
+  $academicYearId: ID!
+  $issuedAt: ModelStringKeyConditionInput
+  $sortDirection: ModelSortDirection
+  $filter: ModelBricksIssueFilterInput
+  $limit: Int
+  $nextToken: String
+) {
+  bricksIssuesByAcademicYearIdAndIssuedAt(
+    academicYearId: $academicYearId
+    issuedAt: $issuedAt
+    sortDirection: $sortDirection
+    filter: $filter
+    limit: $limit
+    nextToken: $nextToken
+  ) {
+    items {
+      id
+      pupilId
+      academicYearId
+      gradeId
+      quantity
+      issuedAt
+      issuedBy
+      createdAt
+      updatedAt
+      __typename
+    }
+    nextToken
+    __typename
+  }
+}
+` as GeneratedQuery<
+  APITypes.BricksIssuesByAcademicYearIdAndIssuedAtQueryVariables,
+  APITypes.BricksIssuesByAcademicYearIdAndIssuedAtQuery
+>;
+export const bricksIssuesByGradeIdAndIssuedAt = /* GraphQL */ `query BricksIssuesByGradeIdAndIssuedAt(
+  $gradeId: ID!
+  $issuedAt: ModelStringKeyConditionInput
+  $sortDirection: ModelSortDirection
+  $filter: ModelBricksIssueFilterInput
+  $limit: Int
+  $nextToken: String
+) {
+  bricksIssuesByGradeIdAndIssuedAt(
+    gradeId: $gradeId
+    issuedAt: $issuedAt
+    sortDirection: $sortDirection
+    filter: $filter
+    limit: $limit
+    nextToken: $nextToken
+  ) {
+    items {
+      id
+      pupilId
+      academicYearId
+      gradeId
+      quantity
+      issuedAt
+      issuedBy
+      createdAt
+      updatedAt
+      __typename
+    }
+    nextToken
+    __typename
+  }
+}
+` as GeneratedQuery<
+  APITypes.BricksIssuesByGradeIdAndIssuedAtQueryVariables,
+  APITypes.BricksIssuesByGradeIdAndIssuedAtQuery
 >;
 export const familiesByMotherPhone = /* GraphQL */ `query FamiliesByMotherPhone(
   $motherPhone: String!

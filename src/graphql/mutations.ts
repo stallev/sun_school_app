@@ -1,4 +1,5 @@
 /* tslint:disable */
+/* eslint-disable */
 // this is an auto generated file. This will be overwritten
 
 import * as APITypes from "../API";
@@ -1007,6 +1008,10 @@ export const createPupil = /* GraphQL */ `mutation CreatePupil(
       nextToken
       __typename
     }
+    bricksIssues {
+      nextToken
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -1041,6 +1046,10 @@ export const updatePupil = /* GraphQL */ `mutation UpdatePupil(
       nextToken
       __typename
     }
+    bricksIssues {
+      nextToken
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -1072,6 +1081,10 @@ export const deletePupil = /* GraphQL */ `mutation DeletePupil(
       __typename
     }
     achievements {
+      nextToken
+      __typename
+    }
+    bricksIssues {
       nextToken
       __typename
     }
@@ -1428,6 +1441,108 @@ export const deletePupilAchievement = /* GraphQL */ `mutation DeletePupilAchieve
 ` as GeneratedMutation<
   APITypes.DeletePupilAchievementMutationVariables,
   APITypes.DeletePupilAchievementMutation
+>;
+export const createBricksIssue = /* GraphQL */ `mutation CreateBricksIssue(
+  $input: CreateBricksIssueInput!
+  $condition: ModelBricksIssueConditionInput
+) {
+  createBricksIssue(input: $input, condition: $condition) {
+    id
+    pupilId
+    academicYearId
+    gradeId
+    quantity
+    issuedAt
+    issuedBy
+    pupil {
+      id
+      gradeId
+      firstName
+      lastName
+      middleName
+      dateOfBirth
+      photo
+      active
+      createdAt
+      updatedAt
+      __typename
+    }
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+` as GeneratedMutation<
+  APITypes.CreateBricksIssueMutationVariables,
+  APITypes.CreateBricksIssueMutation
+>;
+export const updateBricksIssue = /* GraphQL */ `mutation UpdateBricksIssue(
+  $input: UpdateBricksIssueInput!
+  $condition: ModelBricksIssueConditionInput
+) {
+  updateBricksIssue(input: $input, condition: $condition) {
+    id
+    pupilId
+    academicYearId
+    gradeId
+    quantity
+    issuedAt
+    issuedBy
+    pupil {
+      id
+      gradeId
+      firstName
+      lastName
+      middleName
+      dateOfBirth
+      photo
+      active
+      createdAt
+      updatedAt
+      __typename
+    }
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+` as GeneratedMutation<
+  APITypes.UpdateBricksIssueMutationVariables,
+  APITypes.UpdateBricksIssueMutation
+>;
+export const deleteBricksIssue = /* GraphQL */ `mutation DeleteBricksIssue(
+  $input: DeleteBricksIssueInput!
+  $condition: ModelBricksIssueConditionInput
+) {
+  deleteBricksIssue(input: $input, condition: $condition) {
+    id
+    pupilId
+    academicYearId
+    gradeId
+    quantity
+    issuedAt
+    issuedBy
+    pupil {
+      id
+      gradeId
+      firstName
+      lastName
+      middleName
+      dateOfBirth
+      photo
+      active
+      createdAt
+      updatedAt
+      __typename
+    }
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+` as GeneratedMutation<
+  APITypes.DeleteBricksIssueMutationVariables,
+  APITypes.DeleteBricksIssueMutation
 >;
 export const createFamily = /* GraphQL */ `mutation CreateFamily(
   $input: CreateFamilyInput!

@@ -325,6 +325,7 @@ type Pupil
   # Восстановленные @hasMany связи
   homeworkChecks: [HomeworkCheck] @hasMany(indexName: "byPupilId", fields: ["id"])
   achievements: [PupilAchievement] @hasMany(indexName: "byPupilId", fields: ["id"])
+  bricksIssues: [BricksIssue] @hasMany(indexName: "byPupilId", fields: ["id"])
   
   createdAt: AWSDateTime!
   updatedAt: AWSDateTime!
@@ -418,6 +419,33 @@ type PupilAchievement
   achievement: Achievement @belongsTo(fields: ["achievementId"])
   
   createdAt: AWSDateTime!
+}
+
+# Выдача кирпичиков ученику
+type BricksIssue
+  @model
+  @auth(rules: [
+    # Admin и Superadmin могут управлять выдачей
+    { allow: groups, groups: ["ADMIN", "SUPERADMIN"] },
+    # Teacher может создавать и читать выдачу (только для своих групп)
+    { allow: groups, groups: ["TEACHER"], operations: [create, read] }
+  ]) {
+  id: ID!
+  pupilId: ID! @index(name: "byPupilId", sortKeyFields: ["issuedAt"])
+  academicYearId: ID! @index(name: "byAcademicYearId", sortKeyFields: ["issuedAt"])
+  gradeId: ID! @index(name: "byGradeId", sortKeyFields: ["issuedAt"]) # Денормализация для удобства
+  
+  quantity: Int! # Количество выданных кирпичиков
+  issuedAt: AWSDateTime! # Дата выдачи (автоматически при создании)
+  issuedBy: ID! # ID учителя, который выдал (teacherId из Cognito)
+  
+  # Связи
+  pupil: Pupil @belongsTo(fields: ["pupilId"])
+  # Примечание: academicYear @belongsTo убрано для устранения циклической зависимости
+  # Используйте queries через индекс byAcademicYearId для получения связанного года
+  
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
 }
 
 # ============================================

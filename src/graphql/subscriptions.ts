@@ -1,4 +1,5 @@
 /* tslint:disable */
+/* eslint-disable */
 // this is an auto generated file. This will be overwritten
 
 import * as APITypes from "../API";
@@ -956,6 +957,10 @@ export const onCreatePupil = /* GraphQL */ `subscription OnCreatePupil($filter: 
       nextToken
       __typename
     }
+    bricksIssues {
+      nextToken
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -987,6 +992,10 @@ export const onUpdatePupil = /* GraphQL */ `subscription OnUpdatePupil($filter: 
       nextToken
       __typename
     }
+    bricksIssues {
+      nextToken
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -1015,6 +1024,10 @@ export const onDeletePupil = /* GraphQL */ `subscription OnDeletePupil($filter: 
       __typename
     }
     achievements {
+      nextToken
+      __typename
+    }
+    bricksIssues {
       nextToken
       __typename
     }
@@ -1362,6 +1375,105 @@ export const onDeletePupilAchievement = /* GraphQL */ `subscription OnDeletePupi
 ` as GeneratedSubscription<
   APITypes.OnDeletePupilAchievementSubscriptionVariables,
   APITypes.OnDeletePupilAchievementSubscription
+>;
+export const onCreateBricksIssue = /* GraphQL */ `subscription OnCreateBricksIssue(
+  $filter: ModelSubscriptionBricksIssueFilterInput
+) {
+  onCreateBricksIssue(filter: $filter) {
+    id
+    pupilId
+    academicYearId
+    gradeId
+    quantity
+    issuedAt
+    issuedBy
+    pupil {
+      id
+      gradeId
+      firstName
+      lastName
+      middleName
+      dateOfBirth
+      photo
+      active
+      createdAt
+      updatedAt
+      __typename
+    }
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+` as GeneratedSubscription<
+  APITypes.OnCreateBricksIssueSubscriptionVariables,
+  APITypes.OnCreateBricksIssueSubscription
+>;
+export const onUpdateBricksIssue = /* GraphQL */ `subscription OnUpdateBricksIssue(
+  $filter: ModelSubscriptionBricksIssueFilterInput
+) {
+  onUpdateBricksIssue(filter: $filter) {
+    id
+    pupilId
+    academicYearId
+    gradeId
+    quantity
+    issuedAt
+    issuedBy
+    pupil {
+      id
+      gradeId
+      firstName
+      lastName
+      middleName
+      dateOfBirth
+      photo
+      active
+      createdAt
+      updatedAt
+      __typename
+    }
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+` as GeneratedSubscription<
+  APITypes.OnUpdateBricksIssueSubscriptionVariables,
+  APITypes.OnUpdateBricksIssueSubscription
+>;
+export const onDeleteBricksIssue = /* GraphQL */ `subscription OnDeleteBricksIssue(
+  $filter: ModelSubscriptionBricksIssueFilterInput
+) {
+  onDeleteBricksIssue(filter: $filter) {
+    id
+    pupilId
+    academicYearId
+    gradeId
+    quantity
+    issuedAt
+    issuedBy
+    pupil {
+      id
+      gradeId
+      firstName
+      lastName
+      middleName
+      dateOfBirth
+      photo
+      active
+      createdAt
+      updatedAt
+      __typename
+    }
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+` as GeneratedSubscription<
+  APITypes.OnDeleteBricksIssueSubscriptionVariables,
+  APITypes.OnDeleteBricksIssueSubscription
 >;
 export const onCreateFamily = /* GraphQL */ `subscription OnCreateFamily($filter: ModelSubscriptionFamilyFilterInput) {
   onCreateFamily(filter: $filter) {
