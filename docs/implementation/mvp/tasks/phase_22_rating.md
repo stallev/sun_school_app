@@ -39,6 +39,7 @@ Phase 15: Система баллов и домиков
 4. Используй Context7 для получения актуальной документации Shadcn UI компонентов
 5. Используй Context7 для получения актуальной документации Next.js Server Actions
 6. Следуй принципам из `docs/guidelines/prompts/general_prompt_guidelines.md`
+7. **При написании программного кода руководствуйся требованиями из документов каталогов `docs/guidelines/nextjs/` и `docs/guidelines/react/`**
 
 <CONSTRAINT>Все компоненты должны следовать дизайн-системе проекта и быть доступными (WCAG 2.1 AA). Фильтрация и сортировка должны работать быстро и корректно.</CONSTRAINT>
 </critical_instructions>

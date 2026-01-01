@@ -9,7 +9,7 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Plus, Calendar, Pencil, Settings, Trash2 } from 'lucide-react';
+import { Plus, Calendar, Pencil, Settings, Trash2, BookOpen } from 'lucide-react';
 import { toast } from 'sonner';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -88,6 +88,17 @@ export const GradeActions = ({ gradeId, isAdmin }: GradeActionsProps) => {
             >
               <Link href={RoutePath.grades.schedule(gradeId)}>
                 <Calendar className="h-5 w-5" />
+              </Link>
+            </Button>
+            <Button
+              asChild
+              size="icon"
+              className="h-10 w-10"
+              variant="outline"
+              aria-label="Учебные годы"
+            >
+              <Link href={RoutePath.grades.academicYears(gradeId)}>
+                <BookOpen className="h-5 w-5" />
               </Link>
             </Button>
             {isAdmin && (

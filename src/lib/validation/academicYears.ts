@@ -5,7 +5,7 @@
  */
 
 import { z } from 'zod';
-import { uuidSchema, dateSchema } from './common';
+import { dateSchema, gradeIdStringSchema, academicYearIdStringSchema } from './common';
 
 /**
  * Academic year status enum
@@ -22,7 +22,7 @@ export const academicYearStatusEnum = z.enum(['ACTIVE', 'FINISHED'], {
  */
 export const createAcademicYearSchema = z
   .object({
-    gradeId: uuidSchema,
+    gradeId: gradeIdStringSchema,
     name: z
       .string()
       .min(1, 'Название учебного года обязательно')
@@ -52,8 +52,8 @@ export type CreateAcademicYearInput = z.infer<typeof createAcademicYearSchema>;
  */
 export const updateAcademicYearSchema = z
   .object({
-    id: uuidSchema,
-    gradeId: uuidSchema.optional(),
+    id: academicYearIdStringSchema,
+    gradeId: gradeIdStringSchema.optional(),
     name: z
       .string()
       .min(1, 'Название учебного года обязательно')
@@ -86,7 +86,7 @@ export type UpdateAcademicYearInput = z.infer<typeof updateAcademicYearSchema>;
  * Validates academic year ID for delete and get operations
  */
 export const academicYearIdSchema = z.object({
-  id: uuidSchema,
+  id: academicYearIdStringSchema,
 });
 
 export type AcademicYearIdInput = z.infer<typeof academicYearIdSchema>;

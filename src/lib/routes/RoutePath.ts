@@ -58,6 +58,9 @@ export const RoutePath = {
     /** Get grade schedule page by ID */
     schedule: (id: string) => `/grades/${id}/schedule`,
     
+    /** Get academic years management page by ID */
+    academicYears: (id: string) => `/grades/${id}/academic-years`,
+    
     /** Lessons routes for a grade */
     lessons: {
       /** Create new lesson for a grade */

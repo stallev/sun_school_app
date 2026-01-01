@@ -81,3 +81,23 @@ export const nonEmptyStringSchema = z
   .string()
   .min(1, 'Это поле обязательно для заполнения');
 
+/**
+ * Grade ID string schema
+ * Validates grade ID as a string (can be UUID or string like "grade-3")
+ * GraphQL ID type accepts both formats
+ * Use this for direct gradeId validation (not wrapped in object)
+ */
+export const gradeIdStringSchema = z
+  .string()
+  .min(1, 'ID группы обязательно для заполнения');
+
+/**
+ * Academic Year ID string schema
+ * Validates academic year ID as a string (can be UUID or string like "year-123")
+ * GraphQL ID type accepts both formats
+ * Use this for direct academicYearId validation (not wrapped in object)
+ */
+export const academicYearIdStringSchema = z
+  .string()
+  .min(1, 'ID учебного года обязательно для заполнения');
+

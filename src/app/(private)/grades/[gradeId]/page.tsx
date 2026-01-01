@@ -8,9 +8,11 @@
 export const revalidate = 60; // ISR: revalidate every 60 seconds
 
 import { notFound, redirect } from 'next/navigation';
+import Link from 'next/link';
 import { getAuthenticatedUser, checkRole } from '@/lib/auth/cognito';
 import { getGradeWithFullDataAction } from '@/actions/grades';
 import { RoutePath } from '@/lib/routes/RoutePath';
+import { Button } from '@/components/ui/button';
 import { GradeHeader } from '@/components/molecules/grades/grade-header';
 import { GradeActions } from '@/components/molecules/grades/grade-actions';
 import { GradeInfo } from '@/components/molecules/grades/grade-info';
@@ -91,7 +93,14 @@ export default async function GradeDetailPage({
 
         {/* Academic Years */}
         <div className="space-y-6">
-          <h2 className="text-xl font-bold md:text-2xl">📚 Учебные годы</h2>
+          <div className="flex items-center justify-between gap-4">
+            <h2 className="text-xl font-bold md:text-2xl">📚 Учебные годы</h2>
+            <Button asChild variant="outline" size="sm">
+              <Link href={RoutePath.grades.academicYears(gradeId)}>
+                Управление годами
+              </Link>
+            </Button>
+          </div>
           {academicYears.length === 0 ? (
             <div className="rounded-lg border bg-card p-6 text-center text-sm text-muted-foreground">
               Нет учебных годов. Создайте первый учебный год для начала работы.
