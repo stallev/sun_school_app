@@ -41,6 +41,7 @@
 5. Используй Context7 для получения актуальной документации Next.js 15.5.9 deployment
 6. Используй Context7 для получения актуальной документации Lighthouse и Core Web Vitals
 7. Следуй принципам из `docs/guidelines/prompts/general_prompt_guidelines.md`
+8. **При написании программного кода руководствуйся требованиями из документов каталогов `docs/guidelines/nextjs/` и `docs/guidelines/react/`**
 
 <CONSTRAINT>Перед деплоем необходимо проверить совместимость Next.js 15.5.9 с AWS Amplify Hosting. Все тесты должны быть пройдены успешно. Производительность должна соответствовать требованиям MVP. Деплой должен быть настроен правильно для стабильной работы в production.</CONSTRAINT>
 </critical_instructions>

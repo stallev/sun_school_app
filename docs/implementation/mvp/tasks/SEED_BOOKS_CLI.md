@@ -233,7 +233,7 @@ AWS CLI не имеет прямой команды для GraphQL mutations, н
 
 - `scripts/seed-books-cli.ts` - основной скрипт
 - `scripts/seed-books-data.ts` - данные всех 66 книг Библии
-- `actions/books.ts` - Server Action для seed (альтернативный способ)
+- `src/actions/books.ts` - Server Action для seed (альтернативный способ)
 - `src/amplifyconfiguration.json` - конфигурация Amplify
 - `src/graphql/mutations.ts` - GraphQL mutations
 
