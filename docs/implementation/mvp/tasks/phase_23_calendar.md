@@ -87,6 +87,7 @@ Phase 13: Управление уроками (Lessons)
 
 **Документация:**
 - <CRITICAL>[MVP_SCOPE.md](../../../MVP_SCOPE.md) - раздел 2.8 Расписание группы</CRITICAL>
+- [GRAPHQL_SCHEMA_OPTIMIZATION_ROADMAP.md](../../GRAPHQL_SCHEMA_OPTIMIZATION_ROADMAP.md) - оптимизация запросов
 - <CRITICAL>react-day-picker официальная документация (через Context7)</CRITICAL>
 - Context7: Shadcn UI Calendar документация (если используется)
 
@@ -146,7 +147,18 @@ Phase 13: Управление уроками (Lessons)
 - ⚠️ **Важно:** Для получения связанных данных (группа, урок) используй queries через индексы, а не прямые связи `@belongsTo` и `@hasMany`. См. [SCHEMA_DIFFERENCES.md](../../../database/SCHEMA_DIFFERENCES.md)
 - <CRITICAL>[VALIDATION.md](../../../api/VALIDATION.md) - раздел Grade Event Schemas</CRITICAL>
 - <CRITICAL>[MVP_SCOPE.md](../../../MVP_SCOPE.md) - раздел 2.8.2 Управление событиями</CRITICAL>
+- [GRAPHQL_SCHEMA_OPTIMIZATION_ROADMAP.md](../../GRAPHQL_SCHEMA_OPTIMIZATION_ROADMAP.md) - оптимизация запросов
 - Context7: Next.js Server Actions документация
+- **Код реализации:**
+  - [src/lib/validation/gradeEvents.ts](../../../../src/lib/validation/gradeEvents.ts) - для валидации событий
+  - [src/lib/db/queries.ts](../../../../src/lib/db/queries.ts) - для получения данных уроков и событий
+  - [src/lib/db/mutations.ts](../../../../src/lib/db/mutations.ts) - для создания/обновления событий
+  - [src/lib/auth/cognito.ts](../../../../src/lib/auth/cognito.ts) - проверка прав доступа
+
+**Важно:** После реализации оптимизации GraphQL схемы:
+- Используйте getGradeWithNestedData() для получения группы с событиями
+- Grade содержит вложенные данные events через @hasMany
+- Не требуются отдельные запросы для получения событий группы
 
 **Критерии приемки:**
 - Все Server Actions созданы

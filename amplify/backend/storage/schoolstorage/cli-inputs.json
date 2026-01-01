@@ -1,0 +1,16 @@
+{
+  "resourceName": "schoolstorage",
+  "policyUUID": "9f0b9fa0",
+  "bucketName": "schoolbuc",
+  "storageAccess": "authAndGuest",
+  "guestAccess": [
+    "READ"
+  ],
+  "authAccess": [
+    "CREATE_AND_UPDATE",
+    "READ",
+    "DELETE"
+  ],
+  "triggerFunction": "NONE",
+  "groupAccess": {}
+}

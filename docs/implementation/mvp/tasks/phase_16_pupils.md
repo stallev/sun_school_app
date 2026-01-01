@@ -86,7 +86,25 @@ Phase 11: Управление группами (Grades)
 - ⚠️ **Важно:** Для получения связанных данных (проверки ДЗ, достижения, группа) используй queries через индексы, а не прямые связи `@belongsTo` и `@hasMany`. См. [SCHEMA_DIFFERENCES.md](../../../database/SCHEMA_DIFFERENCES.md)
 - <CRITICAL>[VALIDATION.md](../../../api/VALIDATION.md) - раздел Pupil Schemas</CRITICAL>
 - <CRITICAL>[MVP_SCOPE.md](../../../MVP_SCOPE.md) - раздел 2.10.2 Управление учениками</CRITICAL>
+- [GRAPHQL_SCHEMA_OPTIMIZATION_ROADMAP.md](../../GRAPHQL_SCHEMA_OPTIMIZATION_ROADMAP.md) - оптимизация запросов
 - Context7: Next.js 15.5.9 Server Actions документация
+- **Код реализации:**
+  - [src/lib/validation/pupils.ts](../../../../src/lib/validation/pupils.ts) - схемы валидации
+  - [src/lib/db/queries.ts](../../../../src/lib/db/queries.ts) - функции запросов (getPupil, listPupils)
+  - [src/lib/db/mutations.ts](../../../../src/lib/db/mutations.ts) - функции мутаций (createPupil, updatePupil, deletePupil)
+  - [src/lib/db/amplify.ts](../../../../src/lib/db/amplify.ts) - Data Access Layer (amplifyData)
+  - [src/lib/db/errors.ts](../../../../src/lib/db/errors.ts) - обработка ошибок Data Access Layer
+  - [src/lib/auth/cognito.ts](../../../../src/lib/auth/cognito.ts) - проверка прав доступа
+  - [src/graphql/queries.ts](../../../../src/graphql/queries.ts) - GraphQL запросы для учеников
+  - [src/graphql/generated/types.ts](../../../../src/graphql/generated/types.ts) - TypeScript типы из GraphQL схемы
+  - [src/lib/validation/common.ts](../../../../src/lib/validation/common.ts) - общие схемы валидации
+  - [src/lib/validation/utils.ts](../../../../src/lib/validation/utils.ts) - утилиты для работы с валидацией
+
+**Важно:** После реализации оптимизации GraphQL схемы:
+- Используйте getPupilWithNestedData() для получения ученика со всеми связанными данными
+- Pupil содержит вложенные данные: homeworkChecks (с lesson), achievements (с achievement), families (с family)
+- HomeworkCheck содержит вложенные данные pupil благодаря @belongsTo
+- Не требуются отдельные запросы для получения связанных данных
 
 **Критерии приемки:**
 - Все Server Actions созданы
@@ -140,7 +158,11 @@ Phase 11: Управление группами (Grades)
 - <CRITICAL>[WIREFRAMES.md](../../../ui_ux/WIREFRAMES.md) - раздел Pupils List</CRITICAL>
 - [USER_FLOW.md](../../../user_flows/USER_FLOW.md) - раздел Admin flows
 - [ADMIN_FLOWS.md](../../../user_flows/ADMIN_FLOWS.md) - раздел 4.1 Создание нового ученика
+- [Loading Patterns Guidelines](../../../guidelines/nextjs/ai_loading_patterns.md) - guidelines for loading states and skeleton components
 - Context7: Next.js 15.5.9 App Router документация
+- **Код реализации:**
+  - [src/lib/db/queries.ts](../../../../src/lib/db/queries.ts) - для получения данных групп
+  - [src/lib/validation/pupils.ts](../../../../src/lib/validation/pupils.ts) - для валидации форм
 
 **Критерии приемки:**
 - Страница списка создана
@@ -196,6 +218,10 @@ Phase 11: Управление группами (Grades)
 - [ADMIN_FLOWS.md](../../../user_flows/ADMIN_FLOWS.md) - раздел 4.1 Создание нового ученика
 - Context7: React Hook Form документация
 - Context7: Zod документация
+- **Код реализации:**
+  - [src/lib/validation/pupils.ts](../../../../src/lib/validation/pupils.ts) - схемы валидации для форм
+  - [src/lib/validation/common.ts](../../../../src/lib/validation/common.ts) - общие схемы валидации
+  - [src/lib/validation/utils.ts](../../../../src/lib/validation/utils.ts) - утилиты для работы с валидацией
 
 **Критерии приемки:**
 - Форма создана и работает

@@ -14,9 +14,9 @@ This master plan provides a comprehensive overview of all technical documentatio
 
 ### Current Status
 
-- **Total Planned Documents:** 59+ (21 core + 26 implementation + 8 guidelines + 2 user flows + 1 infrastructure + 1 analytics)
-- **Completed Documents:** 59 (99%)
-- **Must-have Documents:** 45/45 (100% ✅ COMPLETE) (11 core + 26 implementation + 8 guidelines)
+- **Total Planned Documents:** 60+ (21 core + 26 implementation + 9 guidelines + 2 user flows + 1 infrastructure + 1 analytics)
+- **Completed Documents:** 60 (100%)
+- **Must-have Documents:** 46/46 (100% ✅ COMPLETE) (11 core + 26 implementation + 9 guidelines)
 - **Should-have Documents:** 7/7 (100% ✅ COMPLETE)
 - **Could-have Documents:** 7/7+ (100% ✅ COMPLETE) (включая ANALYTICS.md - Post-MVP функционал)
 
@@ -68,7 +68,8 @@ This master plan serves as:
 | 52 | ai_drag_drop_guidelines.md | Guidelines | Must-have | ✅ | docs/guidelines/react/ |
 | 53 | ai_zustand_store_nextjs_guideline.md | Guidelines | Must-have | ✅ | docs/guidelines/react/ |
 | 54 | ai_bundle_analyze_steps.md | Guidelines | Must-have | ✅ | docs/guidelines/nextjs/ |
-| 55 | general_prompt_guidelines.md | Guidelines | Must-have | ✅ | docs/guidelines/prompts/ |
+| 55 | ai_isr_optimization_guidelines.md | Guidelines | Must-have | ✅ | docs/guidelines/nextjs/ |
+| 56 | general_prompt_guidelines.md | Guidelines | Must-have | ✅ | docs/guidelines/prompts/ |
 
 ---
 
@@ -159,7 +160,9 @@ docs/
 │
 ├── guidelines/ ✅
 │   ├── nextjs/
-│   │   └── ai_bundle_analyze_steps.md ✅
+│   │   ├── README.md ✅
+│   │   ├── ai_bundle_analyze_steps.md ✅
+│   │   └── ai_isr_optimization_guidelines.md ✅
 │   ├── prompts/
 │   │   └── general_prompt_guidelines.md ✅
 │   └── react/
@@ -806,7 +809,7 @@ All **Must-have** and **Should-have** documents are now complete. All **Could-ha
 
 ### Core Technologies (Documented)
 - ✅ **Next.js 15.5.9** - App Router, Server Components, Server Actions (ARCHITECTURE.md, COMPONENT_LIBRARY.md)
-- ✅ **React 19** - React Compiler, Server Components (COMPONENT_LIBRARY.md, DESIGN_SYSTEM.md)
+- ✅ **React 19** - Server Components (COMPONENT_LIBRARY.md, DESIGN_SYSTEM.md)
 - ✅ **AWS Amplify Gen 1** - Backend infrastructure (AWS_AMPLIFY.md)
 - ✅ **AWS AppSync** - GraphQL API (GRAPHQL_SCHEMA.md, DATA_MODELING.md)
 - ✅ **AWS DynamoDB** - NoSQL database (DYNAMODB_SCHEMA.md, DATA_MODELING.md, ERD.md)

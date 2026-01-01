@@ -86,7 +86,18 @@ Phase 13: Управление уроками (Lessons)
 - <CRITICAL>[SERVER_ACTIONS.md](../../../api/SERVER_ACTIONS.md) - раздел Golden Verses и раздел 6 "Working with Related Data via Indexes"</CRITICAL>
 - ⚠️ **Важно:** Для получения связанных данных (книга, уроки) используй queries через индексы, а не прямые связи `@belongsTo` и `@hasMany`. См. [SCHEMA_DIFFERENCES.md](../../../database/SCHEMA_DIFFERENCES.md)
 - <CRITICAL>[MVP_SCOPE.md](../../../MVP_SCOPE.md) - раздел 2.9 Библиотека золотых стихов</CRITICAL>
+- [GRAPHQL_SCHEMA_OPTIMIZATION_ROADMAP.md](../../GRAPHQL_SCHEMA_OPTIMIZATION_ROADMAP.md) - оптимизация запросов
 - Context7: Next.js 15.5.9 Server Actions документация
+- **Код реализации:**
+  - [src/lib/validation/goldenVerses.ts](../../../../src/lib/validation/goldenVerses.ts) - схемы валидации
+  - [src/lib/db/queries.ts](../../../../src/lib/db/queries.ts) - функции запросов (getGoldenVerse, listGoldenVerses)
+  - [src/lib/db/mutations.ts](../../../../src/lib/db/mutations.ts) - функции мутаций (createGoldenVerse, updateGoldenVerse)
+  - [src/lib/db/amplify.ts](../../../../src/lib/db/amplify.ts) - Data Access Layer (amplifyData)
+  - [src/lib/db/errors.ts](../../../../src/lib/db/errors.ts) - обработка ошибок Data Access Layer
+  - [src/graphql/queries.ts](../../../../src/graphql/queries.ts) - GraphQL запросы для золотых стихов
+  - [src/graphql/generated/types.ts](../../../../src/graphql/generated/types.ts) - TypeScript типы из GraphQL схемы
+  - [src/lib/validation/common.ts](../../../../src/lib/validation/common.ts) - общие схемы валидации
+  - [src/lib/validation/utils.ts](../../../../src/lib/validation/utils.ts) - утилиты для работы с валидацией
 
 **Критерии приемки:**
 - Все Server Actions созданы
@@ -388,6 +399,13 @@ Phase 13: Управление уроками (Lessons)
 
 **Документация:**
 - <CRITICAL>[MVP_SCOPE.md](../../../MVP_SCOPE.md) - раздел 2.3.1 Выбор золотых стихов</CRITICAL>
+
+**Важно:** После реализации оптимизации GraphQL схемы:
+- Используйте getLessonWithNestedData() для получения урока с золотыми стихами
+- Lesson содержит вложенные данные goldenVerses с данными goldenVerse и book
+- LessonGoldenVerse содержит вложенные данные lesson и goldenVerse благодаря @belongsTo
+- GoldenVerse содержит вложенные данные book благодаря @belongsTo
+- Не требуются отдельные запросы для получения связанных данных
 
 **Критерии приемки:**
 - Интеграция работает корректно

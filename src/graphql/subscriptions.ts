@@ -124,6 +124,10 @@ export const onCreateGrade = /* GraphQL */ `subscription OnCreateGrade($filter: 
       nextToken
       __typename
     }
+    events {
+      nextToken
+      __typename
+    }
     settings {
       id
       gradeId
@@ -169,6 +173,10 @@ export const onUpdateGrade = /* GraphQL */ `subscription OnUpdateGrade($filter: 
       __typename
     }
     pupils {
+      nextToken
+      __typename
+    }
+    events {
       nextToken
       __typename
     }
@@ -220,6 +228,10 @@ export const onDeleteGrade = /* GraphQL */ `subscription OnDeleteGrade($filter: 
       nextToken
       __typename
     }
+    events {
+      nextToken
+      __typename
+    }
     settings {
       id
       gradeId
@@ -253,6 +265,28 @@ export const onCreateUserGrade = /* GraphQL */ `subscription OnCreateUserGrade($
     id
     userId
     gradeId
+    user {
+      id
+      email
+      name
+      role
+      photo
+      active
+      createdAt
+      updatedAt
+      __typename
+    }
+    grade {
+      id
+      name
+      description
+      minAge
+      maxAge
+      active
+      createdAt
+      updatedAt
+      __typename
+    }
     assignedAt
     createdAt
     updatedAt
@@ -268,6 +302,28 @@ export const onUpdateUserGrade = /* GraphQL */ `subscription OnUpdateUserGrade($
     id
     userId
     gradeId
+    user {
+      id
+      email
+      name
+      role
+      photo
+      active
+      createdAt
+      updatedAt
+      __typename
+    }
+    grade {
+      id
+      name
+      description
+      minAge
+      maxAge
+      active
+      createdAt
+      updatedAt
+      __typename
+    }
     assignedAt
     createdAt
     updatedAt
@@ -283,6 +339,28 @@ export const onDeleteUserGrade = /* GraphQL */ `subscription OnDeleteUserGrade($
     id
     userId
     gradeId
+    user {
+      id
+      email
+      name
+      role
+      photo
+      active
+      createdAt
+      updatedAt
+      __typename
+    }
+    grade {
+      id
+      name
+      description
+      minAge
+      maxAge
+      active
+      createdAt
+      updatedAt
+      __typename
+    }
     assignedAt
     createdAt
     updatedAt
@@ -372,6 +450,18 @@ export const onCreateLesson = /* GraphQL */ `subscription OnCreateLesson($filter
     content
     lessonDate
     order
+    homeworkChecks {
+      nextToken
+      __typename
+    }
+    goldenVerses {
+      nextToken
+      __typename
+    }
+    files {
+      nextToken
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -391,6 +481,18 @@ export const onUpdateLesson = /* GraphQL */ `subscription OnUpdateLesson($filter
     content
     lessonDate
     order
+    homeworkChecks {
+      nextToken
+      __typename
+    }
+    goldenVerses {
+      nextToken
+      __typename
+    }
+    files {
+      nextToken
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -410,6 +512,18 @@ export const onDeleteLesson = /* GraphQL */ `subscription OnDeleteLesson($filter
     content
     lessonDate
     order
+    homeworkChecks {
+      nextToken
+      __typename
+    }
+    goldenVerses {
+      nextToken
+      __typename
+    }
+    files {
+      nextToken
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -418,6 +532,114 @@ export const onDeleteLesson = /* GraphQL */ `subscription OnDeleteLesson($filter
 ` as GeneratedSubscription<
   APITypes.OnDeleteLessonSubscriptionVariables,
   APITypes.OnDeleteLessonSubscription
+>;
+export const onCreateLessonFile = /* GraphQL */ `subscription OnCreateLessonFile(
+  $filter: ModelSubscriptionLessonFileFilterInput
+) {
+  onCreateLessonFile(filter: $filter) {
+    id
+    lessonId
+    fileName
+    fileType
+    mimeType
+    fileSize
+    s3Key
+    s3Url
+    order
+    description
+    lesson {
+      id
+      academicYearId
+      gradeId
+      teacherId
+      title
+      content
+      lessonDate
+      order
+      createdAt
+      updatedAt
+      __typename
+    }
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+` as GeneratedSubscription<
+  APITypes.OnCreateLessonFileSubscriptionVariables,
+  APITypes.OnCreateLessonFileSubscription
+>;
+export const onUpdateLessonFile = /* GraphQL */ `subscription OnUpdateLessonFile(
+  $filter: ModelSubscriptionLessonFileFilterInput
+) {
+  onUpdateLessonFile(filter: $filter) {
+    id
+    lessonId
+    fileName
+    fileType
+    mimeType
+    fileSize
+    s3Key
+    s3Url
+    order
+    description
+    lesson {
+      id
+      academicYearId
+      gradeId
+      teacherId
+      title
+      content
+      lessonDate
+      order
+      createdAt
+      updatedAt
+      __typename
+    }
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+` as GeneratedSubscription<
+  APITypes.OnUpdateLessonFileSubscriptionVariables,
+  APITypes.OnUpdateLessonFileSubscription
+>;
+export const onDeleteLessonFile = /* GraphQL */ `subscription OnDeleteLessonFile(
+  $filter: ModelSubscriptionLessonFileFilterInput
+) {
+  onDeleteLessonFile(filter: $filter) {
+    id
+    lessonId
+    fileName
+    fileType
+    mimeType
+    fileSize
+    s3Key
+    s3Url
+    order
+    description
+    lesson {
+      id
+      academicYearId
+      gradeId
+      teacherId
+      title
+      content
+      lessonDate
+      order
+      createdAt
+      updatedAt
+      __typename
+    }
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+` as GeneratedSubscription<
+  APITypes.OnDeleteLessonFileSubscriptionVariables,
+  APITypes.OnDeleteLessonFileSubscription
 >;
 export const onCreateBook = /* GraphQL */ `subscription OnCreateBook($filter: ModelSubscriptionBookFilterInput) {
   onCreateBook(filter: $filter) {
@@ -493,6 +715,21 @@ export const onCreateGoldenVerse = /* GraphQL */ `subscription OnCreateGoldenVer
     verseStart
     verseEnd
     text
+    book {
+      id
+      fullName
+      shortName
+      abbreviation
+      testament
+      order
+      createdAt
+      updatedAt
+      __typename
+    }
+    lessons {
+      nextToken
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -513,6 +750,21 @@ export const onUpdateGoldenVerse = /* GraphQL */ `subscription OnUpdateGoldenVer
     verseStart
     verseEnd
     text
+    book {
+      id
+      fullName
+      shortName
+      abbreviation
+      testament
+      order
+      createdAt
+      updatedAt
+      __typename
+    }
+    lessons {
+      nextToken
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -533,6 +785,21 @@ export const onDeleteGoldenVerse = /* GraphQL */ `subscription OnDeleteGoldenVer
     verseStart
     verseEnd
     text
+    book {
+      id
+      fullName
+      shortName
+      abbreviation
+      testament
+      order
+      createdAt
+      updatedAt
+      __typename
+    }
+    lessons {
+      nextToken
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -550,6 +817,31 @@ export const onCreateLessonGoldenVerse = /* GraphQL */ `subscription OnCreateLes
     lessonId
     goldenVerseId
     order
+    lesson {
+      id
+      academicYearId
+      gradeId
+      teacherId
+      title
+      content
+      lessonDate
+      order
+      createdAt
+      updatedAt
+      __typename
+    }
+    goldenVerse {
+      id
+      reference
+      bookId
+      chapter
+      verseStart
+      verseEnd
+      text
+      createdAt
+      updatedAt
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -567,6 +859,31 @@ export const onUpdateLessonGoldenVerse = /* GraphQL */ `subscription OnUpdateLes
     lessonId
     goldenVerseId
     order
+    lesson {
+      id
+      academicYearId
+      gradeId
+      teacherId
+      title
+      content
+      lessonDate
+      order
+      createdAt
+      updatedAt
+      __typename
+    }
+    goldenVerse {
+      id
+      reference
+      bookId
+      chapter
+      verseStart
+      verseEnd
+      text
+      createdAt
+      updatedAt
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -584,6 +901,31 @@ export const onDeleteLessonGoldenVerse = /* GraphQL */ `subscription OnDeleteLes
     lessonId
     goldenVerseId
     order
+    lesson {
+      id
+      academicYearId
+      gradeId
+      teacherId
+      title
+      content
+      lessonDate
+      order
+      createdAt
+      updatedAt
+      __typename
+    }
+    goldenVerse {
+      id
+      reference
+      bookId
+      chapter
+      verseStart
+      verseEnd
+      text
+      createdAt
+      updatedAt
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -604,6 +946,18 @@ export const onCreatePupil = /* GraphQL */ `subscription OnCreatePupil($filter: 
     photo
     active
     families {
+      nextToken
+      __typename
+    }
+    homeworkChecks {
+      nextToken
+      __typename
+    }
+    achievements {
+      nextToken
+      __typename
+    }
+    bricksIssues {
       nextToken
       __typename
     }
@@ -630,6 +984,18 @@ export const onUpdatePupil = /* GraphQL */ `subscription OnUpdatePupil($filter: 
       nextToken
       __typename
     }
+    homeworkChecks {
+      nextToken
+      __typename
+    }
+    achievements {
+      nextToken
+      __typename
+    }
+    bricksIssues {
+      nextToken
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -650,6 +1016,18 @@ export const onDeletePupil = /* GraphQL */ `subscription OnDeletePupil($filter: 
     photo
     active
     families {
+      nextToken
+      __typename
+    }
+    homeworkChecks {
+      nextToken
+      __typename
+    }
+    achievements {
+      nextToken
+      __typename
+    }
+    bricksIssues {
       nextToken
       __typename
     }
@@ -677,6 +1055,32 @@ export const onCreateHomeworkCheck = /* GraphQL */ `subscription OnCreateHomewor
     notebookScore
     singing
     points
+    lesson {
+      id
+      academicYearId
+      gradeId
+      teacherId
+      title
+      content
+      lessonDate
+      order
+      createdAt
+      updatedAt
+      __typename
+    }
+    pupil {
+      id
+      gradeId
+      firstName
+      lastName
+      middleName
+      dateOfBirth
+      photo
+      active
+      createdAt
+      updatedAt
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -701,6 +1105,32 @@ export const onUpdateHomeworkCheck = /* GraphQL */ `subscription OnUpdateHomewor
     notebookScore
     singing
     points
+    lesson {
+      id
+      academicYearId
+      gradeId
+      teacherId
+      title
+      content
+      lessonDate
+      order
+      createdAt
+      updatedAt
+      __typename
+    }
+    pupil {
+      id
+      gradeId
+      firstName
+      lastName
+      middleName
+      dateOfBirth
+      photo
+      active
+      createdAt
+      updatedAt
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -725,6 +1155,32 @@ export const onDeleteHomeworkCheck = /* GraphQL */ `subscription OnDeleteHomewor
     notebookScore
     singing
     points
+    lesson {
+      id
+      academicYearId
+      gradeId
+      teacherId
+      title
+      content
+      lessonDate
+      order
+      createdAt
+      updatedAt
+      __typename
+    }
+    pupil {
+      id
+      gradeId
+      firstName
+      lastName
+      middleName
+      dateOfBirth
+      photo
+      active
+      createdAt
+      updatedAt
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -743,6 +1199,10 @@ export const onCreateAchievement = /* GraphQL */ `subscription OnCreateAchieveme
     description
     icon
     criteria
+    pupils {
+      nextToken
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -761,6 +1221,10 @@ export const onUpdateAchievement = /* GraphQL */ `subscription OnUpdateAchieveme
     description
     icon
     criteria
+    pupils {
+      nextToken
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -779,6 +1243,10 @@ export const onDeleteAchievement = /* GraphQL */ `subscription OnDeleteAchieveme
     description
     icon
     criteria
+    pupils {
+      nextToken
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -796,6 +1264,29 @@ export const onCreatePupilAchievement = /* GraphQL */ `subscription OnCreatePupi
     pupilId
     achievementId
     awardedAt
+    pupil {
+      id
+      gradeId
+      firstName
+      lastName
+      middleName
+      dateOfBirth
+      photo
+      active
+      createdAt
+      updatedAt
+      __typename
+    }
+    achievement {
+      id
+      name
+      description
+      icon
+      criteria
+      createdAt
+      updatedAt
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -813,6 +1304,29 @@ export const onUpdatePupilAchievement = /* GraphQL */ `subscription OnUpdatePupi
     pupilId
     achievementId
     awardedAt
+    pupil {
+      id
+      gradeId
+      firstName
+      lastName
+      middleName
+      dateOfBirth
+      photo
+      active
+      createdAt
+      updatedAt
+      __typename
+    }
+    achievement {
+      id
+      name
+      description
+      icon
+      criteria
+      createdAt
+      updatedAt
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -830,6 +1344,29 @@ export const onDeletePupilAchievement = /* GraphQL */ `subscription OnDeletePupi
     pupilId
     achievementId
     awardedAt
+    pupil {
+      id
+      gradeId
+      firstName
+      lastName
+      middleName
+      dateOfBirth
+      photo
+      active
+      createdAt
+      updatedAt
+      __typename
+    }
+    achievement {
+      id
+      name
+      description
+      icon
+      criteria
+      createdAt
+      updatedAt
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -838,6 +1375,105 @@ export const onDeletePupilAchievement = /* GraphQL */ `subscription OnDeletePupi
 ` as GeneratedSubscription<
   APITypes.OnDeletePupilAchievementSubscriptionVariables,
   APITypes.OnDeletePupilAchievementSubscription
+>;
+export const onCreateBricksIssue = /* GraphQL */ `subscription OnCreateBricksIssue(
+  $filter: ModelSubscriptionBricksIssueFilterInput
+) {
+  onCreateBricksIssue(filter: $filter) {
+    id
+    pupilId
+    academicYearId
+    gradeId
+    quantity
+    issuedAt
+    issuedBy
+    pupil {
+      id
+      gradeId
+      firstName
+      lastName
+      middleName
+      dateOfBirth
+      photo
+      active
+      createdAt
+      updatedAt
+      __typename
+    }
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+` as GeneratedSubscription<
+  APITypes.OnCreateBricksIssueSubscriptionVariables,
+  APITypes.OnCreateBricksIssueSubscription
+>;
+export const onUpdateBricksIssue = /* GraphQL */ `subscription OnUpdateBricksIssue(
+  $filter: ModelSubscriptionBricksIssueFilterInput
+) {
+  onUpdateBricksIssue(filter: $filter) {
+    id
+    pupilId
+    academicYearId
+    gradeId
+    quantity
+    issuedAt
+    issuedBy
+    pupil {
+      id
+      gradeId
+      firstName
+      lastName
+      middleName
+      dateOfBirth
+      photo
+      active
+      createdAt
+      updatedAt
+      __typename
+    }
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+` as GeneratedSubscription<
+  APITypes.OnUpdateBricksIssueSubscriptionVariables,
+  APITypes.OnUpdateBricksIssueSubscription
+>;
+export const onDeleteBricksIssue = /* GraphQL */ `subscription OnDeleteBricksIssue(
+  $filter: ModelSubscriptionBricksIssueFilterInput
+) {
+  onDeleteBricksIssue(filter: $filter) {
+    id
+    pupilId
+    academicYearId
+    gradeId
+    quantity
+    issuedAt
+    issuedBy
+    pupil {
+      id
+      gradeId
+      firstName
+      lastName
+      middleName
+      dateOfBirth
+      photo
+      active
+      createdAt
+      updatedAt
+      __typename
+    }
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+` as GeneratedSubscription<
+  APITypes.OnDeleteBricksIssueSubscriptionVariables,
+  APITypes.OnDeleteBricksIssueSubscription
 >;
 export const onCreateFamily = /* GraphQL */ `subscription OnCreateFamily($filter: ModelSubscriptionFamilyFilterInput) {
   onCreateFamily(filter: $filter) {
@@ -942,6 +1578,37 @@ export const onCreateFamilyMember = /* GraphQL */ `subscription OnCreateFamilyMe
     id
     familyId
     pupilId
+    family {
+      id
+      name
+      phone
+      email
+      address
+      motherFirstName
+      motherLastName
+      motherMiddleName
+      motherPhone
+      fatherFirstName
+      fatherLastName
+      fatherMiddleName
+      fatherPhone
+      createdAt
+      updatedAt
+      __typename
+    }
+    pupil {
+      id
+      gradeId
+      firstName
+      lastName
+      middleName
+      dateOfBirth
+      photo
+      active
+      createdAt
+      updatedAt
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -958,6 +1625,37 @@ export const onUpdateFamilyMember = /* GraphQL */ `subscription OnUpdateFamilyMe
     id
     familyId
     pupilId
+    family {
+      id
+      name
+      phone
+      email
+      address
+      motherFirstName
+      motherLastName
+      motherMiddleName
+      motherPhone
+      fatherFirstName
+      fatherLastName
+      fatherMiddleName
+      fatherPhone
+      createdAt
+      updatedAt
+      __typename
+    }
+    pupil {
+      id
+      gradeId
+      firstName
+      lastName
+      middleName
+      dateOfBirth
+      photo
+      active
+      createdAt
+      updatedAt
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -974,6 +1672,37 @@ export const onDeleteFamilyMember = /* GraphQL */ `subscription OnDeleteFamilyMe
     id
     familyId
     pupilId
+    family {
+      id
+      name
+      phone
+      email
+      address
+      motherFirstName
+      motherLastName
+      motherMiddleName
+      motherPhone
+      fatherFirstName
+      fatherLastName
+      fatherMiddleName
+      fatherPhone
+      createdAt
+      updatedAt
+      __typename
+    }
+    pupil {
+      id
+      gradeId
+      firstName
+      lastName
+      middleName
+      dateOfBirth
+      photo
+      active
+      createdAt
+      updatedAt
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -992,6 +1721,35 @@ export const onCreateUserFamily = /* GraphQL */ `subscription OnCreateUserFamily
     userId
     familyId
     phone
+    user {
+      id
+      email
+      name
+      role
+      photo
+      active
+      createdAt
+      updatedAt
+      __typename
+    }
+    family {
+      id
+      name
+      phone
+      email
+      address
+      motherFirstName
+      motherLastName
+      motherMiddleName
+      motherPhone
+      fatherFirstName
+      fatherLastName
+      fatherMiddleName
+      fatherPhone
+      createdAt
+      updatedAt
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -1010,6 +1768,35 @@ export const onUpdateUserFamily = /* GraphQL */ `subscription OnUpdateUserFamily
     userId
     familyId
     phone
+    user {
+      id
+      email
+      name
+      role
+      photo
+      active
+      createdAt
+      updatedAt
+      __typename
+    }
+    family {
+      id
+      name
+      phone
+      email
+      address
+      motherFirstName
+      motherLastName
+      motherMiddleName
+      motherPhone
+      fatherFirstName
+      fatherLastName
+      fatherMiddleName
+      fatherPhone
+      createdAt
+      updatedAt
+      __typename
+    }
     createdAt
     updatedAt
     __typename
@@ -1028,6 +1815,35 @@ export const onDeleteUserFamily = /* GraphQL */ `subscription OnDeleteUserFamily
     userId
     familyId
     phone
+    user {
+      id
+      email
+      name
+      role
+      photo
+      active
+      createdAt
+      updatedAt
+      __typename
+    }
+    family {
+      id
+      name
+      phone
+      email
+      address
+      motherFirstName
+      motherLastName
+      motherMiddleName
+      motherPhone
+      fatherFirstName
+      fatherLastName
+      fatherMiddleName
+      fatherPhone
+      createdAt
+      updatedAt
+      __typename
+    }
     createdAt
     updatedAt
     __typename

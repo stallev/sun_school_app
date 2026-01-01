@@ -114,10 +114,54 @@ export type UserGrade = {
   id: string,
   userId: string,
   gradeId: string,
+  user?: User | null,
+  grade?: Grade | null,
   assignedAt: string,
   createdAt: string,
   updatedAt: string,
 };
+
+export type Grade = {
+  __typename: "Grade",
+  id: string,
+  name: string,
+  description?: string | null,
+  minAge?: number | null,
+  maxAge?: number | null,
+  active: boolean,
+  teachers?: ModelUserGradeConnection | null,
+  academicYears?: ModelAcademicYearConnection | null,
+  pupils?: ModelPupilConnection | null,
+  events?: ModelGradeEventConnection | null,
+  settings?: GradeSettings | null,
+  createdAt: string,
+  updatedAt: string,
+};
+
+export type ModelAcademicYearConnection = {
+  __typename: "ModelAcademicYearConnection",
+  items:  Array<AcademicYear | null >,
+  nextToken?: string | null,
+};
+
+export type AcademicYear = {
+  __typename: "AcademicYear",
+  id: string,
+  gradeId: string,
+  name: string,
+  startDate: string,
+  endDate: string,
+  status: AcademicYearStatus,
+  lessons?: ModelLessonConnection | null,
+  createdAt: string,
+  updatedAt: string,
+};
+
+export enum AcademicYearStatus {
+  ACTIVE = "ACTIVE",
+  FINISHED = "FINISHED",
+}
+
 
 export type ModelLessonConnection = {
   __typename: "ModelLessonConnection",
@@ -135,6 +179,90 @@ export type Lesson = {
   content?: string | null,
   lessonDate: string,
   order: number,
+  homeworkChecks?: ModelHomeworkCheckConnection | null,
+  goldenVerses?: ModelLessonGoldenVerseConnection | null,
+  files?: ModelLessonFileConnection | null,
+  createdAt: string,
+  updatedAt: string,
+};
+
+export type ModelHomeworkCheckConnection = {
+  __typename: "ModelHomeworkCheckConnection",
+  items:  Array<HomeworkCheck | null >,
+  nextToken?: string | null,
+};
+
+export type HomeworkCheck = {
+  __typename: "HomeworkCheck",
+  id: string,
+  lessonId: string,
+  pupilId: string,
+  gradeId: string,
+  goldenVerse1Score?: number | null,
+  goldenVerse2Score?: number | null,
+  goldenVerse3Score?: number | null,
+  testScore?: number | null,
+  notebookScore?: number | null,
+  singing: boolean,
+  points: number,
+  lesson?: Lesson | null,
+  pupil?: Pupil | null,
+  createdAt: string,
+  updatedAt: string,
+};
+
+export type Pupil = {
+  __typename: "Pupil",
+  id: string,
+  gradeId: string,
+  firstName: string,
+  lastName: string,
+  middleName?: string | null,
+  dateOfBirth: string,
+  photo?: string | null,
+  active: boolean,
+  families?: ModelFamilyMemberConnection | null,
+  homeworkChecks?: ModelHomeworkCheckConnection | null,
+  achievements?: ModelPupilAchievementConnection | null,
+  bricksIssues?: ModelBricksIssueConnection | null,
+  createdAt: string,
+  updatedAt: string,
+};
+
+export type ModelFamilyMemberConnection = {
+  __typename: "ModelFamilyMemberConnection",
+  items:  Array<FamilyMember | null >,
+  nextToken?: string | null,
+};
+
+export type FamilyMember = {
+  __typename: "FamilyMember",
+  id: string,
+  familyId: string,
+  pupilId: string,
+  family?: Family | null,
+  pupil?: Pupil | null,
+  createdAt: string,
+  updatedAt: string,
+};
+
+export type Family = {
+  __typename: "Family",
+  id: string,
+  name: string,
+  phone?: string | null,
+  email?: string | null,
+  address?: string | null,
+  motherFirstName?: string | null,
+  motherLastName?: string | null,
+  motherMiddleName?: string | null,
+  motherPhone?: string | null,
+  fatherFirstName?: string | null,
+  fatherLastName?: string | null,
+  fatherMiddleName?: string | null,
+  fatherPhone?: string | null,
+  members?: ModelFamilyMemberConnection | null,
+  userFamilies?: ModelUserFamilyConnection | null,
   createdAt: string,
   updatedAt: string,
 };
@@ -151,6 +279,184 @@ export type UserFamily = {
   userId: string,
   familyId: string,
   phone: string,
+  user?: User | null,
+  family?: Family | null,
+  createdAt: string,
+  updatedAt: string,
+};
+
+export type ModelPupilAchievementConnection = {
+  __typename: "ModelPupilAchievementConnection",
+  items:  Array<PupilAchievement | null >,
+  nextToken?: string | null,
+};
+
+export type PupilAchievement = {
+  __typename: "PupilAchievement",
+  id: string,
+  pupilId: string,
+  achievementId: string,
+  awardedAt: string,
+  pupil?: Pupil | null,
+  achievement?: Achievement | null,
+  createdAt: string,
+  updatedAt: string,
+};
+
+export type Achievement = {
+  __typename: "Achievement",
+  id: string,
+  name: string,
+  description: string,
+  icon?: string | null,
+  criteria: string,
+  pupils?: ModelPupilAchievementConnection | null,
+  createdAt: string,
+  updatedAt: string,
+};
+
+export type ModelBricksIssueConnection = {
+  __typename: "ModelBricksIssueConnection",
+  items:  Array<BricksIssue | null >,
+  nextToken?: string | null,
+};
+
+export type BricksIssue = {
+  __typename: "BricksIssue",
+  id: string,
+  pupilId: string,
+  academicYearId: string,
+  gradeId: string,
+  quantity: number,
+  issuedAt: string,
+  issuedBy: string,
+  pupil?: Pupil | null,
+  createdAt: string,
+  updatedAt: string,
+};
+
+export type ModelLessonGoldenVerseConnection = {
+  __typename: "ModelLessonGoldenVerseConnection",
+  items:  Array<LessonGoldenVerse | null >,
+  nextToken?: string | null,
+};
+
+export type LessonGoldenVerse = {
+  __typename: "LessonGoldenVerse",
+  id: string,
+  lessonId: string,
+  goldenVerseId: string,
+  order: number,
+  lesson?: Lesson | null,
+  goldenVerse?: GoldenVerse | null,
+  createdAt: string,
+  updatedAt: string,
+};
+
+export type GoldenVerse = {
+  __typename: "GoldenVerse",
+  id: string,
+  reference: string,
+  bookId: string,
+  chapter: number,
+  verseStart: number,
+  verseEnd?: number | null,
+  text: string,
+  book?: Book | null,
+  lessons?: ModelLessonGoldenVerseConnection | null,
+  createdAt: string,
+  updatedAt: string,
+};
+
+export type Book = {
+  __typename: "Book",
+  id: string,
+  fullName: string,
+  shortName: string,
+  abbreviation: string,
+  testament: string,
+  order: number,
+  goldenVerses?: ModelGoldenVerseConnection | null,
+  createdAt: string,
+  updatedAt: string,
+};
+
+export type ModelGoldenVerseConnection = {
+  __typename: "ModelGoldenVerseConnection",
+  items:  Array<GoldenVerse | null >,
+  nextToken?: string | null,
+};
+
+export type ModelLessonFileConnection = {
+  __typename: "ModelLessonFileConnection",
+  items:  Array<LessonFile | null >,
+  nextToken?: string | null,
+};
+
+export type LessonFile = {
+  __typename: "LessonFile",
+  id: string,
+  lessonId: string,
+  fileName: string,
+  fileType: string,
+  mimeType: string,
+  fileSize: number,
+  s3Key: string,
+  s3Url: string,
+  order: number,
+  description?: string | null,
+  lesson?: Lesson | null,
+  createdAt: string,
+  updatedAt: string,
+};
+
+export type ModelPupilConnection = {
+  __typename: "ModelPupilConnection",
+  items:  Array<Pupil | null >,
+  nextToken?: string | null,
+};
+
+export type ModelGradeEventConnection = {
+  __typename: "ModelGradeEventConnection",
+  items:  Array<GradeEvent | null >,
+  nextToken?: string | null,
+};
+
+export type GradeEvent = {
+  __typename: "GradeEvent",
+  id: string,
+  gradeId: string,
+  eventType: GradeEventType,
+  title: string,
+  description?: string | null,
+  eventDate: string,
+  createdAt: string,
+  updatedAt: string,
+};
+
+export enum GradeEventType {
+  LESSON = "LESSON",
+  OUTDOOR_EVENT = "OUTDOOR_EVENT",
+  LESSON_SKIPPING = "LESSON_SKIPPING",
+}
+
+
+export type GradeSettings = {
+  __typename: "GradeSettings",
+  id: string,
+  gradeId: string,
+  enableGoldenVerse: boolean,
+  enableTest: boolean,
+  enableNotebook: boolean,
+  enableSinging: boolean,
+  pointsGoldenVerse: number,
+  pointsTest: number,
+  pointsNotebook: number,
+  pointsSinging: number,
+  labelGoldenVerse: string,
+  labelTest: string,
+  labelNotebook: string,
+  labelSinging: string,
   createdAt: string,
   updatedAt: string,
 };
@@ -204,103 +510,6 @@ export type ModelIntInput = {
   between?: Array< number | null > | null,
   attributeExists?: boolean | null,
   attributeType?: ModelAttributeTypes | null,
-};
-
-export type Grade = {
-  __typename: "Grade",
-  id: string,
-  name: string,
-  description?: string | null,
-  minAge?: number | null,
-  maxAge?: number | null,
-  active: boolean,
-  teachers?: ModelUserGradeConnection | null,
-  academicYears?: ModelAcademicYearConnection | null,
-  pupils?: ModelPupilConnection | null,
-  settings?: GradeSettings | null,
-  createdAt: string,
-  updatedAt: string,
-};
-
-export type ModelAcademicYearConnection = {
-  __typename: "ModelAcademicYearConnection",
-  items:  Array<AcademicYear | null >,
-  nextToken?: string | null,
-};
-
-export type AcademicYear = {
-  __typename: "AcademicYear",
-  id: string,
-  gradeId: string,
-  name: string,
-  startDate: string,
-  endDate: string,
-  status: AcademicYearStatus,
-  lessons?: ModelLessonConnection | null,
-  createdAt: string,
-  updatedAt: string,
-};
-
-export enum AcademicYearStatus {
-  ACTIVE = "ACTIVE",
-  FINISHED = "FINISHED",
-}
-
-
-export type ModelPupilConnection = {
-  __typename: "ModelPupilConnection",
-  items:  Array<Pupil | null >,
-  nextToken?: string | null,
-};
-
-export type Pupil = {
-  __typename: "Pupil",
-  id: string,
-  gradeId: string,
-  firstName: string,
-  lastName: string,
-  middleName?: string | null,
-  dateOfBirth: string,
-  photo?: string | null,
-  active: boolean,
-  families?: ModelFamilyMemberConnection | null,
-  createdAt: string,
-  updatedAt: string,
-};
-
-export type ModelFamilyMemberConnection = {
-  __typename: "ModelFamilyMemberConnection",
-  items:  Array<FamilyMember | null >,
-  nextToken?: string | null,
-};
-
-export type FamilyMember = {
-  __typename: "FamilyMember",
-  id: string,
-  familyId: string,
-  pupilId: string,
-  createdAt: string,
-  updatedAt: string,
-};
-
-export type GradeSettings = {
-  __typename: "GradeSettings",
-  id: string,
-  gradeId: string,
-  enableGoldenVerse: boolean,
-  enableTest: boolean,
-  enableNotebook: boolean,
-  enableSinging: boolean,
-  pointsGoldenVerse: number,
-  pointsTest: number,
-  pointsNotebook: number,
-  pointsSinging: number,
-  labelGoldenVerse: string,
-  labelTest: string,
-  labelNotebook: string,
-  labelSinging: string,
-  createdAt: string,
-  updatedAt: string,
 };
 
 export type UpdateGradeInput = {
@@ -454,6 +663,57 @@ export type DeleteLessonInput = {
   id: string,
 };
 
+export type CreateLessonFileInput = {
+  id?: string | null,
+  lessonId: string,
+  fileName: string,
+  fileType: string,
+  mimeType: string,
+  fileSize: number,
+  s3Key: string,
+  s3Url: string,
+  order: number,
+  description?: string | null,
+  createdAt?: string | null,
+  updatedAt?: string | null,
+};
+
+export type ModelLessonFileConditionInput = {
+  lessonId?: ModelIDInput | null,
+  fileName?: ModelStringInput | null,
+  fileType?: ModelStringInput | null,
+  mimeType?: ModelStringInput | null,
+  fileSize?: ModelIntInput | null,
+  s3Key?: ModelStringInput | null,
+  s3Url?: ModelStringInput | null,
+  order?: ModelIntInput | null,
+  description?: ModelStringInput | null,
+  createdAt?: ModelStringInput | null,
+  updatedAt?: ModelStringInput | null,
+  and?: Array< ModelLessonFileConditionInput | null > | null,
+  or?: Array< ModelLessonFileConditionInput | null > | null,
+  not?: ModelLessonFileConditionInput | null,
+};
+
+export type UpdateLessonFileInput = {
+  id: string,
+  lessonId?: string | null,
+  fileName?: string | null,
+  fileType?: string | null,
+  mimeType?: string | null,
+  fileSize?: number | null,
+  s3Key?: string | null,
+  s3Url?: string | null,
+  order?: number | null,
+  description?: string | null,
+  createdAt?: string | null,
+  updatedAt?: string | null,
+};
+
+export type DeleteLessonFileInput = {
+  id: string,
+};
+
 export type CreateBookInput = {
   id?: string | null,
   fullName: string,
@@ -476,38 +736,6 @@ export type ModelBookConditionInput = {
   and?: Array< ModelBookConditionInput | null > | null,
   or?: Array< ModelBookConditionInput | null > | null,
   not?: ModelBookConditionInput | null,
-};
-
-export type Book = {
-  __typename: "Book",
-  id: string,
-  fullName: string,
-  shortName: string,
-  abbreviation: string,
-  testament: string,
-  order: number,
-  goldenVerses?: ModelGoldenVerseConnection | null,
-  createdAt: string,
-  updatedAt: string,
-};
-
-export type ModelGoldenVerseConnection = {
-  __typename: "ModelGoldenVerseConnection",
-  items:  Array<GoldenVerse | null >,
-  nextToken?: string | null,
-};
-
-export type GoldenVerse = {
-  __typename: "GoldenVerse",
-  id: string,
-  reference: string,
-  bookId: string,
-  chapter: number,
-  verseStart: number,
-  verseEnd?: number | null,
-  text: string,
-  createdAt: string,
-  updatedAt: string,
 };
 
 export type UpdateBookInput = {
@@ -584,16 +812,6 @@ export type ModelLessonGoldenVerseConditionInput = {
   or?: Array< ModelLessonGoldenVerseConditionInput | null > | null,
   not?: ModelLessonGoldenVerseConditionInput | null,
   updatedAt?: ModelStringInput | null,
-};
-
-export type LessonGoldenVerse = {
-  __typename: "LessonGoldenVerse",
-  id: string,
-  lessonId: string,
-  goldenVerseId: string,
-  order: number,
-  createdAt: string,
-  updatedAt: string,
 };
 
 export type UpdateLessonGoldenVerseInput = {
@@ -687,23 +905,6 @@ export type ModelHomeworkCheckConditionInput = {
   not?: ModelHomeworkCheckConditionInput | null,
 };
 
-export type HomeworkCheck = {
-  __typename: "HomeworkCheck",
-  id: string,
-  lessonId: string,
-  pupilId: string,
-  gradeId: string,
-  goldenVerse1Score?: number | null,
-  goldenVerse2Score?: number | null,
-  goldenVerse3Score?: number | null,
-  testScore?: number | null,
-  notebookScore?: number | null,
-  singing: boolean,
-  points: number,
-  createdAt: string,
-  updatedAt: string,
-};
-
 export type UpdateHomeworkCheckInput = {
   id: string,
   lessonId?: string | null,
@@ -746,17 +947,6 @@ export type ModelAchievementConditionInput = {
   not?: ModelAchievementConditionInput | null,
 };
 
-export type Achievement = {
-  __typename: "Achievement",
-  id: string,
-  name: string,
-  description: string,
-  icon?: string | null,
-  criteria: string,
-  createdAt: string,
-  updatedAt: string,
-};
-
 export type UpdateAchievementInput = {
   id: string,
   name?: string | null,
@@ -790,16 +980,6 @@ export type ModelPupilAchievementConditionInput = {
   updatedAt?: ModelStringInput | null,
 };
 
-export type PupilAchievement = {
-  __typename: "PupilAchievement",
-  id: string,
-  pupilId: string,
-  achievementId: string,
-  awardedAt: string,
-  createdAt: string,
-  updatedAt: string,
-};
-
 export type UpdatePupilAchievementInput = {
   id: string,
   pupilId?: string | null,
@@ -809,6 +989,48 @@ export type UpdatePupilAchievementInput = {
 };
 
 export type DeletePupilAchievementInput = {
+  id: string,
+};
+
+export type CreateBricksIssueInput = {
+  id?: string | null,
+  pupilId: string,
+  academicYearId: string,
+  gradeId: string,
+  quantity: number,
+  issuedAt: string,
+  issuedBy: string,
+  createdAt?: string | null,
+  updatedAt?: string | null,
+};
+
+export type ModelBricksIssueConditionInput = {
+  pupilId?: ModelIDInput | null,
+  academicYearId?: ModelIDInput | null,
+  gradeId?: ModelIDInput | null,
+  quantity?: ModelIntInput | null,
+  issuedAt?: ModelStringInput | null,
+  issuedBy?: ModelIDInput | null,
+  createdAt?: ModelStringInput | null,
+  updatedAt?: ModelStringInput | null,
+  and?: Array< ModelBricksIssueConditionInput | null > | null,
+  or?: Array< ModelBricksIssueConditionInput | null > | null,
+  not?: ModelBricksIssueConditionInput | null,
+};
+
+export type UpdateBricksIssueInput = {
+  id: string,
+  pupilId?: string | null,
+  academicYearId?: string | null,
+  gradeId?: string | null,
+  quantity?: number | null,
+  issuedAt?: string | null,
+  issuedBy?: string | null,
+  createdAt?: string | null,
+  updatedAt?: string | null,
+};
+
+export type DeleteBricksIssueInput = {
   id: string,
 };
 
@@ -848,27 +1070,6 @@ export type ModelFamilyConditionInput = {
   and?: Array< ModelFamilyConditionInput | null > | null,
   or?: Array< ModelFamilyConditionInput | null > | null,
   not?: ModelFamilyConditionInput | null,
-};
-
-export type Family = {
-  __typename: "Family",
-  id: string,
-  name: string,
-  phone?: string | null,
-  email?: string | null,
-  address?: string | null,
-  motherFirstName?: string | null,
-  motherLastName?: string | null,
-  motherMiddleName?: string | null,
-  motherPhone?: string | null,
-  fatherFirstName?: string | null,
-  fatherLastName?: string | null,
-  fatherMiddleName?: string | null,
-  fatherPhone?: string | null,
-  members?: ModelFamilyMemberConnection | null,
-  userFamilies?: ModelUserFamilyConnection | null,
-  createdAt: string,
-  updatedAt: string,
 };
 
 export type UpdateFamilyInput = {
@@ -963,13 +1164,6 @@ export type CreateGradeEventInput = {
   updatedAt?: string | null,
 };
 
-export enum GradeEventType {
-  LESSON = "LESSON",
-  OUTDOOR_EVENT = "OUTDOOR_EVENT",
-  LESSON_SKIPPING = "LESSON_SKIPPING",
-}
-
-
 export type ModelGradeEventConditionInput = {
   gradeId?: ModelIDInput | null,
   eventType?: ModelGradeEventTypeInput | null,
@@ -986,18 +1180,6 @@ export type ModelGradeEventConditionInput = {
 export type ModelGradeEventTypeInput = {
   eq?: GradeEventType | null,
   ne?: GradeEventType | null,
-};
-
-export type GradeEvent = {
-  __typename: "GradeEvent",
-  id: string,
-  gradeId: string,
-  eventType: GradeEventType,
-  title: string,
-  description?: string | null,
-  eventDate: string,
-  createdAt: string,
-  updatedAt: string,
 };
 
 export type UpdateGradeEventInput = {
@@ -1218,12 +1400,6 @@ export type ModelHomeworkCheckFilterInput = {
   not?: ModelHomeworkCheckFilterInput | null,
 };
 
-export type ModelHomeworkCheckConnection = {
-  __typename: "ModelHomeworkCheckConnection",
-  items:  Array<HomeworkCheck | null >,
-  nextToken?: string | null,
-};
-
 export type ModelAchievementFilterInput = {
   id?: ModelIDInput | null,
   name?: ModelStringInput | null,
@@ -1241,6 +1417,21 @@ export type ModelAchievementConnection = {
   __typename: "ModelAchievementConnection",
   items:  Array<Achievement | null >,
   nextToken?: string | null,
+};
+
+export type ModelBricksIssueFilterInput = {
+  id?: ModelIDInput | null,
+  pupilId?: ModelIDInput | null,
+  academicYearId?: ModelIDInput | null,
+  gradeId?: ModelIDInput | null,
+  quantity?: ModelIntInput | null,
+  issuedAt?: ModelStringInput | null,
+  issuedBy?: ModelIDInput | null,
+  createdAt?: ModelStringInput | null,
+  updatedAt?: ModelStringInput | null,
+  and?: Array< ModelBricksIssueFilterInput | null > | null,
+  or?: Array< ModelBricksIssueFilterInput | null > | null,
+  not?: ModelBricksIssueFilterInput | null,
 };
 
 export type ModelFamilyFilterInput = {
@@ -1282,12 +1473,6 @@ export type ModelGradeEventFilterInput = {
   and?: Array< ModelGradeEventFilterInput | null > | null,
   or?: Array< ModelGradeEventFilterInput | null > | null,
   not?: ModelGradeEventFilterInput | null,
-};
-
-export type ModelGradeEventConnection = {
-  __typename: "ModelGradeEventConnection",
-  items:  Array<GradeEvent | null >,
-  nextToken?: string | null,
 };
 
 export type ModelGradeSettingsFilterInput = {
@@ -1364,6 +1549,24 @@ export type ModelIntKeyConditionInput = {
   between?: Array< number | null > | null,
 };
 
+export type ModelLessonFileFilterInput = {
+  id?: ModelIDInput | null,
+  lessonId?: ModelIDInput | null,
+  fileName?: ModelStringInput | null,
+  fileType?: ModelStringInput | null,
+  mimeType?: ModelStringInput | null,
+  fileSize?: ModelIntInput | null,
+  s3Key?: ModelStringInput | null,
+  s3Url?: ModelStringInput | null,
+  order?: ModelIntInput | null,
+  description?: ModelStringInput | null,
+  createdAt?: ModelStringInput | null,
+  updatedAt?: ModelStringInput | null,
+  and?: Array< ModelLessonFileFilterInput | null > | null,
+  or?: Array< ModelLessonFileFilterInput | null > | null,
+  not?: ModelLessonFileFilterInput | null,
+};
+
 export type ModelLessonGoldenVerseFilterInput = {
   id?: ModelIDInput | null,
   lessonId?: ModelIDInput | null,
@@ -1375,12 +1578,6 @@ export type ModelLessonGoldenVerseFilterInput = {
   not?: ModelLessonGoldenVerseFilterInput | null,
 };
 
-export type ModelLessonGoldenVerseConnection = {
-  __typename: "ModelLessonGoldenVerseConnection",
-  items:  Array<LessonGoldenVerse | null >,
-  nextToken?: string | null,
-};
-
 export type ModelPupilAchievementFilterInput = {
   id?: ModelIDInput | null,
   pupilId?: ModelIDInput | null,
@@ -1390,12 +1587,6 @@ export type ModelPupilAchievementFilterInput = {
   and?: Array< ModelPupilAchievementFilterInput | null > | null,
   or?: Array< ModelPupilAchievementFilterInput | null > | null,
   not?: ModelPupilAchievementFilterInput | null,
-};
-
-export type ModelPupilAchievementConnection = {
-  __typename: "ModelPupilAchievementConnection",
-  items:  Array<PupilAchievement | null >,
-  nextToken?: string | null,
 };
 
 export type ModelFamilyMemberFilterInput = {
@@ -1531,6 +1722,23 @@ export type ModelSubscriptionLessonFilterInput = {
   teacherId?: ModelStringInput | null,
 };
 
+export type ModelSubscriptionLessonFileFilterInput = {
+  id?: ModelSubscriptionIDInput | null,
+  lessonId?: ModelSubscriptionIDInput | null,
+  fileName?: ModelSubscriptionStringInput | null,
+  fileType?: ModelSubscriptionStringInput | null,
+  mimeType?: ModelSubscriptionStringInput | null,
+  fileSize?: ModelSubscriptionIntInput | null,
+  s3Key?: ModelSubscriptionStringInput | null,
+  s3Url?: ModelSubscriptionStringInput | null,
+  order?: ModelSubscriptionIntInput | null,
+  description?: ModelSubscriptionStringInput | null,
+  createdAt?: ModelSubscriptionStringInput | null,
+  updatedAt?: ModelSubscriptionStringInput | null,
+  and?: Array< ModelSubscriptionLessonFileFilterInput | null > | null,
+  or?: Array< ModelSubscriptionLessonFileFilterInput | null > | null,
+};
+
 export type ModelSubscriptionBookFilterInput = {
   id?: ModelSubscriptionIDInput | null,
   fullName?: ModelSubscriptionStringInput | null,
@@ -1623,6 +1831,20 @@ export type ModelSubscriptionPupilAchievementFilterInput = {
   updatedAt?: ModelSubscriptionStringInput | null,
   and?: Array< ModelSubscriptionPupilAchievementFilterInput | null > | null,
   or?: Array< ModelSubscriptionPupilAchievementFilterInput | null > | null,
+};
+
+export type ModelSubscriptionBricksIssueFilterInput = {
+  id?: ModelSubscriptionIDInput | null,
+  pupilId?: ModelSubscriptionIDInput | null,
+  academicYearId?: ModelSubscriptionIDInput | null,
+  gradeId?: ModelSubscriptionIDInput | null,
+  quantity?: ModelSubscriptionIntInput | null,
+  issuedAt?: ModelSubscriptionStringInput | null,
+  issuedBy?: ModelSubscriptionIDInput | null,
+  createdAt?: ModelSubscriptionStringInput | null,
+  updatedAt?: ModelSubscriptionStringInput | null,
+  and?: Array< ModelSubscriptionBricksIssueFilterInput | null > | null,
+  or?: Array< ModelSubscriptionBricksIssueFilterInput | null > | null,
 };
 
 export type ModelSubscriptionFamilyFilterInput = {
@@ -1819,6 +2041,10 @@ export type CreateGradeMutation = {
       __typename: "ModelPupilConnection",
       nextToken?: string | null,
     } | null,
+    events?:  {
+      __typename: "ModelGradeEventConnection",
+      nextToken?: string | null,
+    } | null,
     settings?:  {
       __typename: "GradeSettings",
       id: string,
@@ -1867,6 +2093,10 @@ export type UpdateGradeMutation = {
     } | null,
     pupils?:  {
       __typename: "ModelPupilConnection",
+      nextToken?: string | null,
+    } | null,
+    events?:  {
+      __typename: "ModelGradeEventConnection",
       nextToken?: string | null,
     } | null,
     settings?:  {
@@ -1919,6 +2149,10 @@ export type DeleteGradeMutation = {
       __typename: "ModelPupilConnection",
       nextToken?: string | null,
     } | null,
+    events?:  {
+      __typename: "ModelGradeEventConnection",
+      nextToken?: string | null,
+    } | null,
     settings?:  {
       __typename: "GradeSettings",
       id: string,
@@ -1954,6 +2188,28 @@ export type CreateUserGradeMutation = {
     id: string,
     userId: string,
     gradeId: string,
+    user?:  {
+      __typename: "User",
+      id: string,
+      email: string,
+      name: string,
+      role: UserRole,
+      photo?: string | null,
+      active: boolean,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    grade?:  {
+      __typename: "Grade",
+      id: string,
+      name: string,
+      description?: string | null,
+      minAge?: number | null,
+      maxAge?: number | null,
+      active: boolean,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
     assignedAt: string,
     createdAt: string,
     updatedAt: string,
@@ -1971,6 +2227,28 @@ export type UpdateUserGradeMutation = {
     id: string,
     userId: string,
     gradeId: string,
+    user?:  {
+      __typename: "User",
+      id: string,
+      email: string,
+      name: string,
+      role: UserRole,
+      photo?: string | null,
+      active: boolean,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    grade?:  {
+      __typename: "Grade",
+      id: string,
+      name: string,
+      description?: string | null,
+      minAge?: number | null,
+      maxAge?: number | null,
+      active: boolean,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
     assignedAt: string,
     createdAt: string,
     updatedAt: string,
@@ -1988,6 +2266,28 @@ export type DeleteUserGradeMutation = {
     id: string,
     userId: string,
     gradeId: string,
+    user?:  {
+      __typename: "User",
+      id: string,
+      email: string,
+      name: string,
+      role: UserRole,
+      photo?: string | null,
+      active: boolean,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    grade?:  {
+      __typename: "Grade",
+      id: string,
+      name: string,
+      description?: string | null,
+      minAge?: number | null,
+      maxAge?: number | null,
+      active: boolean,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
     assignedAt: string,
     createdAt: string,
     updatedAt: string,
@@ -2079,6 +2379,18 @@ export type CreateLessonMutation = {
     content?: string | null,
     lessonDate: string,
     order: number,
+    homeworkChecks?:  {
+      __typename: "ModelHomeworkCheckConnection",
+      nextToken?: string | null,
+    } | null,
+    goldenVerses?:  {
+      __typename: "ModelLessonGoldenVerseConnection",
+      nextToken?: string | null,
+    } | null,
+    files?:  {
+      __typename: "ModelLessonFileConnection",
+      nextToken?: string | null,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -2100,6 +2412,18 @@ export type UpdateLessonMutation = {
     content?: string | null,
     lessonDate: string,
     order: number,
+    homeworkChecks?:  {
+      __typename: "ModelHomeworkCheckConnection",
+      nextToken?: string | null,
+    } | null,
+    goldenVerses?:  {
+      __typename: "ModelLessonGoldenVerseConnection",
+      nextToken?: string | null,
+    } | null,
+    files?:  {
+      __typename: "ModelLessonFileConnection",
+      nextToken?: string | null,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -2121,6 +2445,126 @@ export type DeleteLessonMutation = {
     content?: string | null,
     lessonDate: string,
     order: number,
+    homeworkChecks?:  {
+      __typename: "ModelHomeworkCheckConnection",
+      nextToken?: string | null,
+    } | null,
+    goldenVerses?:  {
+      __typename: "ModelLessonGoldenVerseConnection",
+      nextToken?: string | null,
+    } | null,
+    files?:  {
+      __typename: "ModelLessonFileConnection",
+      nextToken?: string | null,
+    } | null,
+    createdAt: string,
+    updatedAt: string,
+  } | null,
+};
+
+export type CreateLessonFileMutationVariables = {
+  input: CreateLessonFileInput,
+  condition?: ModelLessonFileConditionInput | null,
+};
+
+export type CreateLessonFileMutation = {
+  createLessonFile?:  {
+    __typename: "LessonFile",
+    id: string,
+    lessonId: string,
+    fileName: string,
+    fileType: string,
+    mimeType: string,
+    fileSize: number,
+    s3Key: string,
+    s3Url: string,
+    order: number,
+    description?: string | null,
+    lesson?:  {
+      __typename: "Lesson",
+      id: string,
+      academicYearId: string,
+      gradeId: string,
+      teacherId: string,
+      title: string,
+      content?: string | null,
+      lessonDate: string,
+      order: number,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    createdAt: string,
+    updatedAt: string,
+  } | null,
+};
+
+export type UpdateLessonFileMutationVariables = {
+  input: UpdateLessonFileInput,
+  condition?: ModelLessonFileConditionInput | null,
+};
+
+export type UpdateLessonFileMutation = {
+  updateLessonFile?:  {
+    __typename: "LessonFile",
+    id: string,
+    lessonId: string,
+    fileName: string,
+    fileType: string,
+    mimeType: string,
+    fileSize: number,
+    s3Key: string,
+    s3Url: string,
+    order: number,
+    description?: string | null,
+    lesson?:  {
+      __typename: "Lesson",
+      id: string,
+      academicYearId: string,
+      gradeId: string,
+      teacherId: string,
+      title: string,
+      content?: string | null,
+      lessonDate: string,
+      order: number,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    createdAt: string,
+    updatedAt: string,
+  } | null,
+};
+
+export type DeleteLessonFileMutationVariables = {
+  input: DeleteLessonFileInput,
+  condition?: ModelLessonFileConditionInput | null,
+};
+
+export type DeleteLessonFileMutation = {
+  deleteLessonFile?:  {
+    __typename: "LessonFile",
+    id: string,
+    lessonId: string,
+    fileName: string,
+    fileType: string,
+    mimeType: string,
+    fileSize: number,
+    s3Key: string,
+    s3Url: string,
+    order: number,
+    description?: string | null,
+    lesson?:  {
+      __typename: "Lesson",
+      id: string,
+      academicYearId: string,
+      gradeId: string,
+      teacherId: string,
+      title: string,
+      content?: string | null,
+      lessonDate: string,
+      order: number,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -2210,6 +2654,21 @@ export type CreateGoldenVerseMutation = {
     verseStart: number,
     verseEnd?: number | null,
     text: string,
+    book?:  {
+      __typename: "Book",
+      id: string,
+      fullName: string,
+      shortName: string,
+      abbreviation: string,
+      testament: string,
+      order: number,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    lessons?:  {
+      __typename: "ModelLessonGoldenVerseConnection",
+      nextToken?: string | null,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -2230,6 +2689,21 @@ export type UpdateGoldenVerseMutation = {
     verseStart: number,
     verseEnd?: number | null,
     text: string,
+    book?:  {
+      __typename: "Book",
+      id: string,
+      fullName: string,
+      shortName: string,
+      abbreviation: string,
+      testament: string,
+      order: number,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    lessons?:  {
+      __typename: "ModelLessonGoldenVerseConnection",
+      nextToken?: string | null,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -2250,6 +2724,21 @@ export type DeleteGoldenVerseMutation = {
     verseStart: number,
     verseEnd?: number | null,
     text: string,
+    book?:  {
+      __typename: "Book",
+      id: string,
+      fullName: string,
+      shortName: string,
+      abbreviation: string,
+      testament: string,
+      order: number,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    lessons?:  {
+      __typename: "ModelLessonGoldenVerseConnection",
+      nextToken?: string | null,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -2267,6 +2756,31 @@ export type CreateLessonGoldenVerseMutation = {
     lessonId: string,
     goldenVerseId: string,
     order: number,
+    lesson?:  {
+      __typename: "Lesson",
+      id: string,
+      academicYearId: string,
+      gradeId: string,
+      teacherId: string,
+      title: string,
+      content?: string | null,
+      lessonDate: string,
+      order: number,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    goldenVerse?:  {
+      __typename: "GoldenVerse",
+      id: string,
+      reference: string,
+      bookId: string,
+      chapter: number,
+      verseStart: number,
+      verseEnd?: number | null,
+      text: string,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -2284,6 +2798,31 @@ export type UpdateLessonGoldenVerseMutation = {
     lessonId: string,
     goldenVerseId: string,
     order: number,
+    lesson?:  {
+      __typename: "Lesson",
+      id: string,
+      academicYearId: string,
+      gradeId: string,
+      teacherId: string,
+      title: string,
+      content?: string | null,
+      lessonDate: string,
+      order: number,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    goldenVerse?:  {
+      __typename: "GoldenVerse",
+      id: string,
+      reference: string,
+      bookId: string,
+      chapter: number,
+      verseStart: number,
+      verseEnd?: number | null,
+      text: string,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -2301,6 +2840,31 @@ export type DeleteLessonGoldenVerseMutation = {
     lessonId: string,
     goldenVerseId: string,
     order: number,
+    lesson?:  {
+      __typename: "Lesson",
+      id: string,
+      academicYearId: string,
+      gradeId: string,
+      teacherId: string,
+      title: string,
+      content?: string | null,
+      lessonDate: string,
+      order: number,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    goldenVerse?:  {
+      __typename: "GoldenVerse",
+      id: string,
+      reference: string,
+      bookId: string,
+      chapter: number,
+      verseStart: number,
+      verseEnd?: number | null,
+      text: string,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -2324,6 +2888,18 @@ export type CreatePupilMutation = {
     active: boolean,
     families?:  {
       __typename: "ModelFamilyMemberConnection",
+      nextToken?: string | null,
+    } | null,
+    homeworkChecks?:  {
+      __typename: "ModelHomeworkCheckConnection",
+      nextToken?: string | null,
+    } | null,
+    achievements?:  {
+      __typename: "ModelPupilAchievementConnection",
+      nextToken?: string | null,
+    } | null,
+    bricksIssues?:  {
+      __typename: "ModelBricksIssueConnection",
       nextToken?: string | null,
     } | null,
     createdAt: string,
@@ -2351,6 +2927,18 @@ export type UpdatePupilMutation = {
       __typename: "ModelFamilyMemberConnection",
       nextToken?: string | null,
     } | null,
+    homeworkChecks?:  {
+      __typename: "ModelHomeworkCheckConnection",
+      nextToken?: string | null,
+    } | null,
+    achievements?:  {
+      __typename: "ModelPupilAchievementConnection",
+      nextToken?: string | null,
+    } | null,
+    bricksIssues?:  {
+      __typename: "ModelBricksIssueConnection",
+      nextToken?: string | null,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -2374,6 +2962,18 @@ export type DeletePupilMutation = {
     active: boolean,
     families?:  {
       __typename: "ModelFamilyMemberConnection",
+      nextToken?: string | null,
+    } | null,
+    homeworkChecks?:  {
+      __typename: "ModelHomeworkCheckConnection",
+      nextToken?: string | null,
+    } | null,
+    achievements?:  {
+      __typename: "ModelPupilAchievementConnection",
+      nextToken?: string | null,
+    } | null,
+    bricksIssues?:  {
+      __typename: "ModelBricksIssueConnection",
       nextToken?: string | null,
     } | null,
     createdAt: string,
@@ -2400,6 +3000,32 @@ export type CreateHomeworkCheckMutation = {
     notebookScore?: number | null,
     singing: boolean,
     points: number,
+    lesson?:  {
+      __typename: "Lesson",
+      id: string,
+      academicYearId: string,
+      gradeId: string,
+      teacherId: string,
+      title: string,
+      content?: string | null,
+      lessonDate: string,
+      order: number,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    pupil?:  {
+      __typename: "Pupil",
+      id: string,
+      gradeId: string,
+      firstName: string,
+      lastName: string,
+      middleName?: string | null,
+      dateOfBirth: string,
+      photo?: string | null,
+      active: boolean,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -2424,6 +3050,32 @@ export type UpdateHomeworkCheckMutation = {
     notebookScore?: number | null,
     singing: boolean,
     points: number,
+    lesson?:  {
+      __typename: "Lesson",
+      id: string,
+      academicYearId: string,
+      gradeId: string,
+      teacherId: string,
+      title: string,
+      content?: string | null,
+      lessonDate: string,
+      order: number,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    pupil?:  {
+      __typename: "Pupil",
+      id: string,
+      gradeId: string,
+      firstName: string,
+      lastName: string,
+      middleName?: string | null,
+      dateOfBirth: string,
+      photo?: string | null,
+      active: boolean,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -2448,6 +3100,32 @@ export type DeleteHomeworkCheckMutation = {
     notebookScore?: number | null,
     singing: boolean,
     points: number,
+    lesson?:  {
+      __typename: "Lesson",
+      id: string,
+      academicYearId: string,
+      gradeId: string,
+      teacherId: string,
+      title: string,
+      content?: string | null,
+      lessonDate: string,
+      order: number,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    pupil?:  {
+      __typename: "Pupil",
+      id: string,
+      gradeId: string,
+      firstName: string,
+      lastName: string,
+      middleName?: string | null,
+      dateOfBirth: string,
+      photo?: string | null,
+      active: boolean,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -2466,6 +3144,10 @@ export type CreateAchievementMutation = {
     description: string,
     icon?: string | null,
     criteria: string,
+    pupils?:  {
+      __typename: "ModelPupilAchievementConnection",
+      nextToken?: string | null,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -2484,6 +3166,10 @@ export type UpdateAchievementMutation = {
     description: string,
     icon?: string | null,
     criteria: string,
+    pupils?:  {
+      __typename: "ModelPupilAchievementConnection",
+      nextToken?: string | null,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -2502,6 +3188,10 @@ export type DeleteAchievementMutation = {
     description: string,
     icon?: string | null,
     criteria: string,
+    pupils?:  {
+      __typename: "ModelPupilAchievementConnection",
+      nextToken?: string | null,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -2519,6 +3209,29 @@ export type CreatePupilAchievementMutation = {
     pupilId: string,
     achievementId: string,
     awardedAt: string,
+    pupil?:  {
+      __typename: "Pupil",
+      id: string,
+      gradeId: string,
+      firstName: string,
+      lastName: string,
+      middleName?: string | null,
+      dateOfBirth: string,
+      photo?: string | null,
+      active: boolean,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    achievement?:  {
+      __typename: "Achievement",
+      id: string,
+      name: string,
+      description: string,
+      icon?: string | null,
+      criteria: string,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -2536,6 +3249,29 @@ export type UpdatePupilAchievementMutation = {
     pupilId: string,
     achievementId: string,
     awardedAt: string,
+    pupil?:  {
+      __typename: "Pupil",
+      id: string,
+      gradeId: string,
+      firstName: string,
+      lastName: string,
+      middleName?: string | null,
+      dateOfBirth: string,
+      photo?: string | null,
+      active: boolean,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    achievement?:  {
+      __typename: "Achievement",
+      id: string,
+      name: string,
+      description: string,
+      icon?: string | null,
+      criteria: string,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -2553,6 +3289,128 @@ export type DeletePupilAchievementMutation = {
     pupilId: string,
     achievementId: string,
     awardedAt: string,
+    pupil?:  {
+      __typename: "Pupil",
+      id: string,
+      gradeId: string,
+      firstName: string,
+      lastName: string,
+      middleName?: string | null,
+      dateOfBirth: string,
+      photo?: string | null,
+      active: boolean,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    achievement?:  {
+      __typename: "Achievement",
+      id: string,
+      name: string,
+      description: string,
+      icon?: string | null,
+      criteria: string,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    createdAt: string,
+    updatedAt: string,
+  } | null,
+};
+
+export type CreateBricksIssueMutationVariables = {
+  input: CreateBricksIssueInput,
+  condition?: ModelBricksIssueConditionInput | null,
+};
+
+export type CreateBricksIssueMutation = {
+  createBricksIssue?:  {
+    __typename: "BricksIssue",
+    id: string,
+    pupilId: string,
+    academicYearId: string,
+    gradeId: string,
+    quantity: number,
+    issuedAt: string,
+    issuedBy: string,
+    pupil?:  {
+      __typename: "Pupil",
+      id: string,
+      gradeId: string,
+      firstName: string,
+      lastName: string,
+      middleName?: string | null,
+      dateOfBirth: string,
+      photo?: string | null,
+      active: boolean,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    createdAt: string,
+    updatedAt: string,
+  } | null,
+};
+
+export type UpdateBricksIssueMutationVariables = {
+  input: UpdateBricksIssueInput,
+  condition?: ModelBricksIssueConditionInput | null,
+};
+
+export type UpdateBricksIssueMutation = {
+  updateBricksIssue?:  {
+    __typename: "BricksIssue",
+    id: string,
+    pupilId: string,
+    academicYearId: string,
+    gradeId: string,
+    quantity: number,
+    issuedAt: string,
+    issuedBy: string,
+    pupil?:  {
+      __typename: "Pupil",
+      id: string,
+      gradeId: string,
+      firstName: string,
+      lastName: string,
+      middleName?: string | null,
+      dateOfBirth: string,
+      photo?: string | null,
+      active: boolean,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    createdAt: string,
+    updatedAt: string,
+  } | null,
+};
+
+export type DeleteBricksIssueMutationVariables = {
+  input: DeleteBricksIssueInput,
+  condition?: ModelBricksIssueConditionInput | null,
+};
+
+export type DeleteBricksIssueMutation = {
+  deleteBricksIssue?:  {
+    __typename: "BricksIssue",
+    id: string,
+    pupilId: string,
+    academicYearId: string,
+    gradeId: string,
+    quantity: number,
+    issuedAt: string,
+    issuedBy: string,
+    pupil?:  {
+      __typename: "Pupil",
+      id: string,
+      gradeId: string,
+      firstName: string,
+      lastName: string,
+      middleName?: string | null,
+      dateOfBirth: string,
+      photo?: string | null,
+      active: boolean,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -2671,6 +3529,37 @@ export type CreateFamilyMemberMutation = {
     id: string,
     familyId: string,
     pupilId: string,
+    family?:  {
+      __typename: "Family",
+      id: string,
+      name: string,
+      phone?: string | null,
+      email?: string | null,
+      address?: string | null,
+      motherFirstName?: string | null,
+      motherLastName?: string | null,
+      motherMiddleName?: string | null,
+      motherPhone?: string | null,
+      fatherFirstName?: string | null,
+      fatherLastName?: string | null,
+      fatherMiddleName?: string | null,
+      fatherPhone?: string | null,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    pupil?:  {
+      __typename: "Pupil",
+      id: string,
+      gradeId: string,
+      firstName: string,
+      lastName: string,
+      middleName?: string | null,
+      dateOfBirth: string,
+      photo?: string | null,
+      active: boolean,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -2687,6 +3576,37 @@ export type UpdateFamilyMemberMutation = {
     id: string,
     familyId: string,
     pupilId: string,
+    family?:  {
+      __typename: "Family",
+      id: string,
+      name: string,
+      phone?: string | null,
+      email?: string | null,
+      address?: string | null,
+      motherFirstName?: string | null,
+      motherLastName?: string | null,
+      motherMiddleName?: string | null,
+      motherPhone?: string | null,
+      fatherFirstName?: string | null,
+      fatherLastName?: string | null,
+      fatherMiddleName?: string | null,
+      fatherPhone?: string | null,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    pupil?:  {
+      __typename: "Pupil",
+      id: string,
+      gradeId: string,
+      firstName: string,
+      lastName: string,
+      middleName?: string | null,
+      dateOfBirth: string,
+      photo?: string | null,
+      active: boolean,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -2703,6 +3623,37 @@ export type DeleteFamilyMemberMutation = {
     id: string,
     familyId: string,
     pupilId: string,
+    family?:  {
+      __typename: "Family",
+      id: string,
+      name: string,
+      phone?: string | null,
+      email?: string | null,
+      address?: string | null,
+      motherFirstName?: string | null,
+      motherLastName?: string | null,
+      motherMiddleName?: string | null,
+      motherPhone?: string | null,
+      fatherFirstName?: string | null,
+      fatherLastName?: string | null,
+      fatherMiddleName?: string | null,
+      fatherPhone?: string | null,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    pupil?:  {
+      __typename: "Pupil",
+      id: string,
+      gradeId: string,
+      firstName: string,
+      lastName: string,
+      middleName?: string | null,
+      dateOfBirth: string,
+      photo?: string | null,
+      active: boolean,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -2720,6 +3671,35 @@ export type CreateUserFamilyMutation = {
     userId: string,
     familyId: string,
     phone: string,
+    user?:  {
+      __typename: "User",
+      id: string,
+      email: string,
+      name: string,
+      role: UserRole,
+      photo?: string | null,
+      active: boolean,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    family?:  {
+      __typename: "Family",
+      id: string,
+      name: string,
+      phone?: string | null,
+      email?: string | null,
+      address?: string | null,
+      motherFirstName?: string | null,
+      motherLastName?: string | null,
+      motherMiddleName?: string | null,
+      motherPhone?: string | null,
+      fatherFirstName?: string | null,
+      fatherLastName?: string | null,
+      fatherMiddleName?: string | null,
+      fatherPhone?: string | null,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -2737,6 +3717,35 @@ export type UpdateUserFamilyMutation = {
     userId: string,
     familyId: string,
     phone: string,
+    user?:  {
+      __typename: "User",
+      id: string,
+      email: string,
+      name: string,
+      role: UserRole,
+      photo?: string | null,
+      active: boolean,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    family?:  {
+      __typename: "Family",
+      id: string,
+      name: string,
+      phone?: string | null,
+      email?: string | null,
+      address?: string | null,
+      motherFirstName?: string | null,
+      motherLastName?: string | null,
+      motherMiddleName?: string | null,
+      motherPhone?: string | null,
+      fatherFirstName?: string | null,
+      fatherLastName?: string | null,
+      fatherMiddleName?: string | null,
+      fatherPhone?: string | null,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -2754,6 +3763,35 @@ export type DeleteUserFamilyMutation = {
     userId: string,
     familyId: string,
     phone: string,
+    user?:  {
+      __typename: "User",
+      id: string,
+      email: string,
+      name: string,
+      role: UserRole,
+      photo?: string | null,
+      active: boolean,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    family?:  {
+      __typename: "Family",
+      id: string,
+      name: string,
+      phone?: string | null,
+      email?: string | null,
+      address?: string | null,
+      motherFirstName?: string | null,
+      motherLastName?: string | null,
+      motherMiddleName?: string | null,
+      motherPhone?: string | null,
+      fatherFirstName?: string | null,
+      fatherLastName?: string | null,
+      fatherMiddleName?: string | null,
+      fatherPhone?: string | null,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -2976,6 +4014,10 @@ export type GetGradeQuery = {
       __typename: "ModelPupilConnection",
       nextToken?: string | null,
     } | null,
+    events?:  {
+      __typename: "ModelGradeEventConnection",
+      nextToken?: string | null,
+    } | null,
     settings?:  {
       __typename: "GradeSettings",
       id: string,
@@ -3085,6 +4127,18 @@ export type GetLessonQuery = {
     content?: string | null,
     lessonDate: string,
     order: number,
+    homeworkChecks?:  {
+      __typename: "ModelHomeworkCheckConnection",
+      nextToken?: string | null,
+    } | null,
+    goldenVerses?:  {
+      __typename: "ModelLessonGoldenVerseConnection",
+      nextToken?: string | null,
+    } | null,
+    files?:  {
+      __typename: "ModelLessonFileConnection",
+      nextToken?: string | null,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -3176,6 +4230,21 @@ export type GetGoldenVerseQuery = {
     verseStart: number,
     verseEnd?: number | null,
     text: string,
+    book?:  {
+      __typename: "Book",
+      id: string,
+      fullName: string,
+      shortName: string,
+      abbreviation: string,
+      testament: string,
+      order: number,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    lessons?:  {
+      __typename: "ModelLessonGoldenVerseConnection",
+      nextToken?: string | null,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -3223,6 +4292,18 @@ export type GetPupilQuery = {
     active: boolean,
     families?:  {
       __typename: "ModelFamilyMemberConnection",
+      nextToken?: string | null,
+    } | null,
+    homeworkChecks?:  {
+      __typename: "ModelHomeworkCheckConnection",
+      nextToken?: string | null,
+    } | null,
+    achievements?:  {
+      __typename: "ModelPupilAchievementConnection",
+      nextToken?: string | null,
+    } | null,
+    bricksIssues?:  {
+      __typename: "ModelBricksIssueConnection",
       nextToken?: string | null,
     } | null,
     createdAt: string,
@@ -3274,6 +4355,32 @@ export type GetHomeworkCheckQuery = {
     notebookScore?: number | null,
     singing: boolean,
     points: number,
+    lesson?:  {
+      __typename: "Lesson",
+      id: string,
+      academicYearId: string,
+      gradeId: string,
+      teacherId: string,
+      title: string,
+      content?: string | null,
+      lessonDate: string,
+      order: number,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    pupil?:  {
+      __typename: "Pupil",
+      id: string,
+      gradeId: string,
+      firstName: string,
+      lastName: string,
+      middleName?: string | null,
+      dateOfBirth: string,
+      photo?: string | null,
+      active: boolean,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -3320,6 +4427,10 @@ export type GetAchievementQuery = {
     description: string,
     icon?: string | null,
     criteria: string,
+    pupils?:  {
+      __typename: "ModelPupilAchievementConnection",
+      nextToken?: string | null,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -3341,6 +4452,63 @@ export type ListAchievementsQuery = {
       description: string,
       icon?: string | null,
       criteria: string,
+      createdAt: string,
+      updatedAt: string,
+    } | null >,
+    nextToken?: string | null,
+  } | null,
+};
+
+export type GetBricksIssueQueryVariables = {
+  id: string,
+};
+
+export type GetBricksIssueQuery = {
+  getBricksIssue?:  {
+    __typename: "BricksIssue",
+    id: string,
+    pupilId: string,
+    academicYearId: string,
+    gradeId: string,
+    quantity: number,
+    issuedAt: string,
+    issuedBy: string,
+    pupil?:  {
+      __typename: "Pupil",
+      id: string,
+      gradeId: string,
+      firstName: string,
+      lastName: string,
+      middleName?: string | null,
+      dateOfBirth: string,
+      photo?: string | null,
+      active: boolean,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    createdAt: string,
+    updatedAt: string,
+  } | null,
+};
+
+export type ListBricksIssuesQueryVariables = {
+  filter?: ModelBricksIssueFilterInput | null,
+  limit?: number | null,
+  nextToken?: string | null,
+};
+
+export type ListBricksIssuesQuery = {
+  listBricksIssues?:  {
+    __typename: "ModelBricksIssueConnection",
+    items:  Array< {
+      __typename: "BricksIssue",
+      id: string,
+      pupilId: string,
+      academicYearId: string,
+      gradeId: string,
+      quantity: number,
+      issuedAt: string,
+      issuedBy: string,
       createdAt: string,
       updatedAt: string,
     } | null >,
@@ -3756,6 +4924,37 @@ export type LessonsByTeacherIdAndCreatedAtQuery = {
   } | null,
 };
 
+export type LessonFilesByLessonIdAndOrderQueryVariables = {
+  lessonId: string,
+  order?: ModelIntKeyConditionInput | null,
+  sortDirection?: ModelSortDirection | null,
+  filter?: ModelLessonFileFilterInput | null,
+  limit?: number | null,
+  nextToken?: string | null,
+};
+
+export type LessonFilesByLessonIdAndOrderQuery = {
+  lessonFilesByLessonIdAndOrder?:  {
+    __typename: "ModelLessonFileConnection",
+    items:  Array< {
+      __typename: "LessonFile",
+      id: string,
+      lessonId: string,
+      fileName: string,
+      fileType: string,
+      mimeType: string,
+      fileSize: number,
+      s3Key: string,
+      s3Url: string,
+      order: number,
+      description?: string | null,
+      createdAt: string,
+      updatedAt: string,
+    } | null >,
+    nextToken?: string | null,
+  } | null,
+};
+
 export type BooksByShortNameQueryVariables = {
   shortName: string,
   sortDirection?: ModelSortDirection | null,
@@ -4105,6 +5304,90 @@ export type PupilAchievementsByAchievementIdQuery = {
       pupilId: string,
       achievementId: string,
       awardedAt: string,
+      createdAt: string,
+      updatedAt: string,
+    } | null >,
+    nextToken?: string | null,
+  } | null,
+};
+
+export type BricksIssuesByPupilIdAndIssuedAtQueryVariables = {
+  pupilId: string,
+  issuedAt?: ModelStringKeyConditionInput | null,
+  sortDirection?: ModelSortDirection | null,
+  filter?: ModelBricksIssueFilterInput | null,
+  limit?: number | null,
+  nextToken?: string | null,
+};
+
+export type BricksIssuesByPupilIdAndIssuedAtQuery = {
+  bricksIssuesByPupilIdAndIssuedAt?:  {
+    __typename: "ModelBricksIssueConnection",
+    items:  Array< {
+      __typename: "BricksIssue",
+      id: string,
+      pupilId: string,
+      academicYearId: string,
+      gradeId: string,
+      quantity: number,
+      issuedAt: string,
+      issuedBy: string,
+      createdAt: string,
+      updatedAt: string,
+    } | null >,
+    nextToken?: string | null,
+  } | null,
+};
+
+export type BricksIssuesByAcademicYearIdAndIssuedAtQueryVariables = {
+  academicYearId: string,
+  issuedAt?: ModelStringKeyConditionInput | null,
+  sortDirection?: ModelSortDirection | null,
+  filter?: ModelBricksIssueFilterInput | null,
+  limit?: number | null,
+  nextToken?: string | null,
+};
+
+export type BricksIssuesByAcademicYearIdAndIssuedAtQuery = {
+  bricksIssuesByAcademicYearIdAndIssuedAt?:  {
+    __typename: "ModelBricksIssueConnection",
+    items:  Array< {
+      __typename: "BricksIssue",
+      id: string,
+      pupilId: string,
+      academicYearId: string,
+      gradeId: string,
+      quantity: number,
+      issuedAt: string,
+      issuedBy: string,
+      createdAt: string,
+      updatedAt: string,
+    } | null >,
+    nextToken?: string | null,
+  } | null,
+};
+
+export type BricksIssuesByGradeIdAndIssuedAtQueryVariables = {
+  gradeId: string,
+  issuedAt?: ModelStringKeyConditionInput | null,
+  sortDirection?: ModelSortDirection | null,
+  filter?: ModelBricksIssueFilterInput | null,
+  limit?: number | null,
+  nextToken?: string | null,
+};
+
+export type BricksIssuesByGradeIdAndIssuedAtQuery = {
+  bricksIssuesByGradeIdAndIssuedAt?:  {
+    __typename: "ModelBricksIssueConnection",
+    items:  Array< {
+      __typename: "BricksIssue",
+      id: string,
+      pupilId: string,
+      academicYearId: string,
+      gradeId: string,
+      quantity: number,
+      issuedAt: string,
+      issuedBy: string,
       createdAt: string,
       updatedAt: string,
     } | null >,
@@ -4475,6 +5758,10 @@ export type OnCreateGradeSubscription = {
       __typename: "ModelPupilConnection",
       nextToken?: string | null,
     } | null,
+    events?:  {
+      __typename: "ModelGradeEventConnection",
+      nextToken?: string | null,
+    } | null,
     settings?:  {
       __typename: "GradeSettings",
       id: string,
@@ -4522,6 +5809,10 @@ export type OnUpdateGradeSubscription = {
     } | null,
     pupils?:  {
       __typename: "ModelPupilConnection",
+      nextToken?: string | null,
+    } | null,
+    events?:  {
+      __typename: "ModelGradeEventConnection",
       nextToken?: string | null,
     } | null,
     settings?:  {
@@ -4573,6 +5864,10 @@ export type OnDeleteGradeSubscription = {
       __typename: "ModelPupilConnection",
       nextToken?: string | null,
     } | null,
+    events?:  {
+      __typename: "ModelGradeEventConnection",
+      nextToken?: string | null,
+    } | null,
     settings?:  {
       __typename: "GradeSettings",
       id: string,
@@ -4607,6 +5902,28 @@ export type OnCreateUserGradeSubscription = {
     id: string,
     userId: string,
     gradeId: string,
+    user?:  {
+      __typename: "User",
+      id: string,
+      email: string,
+      name: string,
+      role: UserRole,
+      photo?: string | null,
+      active: boolean,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    grade?:  {
+      __typename: "Grade",
+      id: string,
+      name: string,
+      description?: string | null,
+      minAge?: number | null,
+      maxAge?: number | null,
+      active: boolean,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
     assignedAt: string,
     createdAt: string,
     updatedAt: string,
@@ -4623,6 +5940,28 @@ export type OnUpdateUserGradeSubscription = {
     id: string,
     userId: string,
     gradeId: string,
+    user?:  {
+      __typename: "User",
+      id: string,
+      email: string,
+      name: string,
+      role: UserRole,
+      photo?: string | null,
+      active: boolean,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    grade?:  {
+      __typename: "Grade",
+      id: string,
+      name: string,
+      description?: string | null,
+      minAge?: number | null,
+      maxAge?: number | null,
+      active: boolean,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
     assignedAt: string,
     createdAt: string,
     updatedAt: string,
@@ -4639,6 +5978,28 @@ export type OnDeleteUserGradeSubscription = {
     id: string,
     userId: string,
     gradeId: string,
+    user?:  {
+      __typename: "User",
+      id: string,
+      email: string,
+      name: string,
+      role: UserRole,
+      photo?: string | null,
+      active: boolean,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    grade?:  {
+      __typename: "Grade",
+      id: string,
+      name: string,
+      description?: string | null,
+      minAge?: number | null,
+      maxAge?: number | null,
+      active: boolean,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
     assignedAt: string,
     createdAt: string,
     updatedAt: string,
@@ -4726,6 +6087,18 @@ export type OnCreateLessonSubscription = {
     content?: string | null,
     lessonDate: string,
     order: number,
+    homeworkChecks?:  {
+      __typename: "ModelHomeworkCheckConnection",
+      nextToken?: string | null,
+    } | null,
+    goldenVerses?:  {
+      __typename: "ModelLessonGoldenVerseConnection",
+      nextToken?: string | null,
+    } | null,
+    files?:  {
+      __typename: "ModelLessonFileConnection",
+      nextToken?: string | null,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -4746,6 +6119,18 @@ export type OnUpdateLessonSubscription = {
     content?: string | null,
     lessonDate: string,
     order: number,
+    homeworkChecks?:  {
+      __typename: "ModelHomeworkCheckConnection",
+      nextToken?: string | null,
+    } | null,
+    goldenVerses?:  {
+      __typename: "ModelLessonGoldenVerseConnection",
+      nextToken?: string | null,
+    } | null,
+    files?:  {
+      __typename: "ModelLessonFileConnection",
+      nextToken?: string | null,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -4766,6 +6151,123 @@ export type OnDeleteLessonSubscription = {
     content?: string | null,
     lessonDate: string,
     order: number,
+    homeworkChecks?:  {
+      __typename: "ModelHomeworkCheckConnection",
+      nextToken?: string | null,
+    } | null,
+    goldenVerses?:  {
+      __typename: "ModelLessonGoldenVerseConnection",
+      nextToken?: string | null,
+    } | null,
+    files?:  {
+      __typename: "ModelLessonFileConnection",
+      nextToken?: string | null,
+    } | null,
+    createdAt: string,
+    updatedAt: string,
+  } | null,
+};
+
+export type OnCreateLessonFileSubscriptionVariables = {
+  filter?: ModelSubscriptionLessonFileFilterInput | null,
+};
+
+export type OnCreateLessonFileSubscription = {
+  onCreateLessonFile?:  {
+    __typename: "LessonFile",
+    id: string,
+    lessonId: string,
+    fileName: string,
+    fileType: string,
+    mimeType: string,
+    fileSize: number,
+    s3Key: string,
+    s3Url: string,
+    order: number,
+    description?: string | null,
+    lesson?:  {
+      __typename: "Lesson",
+      id: string,
+      academicYearId: string,
+      gradeId: string,
+      teacherId: string,
+      title: string,
+      content?: string | null,
+      lessonDate: string,
+      order: number,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    createdAt: string,
+    updatedAt: string,
+  } | null,
+};
+
+export type OnUpdateLessonFileSubscriptionVariables = {
+  filter?: ModelSubscriptionLessonFileFilterInput | null,
+};
+
+export type OnUpdateLessonFileSubscription = {
+  onUpdateLessonFile?:  {
+    __typename: "LessonFile",
+    id: string,
+    lessonId: string,
+    fileName: string,
+    fileType: string,
+    mimeType: string,
+    fileSize: number,
+    s3Key: string,
+    s3Url: string,
+    order: number,
+    description?: string | null,
+    lesson?:  {
+      __typename: "Lesson",
+      id: string,
+      academicYearId: string,
+      gradeId: string,
+      teacherId: string,
+      title: string,
+      content?: string | null,
+      lessonDate: string,
+      order: number,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    createdAt: string,
+    updatedAt: string,
+  } | null,
+};
+
+export type OnDeleteLessonFileSubscriptionVariables = {
+  filter?: ModelSubscriptionLessonFileFilterInput | null,
+};
+
+export type OnDeleteLessonFileSubscription = {
+  onDeleteLessonFile?:  {
+    __typename: "LessonFile",
+    id: string,
+    lessonId: string,
+    fileName: string,
+    fileType: string,
+    mimeType: string,
+    fileSize: number,
+    s3Key: string,
+    s3Url: string,
+    order: number,
+    description?: string | null,
+    lesson?:  {
+      __typename: "Lesson",
+      id: string,
+      academicYearId: string,
+      gradeId: string,
+      teacherId: string,
+      title: string,
+      content?: string | null,
+      lessonDate: string,
+      order: number,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -4851,6 +6353,21 @@ export type OnCreateGoldenVerseSubscription = {
     verseStart: number,
     verseEnd?: number | null,
     text: string,
+    book?:  {
+      __typename: "Book",
+      id: string,
+      fullName: string,
+      shortName: string,
+      abbreviation: string,
+      testament: string,
+      order: number,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    lessons?:  {
+      __typename: "ModelLessonGoldenVerseConnection",
+      nextToken?: string | null,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -4870,6 +6387,21 @@ export type OnUpdateGoldenVerseSubscription = {
     verseStart: number,
     verseEnd?: number | null,
     text: string,
+    book?:  {
+      __typename: "Book",
+      id: string,
+      fullName: string,
+      shortName: string,
+      abbreviation: string,
+      testament: string,
+      order: number,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    lessons?:  {
+      __typename: "ModelLessonGoldenVerseConnection",
+      nextToken?: string | null,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -4889,6 +6421,21 @@ export type OnDeleteGoldenVerseSubscription = {
     verseStart: number,
     verseEnd?: number | null,
     text: string,
+    book?:  {
+      __typename: "Book",
+      id: string,
+      fullName: string,
+      shortName: string,
+      abbreviation: string,
+      testament: string,
+      order: number,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    lessons?:  {
+      __typename: "ModelLessonGoldenVerseConnection",
+      nextToken?: string | null,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -4905,6 +6452,31 @@ export type OnCreateLessonGoldenVerseSubscription = {
     lessonId: string,
     goldenVerseId: string,
     order: number,
+    lesson?:  {
+      __typename: "Lesson",
+      id: string,
+      academicYearId: string,
+      gradeId: string,
+      teacherId: string,
+      title: string,
+      content?: string | null,
+      lessonDate: string,
+      order: number,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    goldenVerse?:  {
+      __typename: "GoldenVerse",
+      id: string,
+      reference: string,
+      bookId: string,
+      chapter: number,
+      verseStart: number,
+      verseEnd?: number | null,
+      text: string,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -4921,6 +6493,31 @@ export type OnUpdateLessonGoldenVerseSubscription = {
     lessonId: string,
     goldenVerseId: string,
     order: number,
+    lesson?:  {
+      __typename: "Lesson",
+      id: string,
+      academicYearId: string,
+      gradeId: string,
+      teacherId: string,
+      title: string,
+      content?: string | null,
+      lessonDate: string,
+      order: number,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    goldenVerse?:  {
+      __typename: "GoldenVerse",
+      id: string,
+      reference: string,
+      bookId: string,
+      chapter: number,
+      verseStart: number,
+      verseEnd?: number | null,
+      text: string,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -4937,6 +6534,31 @@ export type OnDeleteLessonGoldenVerseSubscription = {
     lessonId: string,
     goldenVerseId: string,
     order: number,
+    lesson?:  {
+      __typename: "Lesson",
+      id: string,
+      academicYearId: string,
+      gradeId: string,
+      teacherId: string,
+      title: string,
+      content?: string | null,
+      lessonDate: string,
+      order: number,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    goldenVerse?:  {
+      __typename: "GoldenVerse",
+      id: string,
+      reference: string,
+      bookId: string,
+      chapter: number,
+      verseStart: number,
+      verseEnd?: number | null,
+      text: string,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -4959,6 +6581,18 @@ export type OnCreatePupilSubscription = {
     active: boolean,
     families?:  {
       __typename: "ModelFamilyMemberConnection",
+      nextToken?: string | null,
+    } | null,
+    homeworkChecks?:  {
+      __typename: "ModelHomeworkCheckConnection",
+      nextToken?: string | null,
+    } | null,
+    achievements?:  {
+      __typename: "ModelPupilAchievementConnection",
+      nextToken?: string | null,
+    } | null,
+    bricksIssues?:  {
+      __typename: "ModelBricksIssueConnection",
       nextToken?: string | null,
     } | null,
     createdAt: string,
@@ -4985,6 +6619,18 @@ export type OnUpdatePupilSubscription = {
       __typename: "ModelFamilyMemberConnection",
       nextToken?: string | null,
     } | null,
+    homeworkChecks?:  {
+      __typename: "ModelHomeworkCheckConnection",
+      nextToken?: string | null,
+    } | null,
+    achievements?:  {
+      __typename: "ModelPupilAchievementConnection",
+      nextToken?: string | null,
+    } | null,
+    bricksIssues?:  {
+      __typename: "ModelBricksIssueConnection",
+      nextToken?: string | null,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -5007,6 +6653,18 @@ export type OnDeletePupilSubscription = {
     active: boolean,
     families?:  {
       __typename: "ModelFamilyMemberConnection",
+      nextToken?: string | null,
+    } | null,
+    homeworkChecks?:  {
+      __typename: "ModelHomeworkCheckConnection",
+      nextToken?: string | null,
+    } | null,
+    achievements?:  {
+      __typename: "ModelPupilAchievementConnection",
+      nextToken?: string | null,
+    } | null,
+    bricksIssues?:  {
+      __typename: "ModelBricksIssueConnection",
       nextToken?: string | null,
     } | null,
     createdAt: string,
@@ -5032,6 +6690,32 @@ export type OnCreateHomeworkCheckSubscription = {
     notebookScore?: number | null,
     singing: boolean,
     points: number,
+    lesson?:  {
+      __typename: "Lesson",
+      id: string,
+      academicYearId: string,
+      gradeId: string,
+      teacherId: string,
+      title: string,
+      content?: string | null,
+      lessonDate: string,
+      order: number,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    pupil?:  {
+      __typename: "Pupil",
+      id: string,
+      gradeId: string,
+      firstName: string,
+      lastName: string,
+      middleName?: string | null,
+      dateOfBirth: string,
+      photo?: string | null,
+      active: boolean,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -5055,6 +6739,32 @@ export type OnUpdateHomeworkCheckSubscription = {
     notebookScore?: number | null,
     singing: boolean,
     points: number,
+    lesson?:  {
+      __typename: "Lesson",
+      id: string,
+      academicYearId: string,
+      gradeId: string,
+      teacherId: string,
+      title: string,
+      content?: string | null,
+      lessonDate: string,
+      order: number,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    pupil?:  {
+      __typename: "Pupil",
+      id: string,
+      gradeId: string,
+      firstName: string,
+      lastName: string,
+      middleName?: string | null,
+      dateOfBirth: string,
+      photo?: string | null,
+      active: boolean,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -5078,6 +6788,32 @@ export type OnDeleteHomeworkCheckSubscription = {
     notebookScore?: number | null,
     singing: boolean,
     points: number,
+    lesson?:  {
+      __typename: "Lesson",
+      id: string,
+      academicYearId: string,
+      gradeId: string,
+      teacherId: string,
+      title: string,
+      content?: string | null,
+      lessonDate: string,
+      order: number,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    pupil?:  {
+      __typename: "Pupil",
+      id: string,
+      gradeId: string,
+      firstName: string,
+      lastName: string,
+      middleName?: string | null,
+      dateOfBirth: string,
+      photo?: string | null,
+      active: boolean,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -5095,6 +6831,10 @@ export type OnCreateAchievementSubscription = {
     description: string,
     icon?: string | null,
     criteria: string,
+    pupils?:  {
+      __typename: "ModelPupilAchievementConnection",
+      nextToken?: string | null,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -5112,6 +6852,10 @@ export type OnUpdateAchievementSubscription = {
     description: string,
     icon?: string | null,
     criteria: string,
+    pupils?:  {
+      __typename: "ModelPupilAchievementConnection",
+      nextToken?: string | null,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -5129,6 +6873,10 @@ export type OnDeleteAchievementSubscription = {
     description: string,
     icon?: string | null,
     criteria: string,
+    pupils?:  {
+      __typename: "ModelPupilAchievementConnection",
+      nextToken?: string | null,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -5145,6 +6893,29 @@ export type OnCreatePupilAchievementSubscription = {
     pupilId: string,
     achievementId: string,
     awardedAt: string,
+    pupil?:  {
+      __typename: "Pupil",
+      id: string,
+      gradeId: string,
+      firstName: string,
+      lastName: string,
+      middleName?: string | null,
+      dateOfBirth: string,
+      photo?: string | null,
+      active: boolean,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    achievement?:  {
+      __typename: "Achievement",
+      id: string,
+      name: string,
+      description: string,
+      icon?: string | null,
+      criteria: string,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -5161,6 +6932,29 @@ export type OnUpdatePupilAchievementSubscription = {
     pupilId: string,
     achievementId: string,
     awardedAt: string,
+    pupil?:  {
+      __typename: "Pupil",
+      id: string,
+      gradeId: string,
+      firstName: string,
+      lastName: string,
+      middleName?: string | null,
+      dateOfBirth: string,
+      photo?: string | null,
+      active: boolean,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    achievement?:  {
+      __typename: "Achievement",
+      id: string,
+      name: string,
+      description: string,
+      icon?: string | null,
+      criteria: string,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -5177,6 +6971,125 @@ export type OnDeletePupilAchievementSubscription = {
     pupilId: string,
     achievementId: string,
     awardedAt: string,
+    pupil?:  {
+      __typename: "Pupil",
+      id: string,
+      gradeId: string,
+      firstName: string,
+      lastName: string,
+      middleName?: string | null,
+      dateOfBirth: string,
+      photo?: string | null,
+      active: boolean,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    achievement?:  {
+      __typename: "Achievement",
+      id: string,
+      name: string,
+      description: string,
+      icon?: string | null,
+      criteria: string,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    createdAt: string,
+    updatedAt: string,
+  } | null,
+};
+
+export type OnCreateBricksIssueSubscriptionVariables = {
+  filter?: ModelSubscriptionBricksIssueFilterInput | null,
+};
+
+export type OnCreateBricksIssueSubscription = {
+  onCreateBricksIssue?:  {
+    __typename: "BricksIssue",
+    id: string,
+    pupilId: string,
+    academicYearId: string,
+    gradeId: string,
+    quantity: number,
+    issuedAt: string,
+    issuedBy: string,
+    pupil?:  {
+      __typename: "Pupil",
+      id: string,
+      gradeId: string,
+      firstName: string,
+      lastName: string,
+      middleName?: string | null,
+      dateOfBirth: string,
+      photo?: string | null,
+      active: boolean,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    createdAt: string,
+    updatedAt: string,
+  } | null,
+};
+
+export type OnUpdateBricksIssueSubscriptionVariables = {
+  filter?: ModelSubscriptionBricksIssueFilterInput | null,
+};
+
+export type OnUpdateBricksIssueSubscription = {
+  onUpdateBricksIssue?:  {
+    __typename: "BricksIssue",
+    id: string,
+    pupilId: string,
+    academicYearId: string,
+    gradeId: string,
+    quantity: number,
+    issuedAt: string,
+    issuedBy: string,
+    pupil?:  {
+      __typename: "Pupil",
+      id: string,
+      gradeId: string,
+      firstName: string,
+      lastName: string,
+      middleName?: string | null,
+      dateOfBirth: string,
+      photo?: string | null,
+      active: boolean,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    createdAt: string,
+    updatedAt: string,
+  } | null,
+};
+
+export type OnDeleteBricksIssueSubscriptionVariables = {
+  filter?: ModelSubscriptionBricksIssueFilterInput | null,
+};
+
+export type OnDeleteBricksIssueSubscription = {
+  onDeleteBricksIssue?:  {
+    __typename: "BricksIssue",
+    id: string,
+    pupilId: string,
+    academicYearId: string,
+    gradeId: string,
+    quantity: number,
+    issuedAt: string,
+    issuedBy: string,
+    pupil?:  {
+      __typename: "Pupil",
+      id: string,
+      gradeId: string,
+      firstName: string,
+      lastName: string,
+      middleName?: string | null,
+      dateOfBirth: string,
+      photo?: string | null,
+      active: boolean,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -5291,6 +7204,37 @@ export type OnCreateFamilyMemberSubscription = {
     id: string,
     familyId: string,
     pupilId: string,
+    family?:  {
+      __typename: "Family",
+      id: string,
+      name: string,
+      phone?: string | null,
+      email?: string | null,
+      address?: string | null,
+      motherFirstName?: string | null,
+      motherLastName?: string | null,
+      motherMiddleName?: string | null,
+      motherPhone?: string | null,
+      fatherFirstName?: string | null,
+      fatherLastName?: string | null,
+      fatherMiddleName?: string | null,
+      fatherPhone?: string | null,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    pupil?:  {
+      __typename: "Pupil",
+      id: string,
+      gradeId: string,
+      firstName: string,
+      lastName: string,
+      middleName?: string | null,
+      dateOfBirth: string,
+      photo?: string | null,
+      active: boolean,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -5306,6 +7250,37 @@ export type OnUpdateFamilyMemberSubscription = {
     id: string,
     familyId: string,
     pupilId: string,
+    family?:  {
+      __typename: "Family",
+      id: string,
+      name: string,
+      phone?: string | null,
+      email?: string | null,
+      address?: string | null,
+      motherFirstName?: string | null,
+      motherLastName?: string | null,
+      motherMiddleName?: string | null,
+      motherPhone?: string | null,
+      fatherFirstName?: string | null,
+      fatherLastName?: string | null,
+      fatherMiddleName?: string | null,
+      fatherPhone?: string | null,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    pupil?:  {
+      __typename: "Pupil",
+      id: string,
+      gradeId: string,
+      firstName: string,
+      lastName: string,
+      middleName?: string | null,
+      dateOfBirth: string,
+      photo?: string | null,
+      active: boolean,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -5321,6 +7296,37 @@ export type OnDeleteFamilyMemberSubscription = {
     id: string,
     familyId: string,
     pupilId: string,
+    family?:  {
+      __typename: "Family",
+      id: string,
+      name: string,
+      phone?: string | null,
+      email?: string | null,
+      address?: string | null,
+      motherFirstName?: string | null,
+      motherLastName?: string | null,
+      motherMiddleName?: string | null,
+      motherPhone?: string | null,
+      fatherFirstName?: string | null,
+      fatherLastName?: string | null,
+      fatherMiddleName?: string | null,
+      fatherPhone?: string | null,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    pupil?:  {
+      __typename: "Pupil",
+      id: string,
+      gradeId: string,
+      firstName: string,
+      lastName: string,
+      middleName?: string | null,
+      dateOfBirth: string,
+      photo?: string | null,
+      active: boolean,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -5338,6 +7344,35 @@ export type OnCreateUserFamilySubscription = {
     userId: string,
     familyId: string,
     phone: string,
+    user?:  {
+      __typename: "User",
+      id: string,
+      email: string,
+      name: string,
+      role: UserRole,
+      photo?: string | null,
+      active: boolean,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    family?:  {
+      __typename: "Family",
+      id: string,
+      name: string,
+      phone?: string | null,
+      email?: string | null,
+      address?: string | null,
+      motherFirstName?: string | null,
+      motherLastName?: string | null,
+      motherMiddleName?: string | null,
+      motherPhone?: string | null,
+      fatherFirstName?: string | null,
+      fatherLastName?: string | null,
+      fatherMiddleName?: string | null,
+      fatherPhone?: string | null,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -5355,6 +7390,35 @@ export type OnUpdateUserFamilySubscription = {
     userId: string,
     familyId: string,
     phone: string,
+    user?:  {
+      __typename: "User",
+      id: string,
+      email: string,
+      name: string,
+      role: UserRole,
+      photo?: string | null,
+      active: boolean,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    family?:  {
+      __typename: "Family",
+      id: string,
+      name: string,
+      phone?: string | null,
+      email?: string | null,
+      address?: string | null,
+      motherFirstName?: string | null,
+      motherLastName?: string | null,
+      motherMiddleName?: string | null,
+      motherPhone?: string | null,
+      fatherFirstName?: string | null,
+      fatherLastName?: string | null,
+      fatherMiddleName?: string | null,
+      fatherPhone?: string | null,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,
@@ -5372,6 +7436,35 @@ export type OnDeleteUserFamilySubscription = {
     userId: string,
     familyId: string,
     phone: string,
+    user?:  {
+      __typename: "User",
+      id: string,
+      email: string,
+      name: string,
+      role: UserRole,
+      photo?: string | null,
+      active: boolean,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
+    family?:  {
+      __typename: "Family",
+      id: string,
+      name: string,
+      phone?: string | null,
+      email?: string | null,
+      address?: string | null,
+      motherFirstName?: string | null,
+      motherLastName?: string | null,
+      motherMiddleName?: string | null,
+      motherPhone?: string | null,
+      fatherFirstName?: string | null,
+      fatherLastName?: string | null,
+      fatherMiddleName?: string | null,
+      fatherPhone?: string | null,
+      createdAt: string,
+      updatedAt: string,
+    } | null,
     createdAt: string,
     updatedAt: string,
   } | null,

@@ -270,6 +270,7 @@
 **Релевантная документация:**
 - [SERVER_ACTIONS.md](../../api/SERVER_ACTIONS.md) - раздел Grades
 - [USER_FLOW.md](../../user_flows/USER_FLOW.md) - раздел Teacher/Admin flows
+- [ISR Optimization Guidelines](../../guidelines/nextjs/ai_isr_optimization_guidelines.md) - оптимизация производительности страниц через ISR
 
 ---
 

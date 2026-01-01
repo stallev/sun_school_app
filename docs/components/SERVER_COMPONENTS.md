@@ -60,7 +60,112 @@ flowchart TD
 
 ---
 
-## 6. Анти-паттерны
+## 6. Loading States и Skeleton Components
+
+### 6.1. Требование мгновенной отрисовки страниц
+
+**⚠️ ОБЯЗАТЕЛЬНОЕ ТРЕБОВАНИЕ**: При клике на ссылку, ведущую на страницу приложения, эта страница **ДОЛЖНА** открываться сразу же, несмотря на то, что возможно еще не весь контент этой страницы загружен и отрендерен. Вместо такого контента должен быть отображен **skeleton placeholder** для каждого блока контента. Когда контент подгрузится, skeleton должен исчезнуть.
+
+### 6.2. Использование loading.tsx с Server Components
+
+Next.js App Router автоматически использует `loading.tsx` файлы для отображения loading states во время навигации:
+
+```typescript
+// app/(private)/grades/loading.tsx
+import { GradeListSkeleton } from '@/components/molecules/grades/grade-list-skeleton';
+
+export default function GradesLoading() {
+  return (
+    <div className="container mx-auto p-4 md:p-6 lg:p-8">
+      <GradeListSkeleton />
+    </div>
+  );
+}
+```
+
+**Как это работает:**
+1. Пользователь кликает на ссылку → Next.js показывает `loading.tsx` **мгновенно**
+2. Server Component (`page.tsx`) загружает данные на сервере
+3. После загрузки данных Server Component заменяет `loading.tsx`
+
+### 6.3. Suspense Boundaries для гранулярного контроля
+
+Для более детального контроля над loading states используйте Suspense boundaries:
+
+```typescript
+import { Suspense } from 'react';
+import { GradeDetailContent } from './grade-detail-content';
+import { GradeDetailSkeleton } from '@/components/molecules/grades/grade-detail-skeleton';
+
+export default function GradeDetailPage({ params }: { params: Promise<{ gradeId: string }> }) {
+  return (
+    <div className="container mx-auto max-w-5xl p-4 md:p-6 lg:p-8">
+      <Suspense fallback={<GradeDetailSkeleton />}>
+        <GradeDetailContent params={params} />
+      </Suspense>
+    </div>
+  );
+}
+```
+
+### 6.4. Skeleton Components для Server Components
+
+Skeleton компоненты должны **точно повторять структуру** реального контента:
+
+```typescript
+// components/molecules/grades/grade-list-skeleton.tsx
+import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
+
+export const GradeListSkeleton = () => {
+  return (
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {Array.from({ length: 6 }).map((_, index) => (
+        <Card key={index}>
+          <CardHeader>
+            <Skeleton className="h-6 w-32" />
+            <Skeleton className="h-4 w-full mt-2" />
+          </CardHeader>
+          <CardContent>
+            <Skeleton className="h-4 w-24" />
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+};
+```
+
+### 6.5. Интеграция с Server Actions
+
+Server Actions могут триггерить revalidation, что автоматически покажет loading states:
+
+```typescript
+'use server';
+
+export async function createGradeAction(data: GradeInput) {
+  // ... логика создания
+  revalidatePath('/grades'); // Триггерит revalidation
+  // Next.js автоматически покажет loading.tsx во время revalidation
+}
+```
+
+### 6.6. Best Practices
+
+- ✅ **Создавайте loading.tsx** для каждого route, который загружает данные
+- ✅ **Используйте skeleton компоненты**, которые точно повторяют структуру реального контента
+- ✅ **Обеспечьте responsive design** для skeleton компонентов
+- ✅ **Используйте Suspense boundaries** для гранулярного контроля
+- ❌ **НЕ показывайте пустые страницы** во время загрузки
+- ❌ **НЕ используйте generic "Loading..."** без skeleton
+
+**См. также:**
+- `docs/guidelines/nextjs/ai_loading_patterns.md` - подробное руководство по loading patterns
+- `docs/guidelines/react/ai_component_guidelines.md` - раздел 10 (Loading States)
+
+---
+
+## 7. Анти-паттерны
 - Не тянуть данные в Client Component, если можно в RSC.
 - Не использовать `use client` без необходимости (глобально увеличивает bundle).
 - Не выполнять побочные эффекты в RSC (только подготовка данных).
@@ -68,29 +173,31 @@ flowchart TD
 
 ---
 
-## 7. Интеграция с Server Actions
+## 8. Интеграция с Server Actions
 - Мутации: вызываются из Client Components или форм `<form action={...}>`.
 - После мутации — `revalidatePath`/`revalidateTag` для RSC-потребителей.
 - Ошибки: RSC получают ActionResponse и формируют UI без повторного запроса.
 
 ---
 
-## 8. Тестирование
+## 9. Тестирование
 - Снимайте снапшоты RSC (React Testing Library) с подменой данных.
 - Контрактные тесты Server Actions: проверка схем/ролей отдельно (см. `SERVER_ACTIONS.md`).
 
 ---
 
-## 9. Cross-reference
+## 10. Cross-reference
 - Компонентная библиотека: `docs/components/COMPONENT_LIBRARY.md`
 - Клиентские компоненты: `docs/components/CLIENT_COMPONENTS.md`
 - Архитектура: `docs/architecture/ARCHITECTURE.md`
 - Server Actions: `docs/api/SERVER_ACTIONS.md`
 - Данные: `docs/database/DYNAMODB_SCHEMA.md`, `docs/database/GRAPHQL_SCHEMA.md`
+- Loading Patterns: `docs/guidelines/nextjs/ai_loading_patterns.md`
+- React Loading States: `docs/guidelines/react/ai_component_guidelines.md` (раздел 10)
 
 ---
 
-**Версия:** 1.0  
-**Последнее обновление:** 23 December 2025  
+**Версия:** 1.1  
+**Последнее обновление:** 27 December 2025  
 **Автор:** AI Documentation Team
 

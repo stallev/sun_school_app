@@ -157,6 +157,10 @@ npx tsc --noEmit     # Type check without building
 amplify status       # Check Amplify resources status
 amplify push         # Deploy backend changes
 amplify console      # Open Amplify Console
+
+# Chrome DevTools MCP (for browser testing)
+.\scripts\start-chrome-debug.ps1      # Start Chrome with remote debugging
+.\scripts\check-chrome-debug-port.ps1 # Check if port 9222 is available
 ```
 
 ## 🔐 Authentication
@@ -200,6 +204,7 @@ Full project documentation is located in the `docs/` folder:
 - **[MVP_SCOPE.md](docs/MVP_SCOPE.md)** - MVP functionality description
 - **[ARCHITECTURE.md](docs/architecture/ARCHITECTURE.md)** - project architecture
 - **[AWS_AMPLIFY.md](docs/infrastructure/AWS_AMPLIFY.md)** - AWS Amplify setup
+- **[DEVTOOLS_MCP_SETUP.md](docs/infrastructure/DEVTOOLS_MCP_SETUP.md)** - Chrome DevTools MCP server setup for browser testing
 - **[DEPLOYMENT_GUIDE.md](docs/deployment/DEPLOYMENT_GUIDE.md)** - deployment guide
 - **[GRAPHQL_SCHEMA.md](docs/database/GRAPHQL_SCHEMA.md)** - GraphQL API documentation
 - **[IMPLEMENTATION_PHASES.md](docs/implementation/mvp/implementation_phases_list.md)** - implementation plan

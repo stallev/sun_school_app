@@ -69,6 +69,7 @@ The CursorAI agent must follow the steps below for each development task to ensu
     - [`docs/implementation/mvp/implementation_phases_list.md`](docs/implementation/mvp/implementation_phases_list.md) - MVP implementation plan.
     - [`docs/implementation/mvp/tasks/`](docs/implementation/mvp/tasks/) - project task list by phases.
     - [`docs/guidelines/react/`](docs/guidelines/react/) - guidelines for React components, hooks, utilities.
+    - [`docs/guidelines/nextjs/ai_loading_patterns.md`](docs/guidelines/nextjs/ai_loading_patterns.md) - guidelines for loading states and skeleton components in Next.js App Router.
     - [`amplify/data/schema.graphql`](amplify/data/schema.graphql) - GraphQL database schema.
     - [`docs/database/GRAPHQL_SCHEMA.md`](docs/database/GRAPHQL_SCHEMA.md) - complete GraphQL API documentation.
   - Determine task type:
@@ -204,10 +205,11 @@ The CursorAI agent must follow the steps below for each development task to ensu
   > ⚠️ **CRITICALLY IMPORTANT**: Browser console check is a **mandatory** step when creating or modifying any UI component. This step **CANNOT** be skipped.
   
   - **Method 1: Using MCP tools (preferred)**:
-    - Use `mcp_console-ninja_runtime-errors` to get all runtime errors from the browser.
-    - Use `mcp_console-ninja_runtime-logs` to get all logs from the browser.
-    - Use `mcp_console-ninja_runtime-logs-and-errors` to get all errors and logs simultaneously.
-    - If the component is already open in the browser, use `mcp_console-ninja_runtime-logs-by-location` with file and line specification to check a specific component.
+    - **Console Ninja MCP** (if available):
+      - Use `mcp_console-ninja_runtime-errors` to get all runtime errors from the browser.
+      - Use `mcp_console-ninja_runtime-logs` to get all logs from the browser.
+      - Use `mcp_console-ninja_runtime-logs-and-errors` to get all errors and logs simultaneously.
+      - If the component is already open in the browser, use `mcp_console-ninja_runtime-logs-by-location` with file and line specification to check a specific component.
     - **Check should include**:
       - JavaScript errors (SyntaxError, TypeError, ReferenceError, etc.)
       - React errors (hydration errors, render errors, hook errors)
@@ -332,9 +334,9 @@ The CursorAI agent must follow the steps below for each development task to ensu
     - Specify check time and component version.
   
   - **Successful check criteria**:
-    - ✅ Zero errors (Errors) in browser console.
+    - ✅ Zero errors (Errors) in browser console (checked via Console Ninja MCP).
     - ✅ Zero critical warnings (Warnings) that may affect functionality.
-    - ✅ No failed requests in Network tab (if applicable).
+    - ✅ No failed requests in Network tab (checked manually via Developer Tools).
     - ✅ Page loads without errors.
     - ✅ All interactive elements work correctly.
   
@@ -476,7 +478,7 @@ The CursorAI agent must follow the steps below for each development task to ensu
 2. **Linting** (`npm run lint`)
 3. **Browser console check** (⭐ **MANDATORY for UI components**):
    - If task block included creation or modification of UI components, **MANDATORY** to check browser console for errors.
-   - Use MCP tools (`mcp_console-ninja_runtime-errors`, `mcp_console-ninja_runtime-logs-and-errors`) or Developer Tools.
+   - Use MCP tools (`mcp_console-ninja_runtime-errors`, `mcp_console-ninja_runtime-logs-and-errors`) or manually via Developer Tools.
    - Ensure no JavaScript errors, React errors, serialization errors, import errors, GraphQL/AppSync errors.
    - All errors must be fixed **BEFORE** proceeding to next step.
 4. **Build validation** (`npm run build`) ⭐ **CRITICALLY IMPORTANT**

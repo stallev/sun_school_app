@@ -623,212 +623,9 @@ export default Modal;
 
 ---
 
-## 9. ⚡ React Compiler (Next.js 16+)
+## 9. 🚀 Performance Optimization
 
-### 9.1. React Compiler Overview
-
-**⚠️ IMPORTANT**: If `reactCompiler: true` is enabled in `next.config.ts`, React Compiler automatically optimizes components. This means many manual optimizations become redundant.
-
-**What React Compiler does:**
-- Automatically memoizes components (equivalent to `memo`)
-- Automatically memoizes values (equivalent to `useMemo`)
-- Automatically memoizes functions (equivalent to `useCallback`)
-- Optimizes re-renders based on actual dependencies
-
-**When React Compiler is active:**
-```typescript
-// next.config.ts
-const nextConfig: NextConfig = {
-  reactCompiler: true, // ← React Compiler enabled
-  // ...
-};
-```
-
-### 9.2. Code Writing Rules for React Compiler
-
-#### ✅ Recommended Patterns:
-
-1. **Pure components** - components should be pure functions:
-```typescript
-// ✅ GOOD: Pure function
-export const Button = ({ onClick, children }: ButtonProps) => {
-  return (
-    <button onClick={onClick}>
-      {children}
-    </button>
-  );
-};
-
-// ❌ BAD: Props mutation
-export const Button = ({ onClick, children }: ButtonProps) => {
-  onClick.mutated = true; // Mutation!
-  return <button onClick={onClick}>{children}</button>;
-};
-```
-
-2. **Stable dependencies** - use stable references:
-```typescript
-// ✅ GOOD: Stable reference
-const handleClick = () => {
-  console.log('clicked');
-};
-
-// ✅ GOOD: useCallback not needed with React Compiler
-export const Button = ({ onClick }: ButtonProps) => {
-  const handleClick = () => {
-    onClick?.();
-  };
-  return <button onClick={handleClick}>Click</button>;
-};
-```
-
-3. **Proper useEffect usage**:
-```typescript
-// ✅ GOOD: Explicit dependencies
-export const Component = ({ userId }: ComponentProps) => {
-  useEffect(() => {
-    fetchUser(userId);
-  }, [userId]); // Explicit dependencies
-  
-  return <div>...</div>;
-};
-```
-
-#### ❌ Patterns to Avoid:
-
-1. **Redundant memoizations** - React Compiler does this automatically:
-```typescript
-// ❌ REDUNDANT with React Compiler:
-export const Component = memo(({ data }: ComponentProps) => {
-  const processed = useMemo(() => processData(data), [data]);
-  const handleClick = useCallback(() => {
-    // ...
-  }, []);
-  
-  return <div>...</div>;
-});
-
-// ✅ CORRECT with React Compiler:
-export const Component = ({ data }: ComponentProps) => {
-  const processed = processData(data); // Compiler optimizes automatically
-  const handleClick = () => {
-    // ...
-  };
-  
-  return <div>...</div>;
-};
-```
-
-2. **Object and array mutations**:
-```typescript
-// ❌ BAD: Mutation
-const updateData = (data: Data[]) => {
-  data.push(newItem); // Mutation!
-};
-
-// ✅ GOOD: Immutable update
-const updateData = (data: Data[]) => {
-  return [...data, newItem]; // New array
-};
-```
-
-3. **Unstable references in dependencies**:
-```typescript
-// ❌ BAD: Unstable reference
-useEffect(() => {
-  // ...
-}, [{ id: 1 }]); // New object on every render!
-
-// ✅ GOOD: Primitive values or stable references
-useEffect(() => {
-  // ...
-}, [userId]); // Primitive value
-```
-
-### 9.3. When Manual Optimizations Are Still Needed
-
-React Compiler doesn't replace all optimizations. Manual optimizations are still needed for:
-
-1. **Heavy computations** - if computation is very expensive, you can keep `useMemo`:
-```typescript
-// If computation is VERY heavy (e.g., processing large arrays)
-const expensiveResult = useMemo(() => {
-  return heavyComputation(data);
-}, [data]);
-```
-
-2. **Third-party libraries** - if library requires stable references:
-```typescript
-// If library requires stable reference
-const stableCallback = useCallback(() => {
-  libraryFunction();
-}, []);
-```
-
-3. **Refs for DOM elements** - `useRef` is still needed:
-```typescript
-const inputRef = useRef<HTMLInputElement>(null);
-```
-
-### 9.4. Migrating Existing Code
-
-When enabling React Compiler:
-
-1. **Remove redundant `memo`**:
-```typescript
-// Before:
-export const Component = memo(({ data }: ComponentProps) => { ... });
-
-// After:
-export const Component = ({ data }: ComponentProps) => { ... };
-```
-
-2. **Remove redundant `useMemo`** (except for very heavy computations):
-```typescript
-// Before:
-const value = useMemo(() => computeValue(data), [data]);
-
-// After:
-const value = computeValue(data);
-```
-
-3. **Remove redundant `useCallback`** (except for external libraries):
-```typescript
-// Before:
-const handleClick = useCallback(() => {
-  onClick();
-}, [onClick]);
-
-// After:
-const handleClick = () => {
-  onClick();
-};
-```
-
-### 9.5. Verifying React Compiler Work
-
-React Compiler works automatically, but you can verify its work:
-
-1. **Check in DevTools** - React DevTools will show optimized components
-2. **Profiling** - use React Profiler to check re-renders
-3. **Logging** - add `console.log` to track re-renders
-
-### 9.6. Exceptions and Special Cases
-
-React Compiler may not optimize:
-- Components with `forwardRef` (require special attention)
-- Components with `memo` and custom comparisons
-- Complex conditional renders with side effects
-
-In such cases, you can keep manual optimizations.
-
----
-
-## 10. 🚀 Performance Optimization (Legacy - without React Compiler)
-
-> ⚠️ **Note**: If `reactCompiler: true` is enabled in `next.config.ts`, most optimizations in this section are redundant. See section 9 "React Compiler".
-
-### 10.1. Memoization
+### 9.1. Memoization
 ```typescript
 import React, { memo, useMemo, useCallback } from 'react';
 
@@ -885,23 +682,201 @@ export const App = (): JSX.Element => (
 
 ---
 
+## 10. ⏳ Loading States and Skeleton Components
+
+### 10.1. Instant Page Rendering Requirement
+
+**⚠️ MANDATORY REQUIREMENT**: When a user clicks a link that navigates to an application page, that page **MUST** open immediately, even if the page content is not yet fully loaded and rendered. Instead of missing content, a **skeleton placeholder** should be displayed for each content block. When content loads, the skeleton should disappear smoothly.
+
+**Key Principles:**
+- **Instant Navigation**: Pages should render immediately upon navigation
+- **Skeleton Placeholders**: Each content block should have a corresponding skeleton
+- **Smooth Transitions**: Skeleton should smoothly transition to actual content
+- **Perceived Performance**: Users should see immediate feedback, improving UX
+
+### 10.2. Skeleton Component Pattern
+
+Skeleton components should mirror the structure of the actual content they represent:
+
+```typescript
+import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
+
+interface GradeCardSkeletonProps {
+  className?: string;
+}
+
+/**
+ * Skeleton component for grade card
+ * Mirrors the structure of GradeCard component
+ */
+export const GradeCardSkeleton = ({ className }: GradeCardSkeletonProps) => {
+  return (
+    <Card className={className}>
+      <CardHeader>
+        <div className="flex items-start justify-between gap-2">
+          <Skeleton className="h-6 w-32" /> {/* Title */}
+          <Skeleton className="h-5 w-16 rounded-full" /> {/* Badge */}
+        </div>
+        <Skeleton className="h-4 w-full mt-2" /> {/* Description line 1 */}
+        <Skeleton className="h-4 w-3/4 mt-1" /> {/* Description line 2 */}
+      </CardHeader>
+      <CardContent>
+        <Skeleton className="h-4 w-24" /> {/* Age range */}
+      </CardContent>
+    </Card>
+  );
+};
+```
+
+### 10.3. Next.js App Router Loading Patterns
+
+#### 10.3.1. Using loading.tsx Files
+
+In Next.js App Router, create `loading.tsx` files in route directories to automatically show loading states during navigation:
+
+```typescript
+// app/(private)/grades/loading.tsx
+import { GradeListSkeleton } from '@/components/molecules/grades/grade-list-skeleton';
+
+/**
+ * Loading state for grades list page
+ * Automatically shown during navigation to /grades
+ */
+export default function GradesLoading() {
+  return (
+    <div className="container mx-auto p-4 md:p-6 lg:p-8">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <div className="h-9 w-32 bg-muted animate-pulse rounded-md mb-2" />
+          <div className="h-4 w-64 bg-muted animate-pulse rounded-md" />
+        </div>
+        <div className="h-11 w-32 bg-muted animate-pulse rounded-md" />
+      </div>
+      <GradeListSkeleton />
+    </div>
+  );
+}
+```
+
+#### 10.3.2. Using Suspense Boundaries
+
+For more granular control, use Suspense boundaries within pages:
+
+```typescript
+import { Suspense } from 'react';
+import { GradeDetailContent } from './grade-detail-content';
+import { GradeDetailSkeleton } from '@/components/molecules/grades/grade-detail-skeleton';
+
+export default function GradeDetailPage({ params }: { params: Promise<{ gradeId: string }> }) {
+  return (
+    <div className="container mx-auto max-w-5xl p-4 md:p-6 lg:p-8">
+      <Suspense fallback={<GradeDetailSkeleton />}>
+        <GradeDetailContent params={params} />
+      </Suspense>
+    </div>
+  );
+}
+```
+
+### 10.4. Skeleton Component Best Practices
+
+1. **Match Structure**: Skeleton should match the exact structure of the actual content
+2. **Appropriate Sizing**: Use realistic dimensions that match actual content
+3. **Animation**: Use `animate-pulse` class for smooth pulsing animation
+4. **Accessibility**: Include `aria-label` for screen readers:
+   ```typescript
+   <Skeleton 
+     className="h-6 w-32" 
+     aria-label="Loading grade information"
+   />
+   ```
+5. **Responsive Design**: Ensure skeleton is responsive like actual content
+6. **Multiple Variants**: Create skeleton variants for different content states (empty, loading, error)
+
+### 10.5. Integration with shadcn/ui Skeleton
+
+The project uses shadcn/ui Skeleton component:
+
+```typescript
+import { Skeleton } from '@/components/ui/skeleton';
+
+/**
+ * Basic skeleton usage
+ */
+export const BasicSkeleton = () => (
+  <div className="space-y-4">
+    <Skeleton className="h-12 w-full" />
+    <Skeleton className="h-12 w-full" />
+    <Skeleton className="h-12 w-3/4" />
+  </div>
+);
+```
+
+### 10.6. Example: Complete Skeleton Implementation
+
+```typescript
+// components/molecules/grades/grade-list-skeleton.tsx
+import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card';
+
+/**
+ * Skeleton for grades list
+ * Displays 6 skeleton cards in a responsive grid
+ */
+export const GradeListSkeleton = () => {
+  return (
+    <div className="grid grid-cols-1 gap-4 p-4 md:grid-cols-2 md:gap-6 md:p-6 lg:grid-cols-3 lg:gap-8 lg:p-8">
+      {Array.from({ length: 6 }).map((_, index) => (
+        <Card key={index} className="flex flex-col h-full">
+          <CardHeader>
+            <div className="flex items-start justify-between gap-2">
+              <Skeleton className="h-6 w-32" />
+              <Skeleton className="h-5 w-16 rounded-full" />
+            </div>
+            <Skeleton className="h-4 w-full mt-2" />
+            <Skeleton className="h-4 w-3/4 mt-1" />
+          </CardHeader>
+          <CardContent className="flex-1">
+            <Skeleton className="h-4 w-24" />
+          </CardContent>
+          <CardFooter>
+            <Skeleton className="h-11 w-full rounded-md" />
+          </CardFooter>
+        </Card>
+      ))}
+    </div>
+  );
+};
+```
+
+### 10.7. AI Assistant Instructions
+
+When creating components that load data:
+
+1. **Create Skeleton Component**: Always create a corresponding skeleton component
+2. **Match Structure**: Ensure skeleton mirrors the actual component structure
+3. **Add loading.tsx**: Create `loading.tsx` files for route-level loading states
+4. **Use Suspense**: Consider Suspense boundaries for granular loading control
+5. **Test Navigation**: Verify instant page rendering on link clicks
+6. **Responsive Design**: Ensure skeleton is responsive like actual content
+
+---
+
 ## 11. 🤖 AI Assistant Instructions
 
 When generating React components:
 
-1. **Check React Compiler**: If `reactCompiler: true` is enabled in `next.config.ts`, avoid manual memoization (`memo`, `useMemo`, `useCallback`) unless specifically needed
-2. **Identify Component Level**: Determine if it's an Atom, Molecule, Organism, Layout, or Page
-3. **Create TypeScript Interface**: Define explicit props interface with proper typing
-4. **Use Explicit Typing**: Use `(props: PropsType)` instead of `React.FC<PropsType>` for better type inference, generic support, and flexibility
-5. **Follow Naming Conventions**: Use PascalCase for components, descriptive prop names
-6. **Write Pure Components**: Components should be pure functions without mutations
-7. **Include Accessibility**: Add appropriate ARIA attributes and keyboard navigation
-8. **Handle Edge Cases**: Consider loading states, error states, and empty states
-9. **Optimize Performance**: 
-   - With React Compiler: Write clean code, compiler handles optimization
-   - Without React Compiler: Use memo, useMemo, useCallback when appropriate
-10. **Write Tests**: Include unit tests and accessibility tests
-11. **Document Props**: Add JSDoc comments for all components and complex props (in English)
+1. **Identify Component Level**: Determine if it's an Atom, Molecule, Organism, Layout, or Page
+2. **Create TypeScript Interface**: Define explicit props interface with proper typing
+3. **Use Explicit Typing**: Use `(props: PropsType)` instead of `React.FC<PropsType>` for better type inference, generic support, and flexibility
+4. **Follow Naming Conventions**: Use PascalCase for components, descriptive prop names
+5. **Write Pure Components**: Components should be pure functions without mutations
+6. **Include Accessibility**: Add appropriate ARIA attributes and keyboard navigation
+7. **Handle Edge Cases**: Consider loading states, error states, and empty states
+8. **Optimize Performance**: Use memo, useMemo, useCallback when appropriate to prevent unnecessary re-renders
+9. **Write Tests**: Include unit tests and accessibility tests
+10. **Document Props**: Add JSDoc comments for all components and complex props (in English)
 
 > **Example Prompt**: "Generate a reusable Modal component that follows accessibility guidelines, includes proper TypeScript typing, and can be used across different React frameworks."
 
@@ -910,8 +885,6 @@ When generating React components:
 ## 12. 📚 References
 
 - [React Documentation](https://react.dev/)
-- [React Compiler](https://react.dev/learn/react-compiler) - Automatic optimization of React components
-- [Next.js React Compiler](https://nextjs.org/docs/app/api-reference/next-config-js/reactCompiler) - React Compiler configuration in Next.js
 - [WCAG Guidelines](https://www.w3.org/WAI/WCAG21/quickref/)
 - [Testing Library](https://testing-library.com/)
 - [Jest Axe](https://github.com/nickcolley/jest-axe)

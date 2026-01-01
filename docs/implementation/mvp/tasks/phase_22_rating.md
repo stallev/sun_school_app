@@ -94,7 +94,19 @@ Phase 15: Система баллов и домиков
 - <CRITICAL>[SERVER_ACTIONS.md](../../../api/SERVER_ACTIONS.md) - раздел Rating и раздел 6 "Working with Related Data via Indexes"</CRITICAL>
 - ⚠️ **Важно:** Для получения связанных данных (ученики, проверки ДЗ) используй queries через индексы, а не прямые связи `@belongsTo` и `@hasMany`. См. [SCHEMA_DIFFERENCES.md](../../../database/SCHEMA_DIFFERENCES.md)
 - <CRITICAL>[MVP_SCOPE.md](../../../MVP_SCOPE.md) - раздел 2.7 Рейтинг группы</CRITICAL>
+- [GRAPHQL_SCHEMA_OPTIMIZATION_ROADMAP.md](../../GRAPHQL_SCHEMA_OPTIMIZATION_ROADMAP.md) - оптимизация запросов
 - Context7: Next.js Server Actions документация
+- **Код реализации:**
+  - [src/lib/db/queries.ts](../../../../src/lib/db/queries.ts) - для получения данных для расчета рейтинга
+  - [src/lib/db/errors.ts](../../../../src/lib/db/errors.ts) - обработка ошибок
+  - [src/lib/auth/cognito.ts](../../../../src/lib/auth/cognito.ts) - проверка прав доступа
+
+**Важно:** После реализации оптимизации GraphQL схемы:
+- Используйте getGradeWithNestedData() для получения группы со всеми данными
+- Grade содержит вложенные данные: pupils, academicYears.lessons.homeworkChecks
+- Все данные для расчета рейтинга доступны в одном запросе
+- Не требуются отдельные запросы для получения данных учеников и их проверок ДЗ
+- Снижение количества запросов с ~110 до 1
 
 **Критерии приемки:**
 - Server Actions созданы

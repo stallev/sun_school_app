@@ -92,7 +92,19 @@ Phase 12: Управление учебными годами (Academic Years)
 - ⚠️ **Важно:** Для получения связанных данных (золотые стихи, проверки ДЗ) используй queries через индексы, а не прямые связи `@belongsTo` и `@hasMany`. См. [SCHEMA_DIFFERENCES.md](../../../database/SCHEMA_DIFFERENCES.md)
 - <CRITICAL>[VALIDATION.md](../../../api/VALIDATION.md) - раздел Lesson Schemas</CRITICAL>
 - <CRITICAL>[MVP_SCOPE.md](../../../MVP_SCOPE.md) - раздел 2.3 Управление уроками</CRITICAL>
+- [GRAPHQL_SCHEMA_OPTIMIZATION_ROADMAP.md](../../GRAPHQL_SCHEMA_OPTIMIZATION_ROADMAP.md) - оптимизация запросов
 - Context7: Next.js 15.5.9 Server Actions документация
+- **Код реализации:**
+  - [src/lib/validation/lessons.ts](../../../../src/lib/validation/lessons.ts) - схемы валидации
+  - [src/lib/db/queries.ts](../../../../src/lib/db/queries.ts) - функции запросов (getLesson, listLessons)
+  - [src/lib/db/mutations.ts](../../../../src/lib/db/mutations.ts) - функции мутаций (createLesson, updateLesson, deleteLesson)
+  - [src/lib/db/amplify.ts](../../../../src/lib/db/amplify.ts) - Data Access Layer (amplifyData)
+  - [src/lib/db/errors.ts](../../../../src/lib/db/errors.ts) - обработка ошибок Data Access Layer
+  - [src/lib/auth/cognito.ts](../../../../src/lib/auth/cognito.ts) - проверка прав доступа
+  - [src/graphql/queries.ts](../../../../src/graphql/queries.ts) - GraphQL запросы для уроков
+  - [src/graphql/generated/types.ts](../../../../src/graphql/generated/types.ts) - TypeScript типы из GraphQL схемы
+  - [src/lib/validation/common.ts](../../../../src/lib/validation/common.ts) - общие схемы валидации
+  - [src/lib/validation/utils.ts](../../../../src/lib/validation/utils.ts) - утилиты для работы с валидацией
 
 **Критерии приемки:**
 - Все Server Actions созданы
@@ -217,6 +229,9 @@ Phase 12: Управление учебными годами (Academic Years)
 - [ADMIN_FLOWS.md](../../../user_flows/ADMIN_FLOWS.md) - раздел 7.1 Создание уроков для любой группы
 - Context7: React Hook Form документация
 - Context7: Zod документация
+- **Код реализации:**
+  - [src/lib/db/queries.ts](../../../../src/lib/db/queries.ts) - для получения данных
+  - [src/lib/validation/lessons.ts](../../../../src/lib/validation/lessons.ts) - для валидации форм
 
 **Критерии приемки:**
 - Форма создана и работает
@@ -275,6 +290,8 @@ Phase 12: Управление учебными годами (Academic Years)
 - [WIREFRAMES.md](../../../ui_ux/WIREFRAMES.md)
 - Context7: Shadcn UI Combobox документация
 - Context7: React Hook Form Controller документация
+- **Код реализации:**
+  - [src/lib/db/queries.ts](../../../../src/lib/db/queries.ts) - для получения данных золотых стихов
 
 **Критерии приемки:**
 - Выбор стихов работает корректно
@@ -331,8 +348,11 @@ Phase 12: Управление учебными годами (Academic Years)
 - <CRITICAL>[WIREFRAMES.md](../../../ui_ux/WIREFRAMES.md) - раздел Lesson Detail</CRITICAL>
 - [USER_FLOW.md](../../../user_flows/USER_FLOW.md) - раздел View Lesson
 - [TEACHER_FLOWS.md](../../../user_flows/TEACHER_FLOWS.md) - раздел 2.3 Подготовка к уроку
+- [Loading Patterns Guidelines](../../../guidelines/nextjs/ai_loading_patterns.md) - guidelines for loading states and skeleton components
 - Context7: BlockNote рендеринг документация
 - Context7: Next.js 15.5.9 динамические маршруты документация
+- **Код реализации:**
+  - [src/lib/db/queries.ts](../../../../src/lib/db/queries.ts) - для получения данных урока
 
 **Критерии приемки:**
 - Страница просмотра создана
@@ -390,6 +410,8 @@ Phase 12: Управление учебными годами (Academic Years)
 - [USER_FLOW.md](../../../user_flows/USER_FLOW.md) - раздел Lesson List
 - [TEACHER_FLOWS.md](../../../user_flows/TEACHER_FLOWS.md) - раздел 3.3 Просмотр списка уроков
 - Context7: Next.js 15.5.9 App Router документация
+- **Код реализации:**
+  - [src/lib/db/queries.ts](../../../../src/lib/db/queries.ts) - для получения списка уроков
 
 **Критерии приемки:**
 - Страница списка создана
@@ -566,6 +588,8 @@ Phase 12: Управление учебными годами (Academic Years)
 - <CRITICAL>[SECURITY.md](../../../infrastructure/SECURITY.md) - раздел RBAC</CRITICAL>
 - <CRITICAL>[MVP_SCOPE.md](../../../MVP_SCOPE.md) - раздел 2.1.2</CRITICAL>
 - Context7: AWS Cognito документация
+- **Код реализации:**
+  - [src/lib/auth/cognito.ts](../../../../src/lib/auth/cognito.ts) - проверка прав доступа через Cognito
 
 **Критерии приемки:**
 - Проверка прав работает корректно
@@ -636,6 +660,36 @@ Phase 12: Управление учебными годами (Academic Years)
 <output_format>
 После выполнения задачи должно быть проведено комплексное тестирование всего функционала управления уроками. Все функции должны работать корректно, BlockNote редактор должен работать, выбор золотых стихов должен работать, права доступа должны проверяться правильно. Система должна быть готова к использованию.
 </output_format>
+
+---
+
+### Task 13.11: Реализация прикрепления файлов к урокам
+
+**Статус:** [ ] Не начато | [ ] В процессе | [ ] Выполнено | [ ] Проверено
+
+**Описание:**
+Реализовать функционал прикрепления файлов (изображения, PDF, документы) к урокам.
+
+**Файлы для изменения:**
+- [src/actions/lesson-files.ts](../../../../src/actions/lesson-files.ts)
+- [src/components/teacher/LessonFileUploader/](../../../../src/components/teacher/LessonFileUploader/)
+- [src/components/teacher/LessonFileList/](../../../../src/components/teacher/LessonFileList/)
+
+**Документация:**
+- [GRAPHQL_SCHEMA_OPTIMIZATION_ROADMAP.md](../../GRAPHQL_SCHEMA_OPTIMIZATION_ROADMAP.md) - раздел 3.2
+
+**Действия:**
+- [ ] Создать Server Actions для файлов (upload, delete, getUrl)
+- [ ] Создать компонент LessonFileUploader
+- [ ] Создать компонент LessonFileList
+- [ ] Интегрировать в форму редактирования урока
+- [ ] Проверить ограничения (10MB, 10 файлов)
+
+**Критерии приемки:**
+- Файлы можно загружать к урокам
+- Файлы можно удалять
+- Ограничения размера и количества файлов работают корректно
+- Компоненты интегрированы в форму редактирования урока
 
 ---
 
