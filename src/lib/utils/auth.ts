@@ -5,7 +5,6 @@
  */
 
 import { getCurrentUser } from '@/actions/auth';
-import { getAuthenticatedUser } from '@/lib/auth/cognito';
 
 export type UserRole = 'TEACHER' | 'ADMIN' | 'SUPERADMIN';
 

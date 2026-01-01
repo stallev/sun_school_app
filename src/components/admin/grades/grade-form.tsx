@@ -1,32 +1,15 @@
 'use client';
 
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useTransition } from 'react';
-import { useRouter } from 'next/navigation';
-import {
-  createGradeSchema,
-  updateGradeSchema,
-  type CreateGradeInput,
-  type UpdateGradeInput,
-} from '@/lib/validation/grades';
-import { createGradeAction, updateGradeAction } from '@/actions/grades';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
-import type { Control } from 'react-hook-form';
+import { Form } from '@/components/ui/form';
+import { useGradeForm } from '@/hooks/useGradeForm';
+import { GradeNameField } from '@/components/molecules/grades/grade-name-field';
+import { GradeDescriptionField } from '@/components/molecules/grades/grade-description-field';
+import { GradeAgeField } from '@/components/molecules/grades/grade-age-field';
+import { GradeActiveField } from '@/components/molecules/grades/grade-active-field';
+import { GradeSubmitButton } from '@/components/molecules/grades/grade-submit-button';
 import { PupilSelector } from './pupil-selector';
 import { TeacherSelector } from './teacher-selector';
+import type { CreateGradeInput, UpdateGradeInput } from '@/lib/validation/grades';
 
 interface GradeFormProps {
   gradeId?: string;
@@ -34,169 +17,27 @@ interface GradeFormProps {
   onSuccess?: () => void;
 }
 
-interface AgeFieldProps {
-  control: Control<CreateGradeInput | UpdateGradeInput>;
-  name: 'minAge' | 'maxAge';
-  label: string;
-  placeholder: string;
-  disabled: boolean;
-}
-
-const AgeField = ({
-  control,
-  name,
-  label,
-  placeholder,
-  disabled,
-}: AgeFieldProps) => (
-  <FormField
-    control={control}
-    name={name}
-    render={({ field }) => (
-      <FormItem>
-        <FormLabel>{label}</FormLabel>
-        <FormControl>
-          <Input
-            type="number"
-            placeholder={placeholder}
-            disabled={disabled}
-            value={field.value ?? ''}
-            onChange={(e) => {
-              const value = e.target.value;
-              field.onChange(value === '' ? undefined : Number(value));
-            }}
-          />
-        </FormControl>
-        <FormMessage />
-      </FormItem>
-    )}
-  />
-);
-
-export const GradeForm = ({
-  gradeId,
-  initialData,
-  onSuccess,
-}: GradeFormProps) => {
-  const [isPending, startTransition] = useTransition();
-  const router = useRouter();
-  const isEditMode = !!gradeId;
-
-  const schema = isEditMode ? updateGradeSchema : createGradeSchema;
-  const defaultValues: Partial<CreateGradeInput & UpdateGradeInput> = {
-    name: initialData?.name || '',
-    description: initialData?.description || '',
-    minAge: initialData?.minAge,
-    maxAge: initialData?.maxAge,
-    active: initialData?.active ?? true,
-    ...(isEditMode
-      ? {
-          id: gradeId,
-          pupilIds: initialData?.pupilIds || [],
-          teacherIds: initialData?.teacherIds || [],
-        }
-      : {
-          teacherIds: initialData?.teacherIds || [],
-        }),
-  };
-
-  const form = useForm<CreateGradeInput | UpdateGradeInput>({
-    resolver: zodResolver(schema),
-    defaultValues,
+export const GradeForm = ({ gradeId, initialData, onSuccess }: GradeFormProps) => {
+  const { form, isPending, isEditMode, onSubmit } = useGradeForm({
+    gradeId,
+    initialData,
+    onSuccess,
   });
-
-  const onSubmit = (data: CreateGradeInput | UpdateGradeInput) => {
-    console.log('Form submit triggered, data:', data);
-    startTransition(async () => {
-      try {
-        const result = isEditMode
-          ? await updateGradeAction(data as UpdateGradeInput)
-          : await createGradeAction(data as CreateGradeInput);
-
-        if (result.success) {
-          toast.success(
-            result.message ||
-              (isEditMode
-                ? 'Группа успешно обновлена'
-                : 'Группа успешно создана')
-          );
-          onSuccess?.();
-          if (!isEditMode && result.data) {
-            router.push(`/grades/${result.data.id}`);
-            router.refresh();
-          } else if (isEditMode) {
-            router.refresh();
-          }
-        } else {
-          toast.error(result.error || 'Произошла ошибка');
-        }
-      } catch (error) {
-        console.error('Form submission error:', error);
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : 'Произошла непредвиденная ошибка'
-        );
-      }
-    });
-  };
-
-  const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    console.log('Form submit event handler called');
-    // form.handleSubmit already handles preventDefault internally
-    form.handleSubmit(onSubmit)(e);
-  };
 
   return (
     <Form {...form}>
-      <form onSubmit={handleFormSubmit} className="w-full space-y-4">
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Название группы</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="Введите название группы"
-                  disabled={isPending}
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Описание</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Введите описание группы (необязательно)"
-                  disabled={isPending}
-                  rows={3}
-                  {...field}
-                  value={field.value || ''}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
+      <form onSubmit={form.handleSubmit(onSubmit)} className="w-full space-y-4">
+        <GradeNameField control={form.control} disabled={isPending} />
+        <GradeDescriptionField control={form.control} disabled={isPending} />
         <div className="grid grid-cols-2 gap-4">
-          <AgeField
+          <GradeAgeField
             control={form.control}
             name="minAge"
             label="Минимальный возраст"
             placeholder="0"
             disabled={isPending}
           />
-          <AgeField
+          <GradeAgeField
             control={form.control}
             name="maxAge"
             label="Максимальный возраст"
@@ -204,53 +45,16 @@ export const GradeForm = ({
             disabled={isPending}
           />
         </div>
-
-        <FormField
-          control={form.control}
-          name="active"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-              <div className="space-y-0.5">
-                <FormLabel className="text-base">Активна</FormLabel>
-                <p className="text-sm text-muted-foreground">
-                  Группа будет видна в системе
-                </p>
-              </div>
-              <FormControl>
-                <input
-                  type="checkbox"
-                  checked={field.value ?? true}
-                  disabled={isPending}
-                  onChange={(e) => field.onChange(e.target.checked)}
-                  className="h-4 w-4 rounded border-gray-300"
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-
-        {/* Teacher selector - in both create and edit modes */}
+        <GradeActiveField control={form.control} disabled={isPending} />
         <div className="space-y-2">
           <TeacherSelector disabled={isPending} />
         </div>
-
-        {/* Pupil selector - only in edit mode */}
         {isEditMode && (
           <div className="space-y-2">
             <PupilSelector disabled={isPending} />
           </div>
         )}
-
-        <Button type="submit" disabled={isPending} className="w-full">
-          {isPending ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              {isEditMode ? 'Сохранение...' : 'Создание...'}
-            </>
-          ) : (
-            isEditMode ? 'Сохранить изменения' : 'Создать группу'
-          )}
-        </Button>
+        <GradeSubmitButton isPending={isPending} isEditMode={isEditMode} />
       </form>
     </Form>
   );

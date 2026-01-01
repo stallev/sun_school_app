@@ -2,7 +2,11 @@
  * Grades List Page (Admin)
  * Server Component for displaying all grades for Admin users
  * Mobile-first responsive design
+ * Uses ISR with 60-second revalidation for optimal performance
  */
+
+export const revalidate = 60; // ISR: revalidate every 60 seconds
+
 
 import { redirect } from 'next/navigation';
 import { getAuthenticatedUser, checkRole } from '@/lib/auth/cognito';

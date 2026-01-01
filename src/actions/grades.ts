@@ -19,12 +19,7 @@ import { createGrade, updateGrade, deleteGrade, updatePupil, createUserGrade, de
 import {
   getGrade,
   listGrades,
-  getGradeWithRelations,
   getGradeWithNestedData,
-  getLessonsByAcademicYear,
-  getHomeworkChecksByLesson,
-  getLessonGoldenVersesByLesson,
-  getGoldenVerse,
   listPupils,
   getPupilsByGrade,
   listUsers,
@@ -35,9 +30,9 @@ import {
   getHomeworkCheckStats,
   sortAcademicYearsByStartDate,
 } from '../lib/utils/grades';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import * as APITypes from '../API';
-import type { GradeNestedData, UserGradeNestedData } from '../types/nested-queries';
+import type { UserGradeNestedData } from '../types/nested-queries';
 
 /**
  * Response type for Server Actions
@@ -198,6 +193,10 @@ export async function createGradeAction(
     }
 
     // 6. Revalidate cache
+    // Use tags for precise cache invalidation
+    revalidateTag('grades');
+    revalidateTag(`grade-${grade.id}`);
+    // Also revalidate paths for compatibility
     revalidatePath('/grades');
     revalidatePath('/(private)/grades');
 
@@ -369,6 +368,10 @@ export async function updateGradeAction(
     }
 
     // 6. Revalidate cache
+    // Use tags for precise cache invalidation
+    revalidateTag('grades');
+    revalidateTag(`grade-${validatedData.id}`);
+    // Also revalidate paths for compatibility
     revalidatePath('/grades');
     revalidatePath(`/grades/${validatedData.id}`);
     revalidatePath('/(private)/grades');
@@ -433,6 +436,10 @@ export async function deleteGradeAction(
     await deleteGrade(id);
 
     // 5. Revalidate cache
+    // Use tags for precise cache invalidation
+    revalidateTag('grades');
+    revalidateTag(`grade-${id}`);
+    // Also revalidate paths for compatibility
     revalidatePath('/grades');
     revalidatePath(`/grades/${id}`);
     revalidatePath('/(private)/grades');

@@ -34,7 +34,7 @@ function decodeJWT(token: string): {
       Buffer.from(parts[1], 'base64').toString()
     );
     return payload;
-  } catch (error) {
+  } catch {
     // Silently fail in middleware to avoid log spam
     return null;
   }
@@ -63,7 +63,7 @@ function isTokenExpired(token: string): boolean {
 
     // If no expiration claim, consider it valid (for MVP)
     return false;
-  } catch (error) {
+  } catch {
     // Silently fail in middleware
     return true;
   }

@@ -19,22 +19,33 @@ interface GradeInfoProps {
 export const GradeInfo = ({ createdAt, updatedAt }: GradeInfoProps) => {
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold md:text-xl">Информация</CardTitle>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base font-semibold md:text-lg">Информация</CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-2 text-sm md:text-base">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Создана:</span>
-            <span>{formatDate(createdAt)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Обновлена:</span>
-            <span>{formatDate(updatedAt)}</span>
-          </div>
+      <CardContent className="pt-0">
+        <div className="space-y-3">
+          <InfoItem label="Создана" value={formatDate(createdAt)} />
+          <InfoItem label="Обновлена" value={formatDate(updatedAt)} />
         </div>
       </CardContent>
     </Card>
+  );
+};
+
+interface InfoItemProps {
+  label: string;
+  value: string;
+}
+
+/**
+ * Single info item component
+ */
+const InfoItem = ({ label, value }: InfoItemProps) => {
+  return (
+    <div className="flex flex-row items-center justify-between gap-2">
+      <span className="text-sm text-muted-foreground">{label}:</span>
+      <span className="text-sm font-medium text-right">{value}</span>
+    </div>
   );
 };
 
@@ -55,7 +66,4 @@ const formatDate = (dateString: string): string => {
     return dateString;
   }
 };
-
-
-
 

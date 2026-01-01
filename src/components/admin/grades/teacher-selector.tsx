@@ -46,7 +46,7 @@ export const TeacherSelector = ({ disabled = false }: TeacherSelectorProps) => {
       setTeachers(storeTeachers.teachers);
       setIsLoading(storeTeachers.loading);
     }
-  }, [storeTeachers?.teachers, storeTeachers?.loading]);
+  }, [storeTeachers]);
 
   // Load teachers from store or Server Action on mount
   useEffect(() => {

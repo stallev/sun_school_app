@@ -25,11 +25,11 @@ export const GradeStatistics = ({
 }: GradeStatisticsProps) => {
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold md:text-xl">Статистика</CardTitle>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base font-semibold md:text-lg">Статистика</CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <CardContent className="pt-0">
+        <div className="space-y-3">
           <StatItem label="Учеников" value={pupilsCount} />
           <StatItem label="Преподавателей" value={teachersCount} />
           <StatItem label="Учебных годов" value={academicYearsCount} />
@@ -49,9 +49,9 @@ interface StatItemProps {
  */
 const StatItem = ({ label, value }: StatItemProps) => {
   return (
-    <div className="flex flex-col">
-      <span className="text-2xl font-bold md:text-3xl">{value}</span>
-      <span className="text-sm text-muted-foreground md:text-base">{label}</span>
+    <div className="flex flex-row items-center justify-between gap-2">
+      <span className="text-sm text-muted-foreground">{label}</span>
+      <span className="text-lg font-bold">{value}</span>
     </div>
   );
 };

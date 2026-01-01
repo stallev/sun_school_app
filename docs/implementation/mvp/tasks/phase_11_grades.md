@@ -162,6 +162,7 @@ Phase 10: Создание системы валидации
 - [TEACHER_FLOWS.md](../../../user_flows/TEACHER_FLOWS.md) - раздел 2.1 Вход в систему и навигация
 - [ADMIN_FLOWS.md](../../../user_flows/ADMIN_FLOWS.md) - раздел 3.1 Создание новой группы
 - [MVP_SCOPE.md](../../../MVP_SCOPE.md) - раздел 2.2.1
+- [ISR Optimization Guidelines](../../../guidelines/nextjs/ai_isr_optimization_guidelines.md) - оптимизация производительности страниц через ISR
 - Context7: Next.js 15.5.9 App Router документация
 - **Код реализации:**
   - [src/lib/db/queries.ts](../../../../src/lib/db/queries.ts) - для получения данных групп
@@ -173,6 +174,7 @@ Phase 10: Создание системы валидации
 - Admin видит все группы
 - Данные загружаются корректно
 - Проверка прав доступа работает
+- Страница использует ISR с `revalidate = 60` для оптимизации производительности
 
 <output_format>
 После выполнения задачи должны быть созданы страницы списка групп для Admin и Teacher. Teacher должен автоматически перенаправляться на свою группу. Все данные должны загружаться через Server Components с проверкой прав доступа.
@@ -222,6 +224,7 @@ Phase 10: Создание системы валидации
 - <CRITICAL>[WIREFRAMES.md](../../../ui_ux/WIREFRAMES.md) - раздел Grade Detail</CRITICAL>
 - [USER_FLOW.md](../../../user_flows/USER_FLOW.md) - раздел Grade View
 - [TEACHER_FLOWS.md](../../../user_flows/TEACHER_FLOWS.md) - раздел 2.1 Вход в систему и навигация
+- [ISR Optimization Guidelines](../../../guidelines/nextjs/ai_isr_optimization_guidelines.md) - оптимизация производительности страниц через ISR
 - Context7: Next.js 15.5.9 динамические маршруты документация
 - **Код реализации:**
   - [src/lib/db/queries.ts](../../../../src/lib/db/queries.ts) - для получения данных группы
@@ -231,6 +234,7 @@ Phase 10: Создание системы валидации
 - Вся информация отображается корректно
 - Кнопки действий работают и отображаются согласно правам доступа
 - Проверка прав доступа работает
+- Страница использует ISR с `revalidate = 60` и `generateStaticParams` для оптимизации производительности
 
 <output_format>
 После выполнения задачи должна быть создана страница просмотра группы с полной информацией. Все данные должны загружаться через Server Component, кнопки должны работать и отображаться согласно правам доступа пользователя.

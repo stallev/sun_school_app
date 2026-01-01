@@ -13,9 +13,11 @@ import { useStore as useZustandStore } from 'zustand';
  * @template F - Return type from selector
  */
 export const useStore = <T, F>(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   store: any,
   callback: (state: T) => F
 ): F | undefined => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const result = useZustandStore(store, callback as any) as F;
   const [data, setData] = useState<F>();
 

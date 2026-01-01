@@ -36,7 +36,7 @@ export const createGradeSchema = z
       .optional(),
     active: z.boolean(),
     teacherIds: z
-      .array(uuidSchema)
+      .array(z.string().min(1, 'ID преподавателя не может быть пустым'))
       .min(1, 'Необходимо выбрать минимум одного преподавателя')
       .describe('Массив ID преподавателей для назначения на группу'),
   })
@@ -87,11 +87,11 @@ export const updateGradeSchema = z
       .optional(),
     active: z.boolean().optional(),
     teacherIds: z
-      .array(uuidSchema)
+      .array(z.string().min(1, 'ID преподавателя не может быть пустым'))
       .optional()
       .describe('Массив ID преподавателей для назначения на группу (только в режиме редактирования)'),
     pupilIds: z
-      .array(uuidSchema)
+      .array(z.string().min(1, 'ID ученика не может быть пустым'))
       .optional()
       .describe('Массив ID учеников для назначения на группу (только в режиме редактирования)'),
   })

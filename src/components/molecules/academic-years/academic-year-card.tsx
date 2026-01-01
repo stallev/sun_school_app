@@ -5,12 +5,13 @@
  */
 
 import Link from 'next/link';
+import { Plus, Calendar, Settings } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { RoutePath } from '@/lib/routes/RoutePath';
 import { formatAcademicYearStatus } from '@/lib/utils/grades';
-import { LessonsList } from './lessons-list';
+import { LessonsList } from '@/components/molecules/lessons/lessons-list';
 import type { LessonWithStats, AcademicYearWithLessons } from '@/actions/grades';
 
 interface AcademicYearCardProps {
@@ -58,18 +59,42 @@ export const AcademicYearCard = ({
             </div>
             <p className="mt-2 text-sm text-muted-foreground md:text-base">{dateRange}</p>
           </div>
-          <div className="flex flex-wrap gap-2 sm:flex-nowrap">
+          <div className="flex flex-wrap gap-2">
             {isActive && (
-              <Button asChild size="sm" variant="default" className="min-h-[44px]">
-                <Link href={RoutePath.grades.lessons.new(gradeId)}>➕ Новый урок</Link>
+              <Button
+                asChild
+                size="icon"
+                className="h-10 w-10"
+                variant="default"
+                aria-label="Создать урок"
+              >
+                <Link href={RoutePath.grades.lessons.new(gradeId)}>
+                  <Plus className="h-5 w-5" />
+                </Link>
               </Button>
             )}
-            <Button asChild size="sm" variant="outline" className="min-h-[44px]">
-              <Link href={RoutePath.grades.schedule(gradeId)}>📅 Расписание</Link>
+            <Button
+              asChild
+              size="icon"
+              className="h-10 w-10"
+              variant="outline"
+              aria-label="Расписание"
+            >
+              <Link href={RoutePath.grades.schedule(gradeId)}>
+                <Calendar className="h-5 w-5" />
+              </Link>
             </Button>
             {isAdmin && (
-              <Button asChild size="sm" variant="outline" className="min-h-[44px]">
-                <Link href={RoutePath.grades.settings(gradeId)}>⚙️ Настройки</Link>
+              <Button
+                asChild
+                size="icon"
+                className="h-10 w-10"
+                variant="outline"
+                aria-label="Настройки"
+              >
+                <Link href={RoutePath.grades.settings(gradeId)}>
+                  <Settings className="h-5 w-5" />
+                </Link>
               </Button>
             )}
           </div>
