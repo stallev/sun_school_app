@@ -5,6 +5,7 @@
  */
 
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { formatDateTime } from '@/lib/utils/date';
 
 interface GradeInfoProps {
   createdAt: string;
@@ -24,8 +25,8 @@ export const GradeInfo = ({ createdAt, updatedAt }: GradeInfoProps) => {
       </CardHeader>
       <CardContent className="pt-0">
         <div className="space-y-3">
-          <InfoItem label="Создана" value={formatDate(createdAt)} />
-          <InfoItem label="Обновлена" value={formatDate(updatedAt)} />
+          <InfoItem label="Создана" value={formatDateTime(createdAt)} />
+          <InfoItem label="Обновлена" value={formatDateTime(updatedAt)} />
         </div>
       </CardContent>
     </Card>
@@ -49,21 +50,4 @@ const InfoItem = ({ label, value }: InfoItemProps) => {
   );
 };
 
-/**
- * Format date for display
- */
-const formatDate = (dateString: string): string => {
-  try {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ru-RU', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  } catch {
-    return dateString;
-  }
-};
 

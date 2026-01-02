@@ -189,12 +189,15 @@ export async function uploadLessonFileAction(
     const sanitizedFileName = sanitizeFileName(file.name);
     const s3Path = `protected/lessons/${lessonId}/${uuid}_${sanitizedFileName}`;
 
-    // 8. Upload file to S3
+    // 8. Upload file to S3 with public-read ACL
+    // IMPORTANT: All files must be uploaded with ACL: 'public-read' for public access
+    // See: docs/infrastructure/AWS_AMPLIFY.md section 4.3
     await uploadData({
       path: s3Path,
       data: file,
       options: {
         contentType: file.type,
+        acl: 'public-read', // Required: Makes file publicly accessible
       },
     }).result;
 

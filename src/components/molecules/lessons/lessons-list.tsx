@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/table';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { formatDate } from '@/lib/utils/date';
 import type { LessonWithStats } from '@/actions/grades';
 
 interface LessonsListProps {
@@ -199,19 +200,4 @@ function formatHomeworkStatus(stats: {
   );
 }
 
-/**
- * Format date for display
- */
-function formatDate(dateString: string): string {
-  try {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ru-RU', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    });
-  } catch {
-    return dateString;
-  }
-}
 
