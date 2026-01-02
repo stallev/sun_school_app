@@ -12,7 +12,7 @@ import { GradeDetailSkeleton } from '@/components/molecules/grades/grade-detail-
  */
 export default function GradeDetailLoading() {
   return (
-    <div className="container mx-auto max-w-5xl p-4 md:p-6 lg:p-8">
+    <div className="container max-w-5xl p-4 md:p-6 lg:p-8">
       <GradeDetailSkeleton />
     </div>
   );
