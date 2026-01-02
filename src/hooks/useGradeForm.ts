@@ -67,7 +67,9 @@ export const useGradeForm = ({
           if (!isEditMode && result.data) {
             router.push(`/grades/${result.data.id}`);
             router.refresh();
-          } else if (isEditMode) {
+          } else if (isEditMode && gradeId) {
+            // Redirect to grade page after successful update
+            router.push(`/grades/${gradeId}`);
             router.refresh();
           }
         } else {

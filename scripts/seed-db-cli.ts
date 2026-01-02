@@ -22,6 +22,7 @@ import {
   ScanCommand,
   ListTablesCommand,
   DescribeTableCommand,
+  QueryCommand,
 } from '@aws-sdk/client-dynamodb';
 import {
   defaultProvider as credentialsProvider,
@@ -34,6 +35,7 @@ import {
   userGradesSeedData,
   academicYearsSeedData,
   lessonsSeedData,
+  booksSeedData,
   goldenVersesSeedData,
   lessonGoldenVersesSeedData,
   pupilsSeedData,
@@ -45,9 +47,11 @@ import {
   userFamiliesSeedData,
   gradeEventsSeedData,
   gradeSettingsSeedData,
+  generateBricksIssuesSeedData,
   type GoldenVerseSeedData,
   type HomeworkCheckSeedData,
   type LessonSeedData,
+  type UserRole,
 } from './seed-db-data';
 
 // Load Amplify configuration
@@ -323,6 +327,31 @@ async function seedUserGrades(client: DynamoDBClient): Promise<{
     const linkData = userGradesSeedData[i];
     const progress = `[${i + 1}/${userGradesSeedData.length}]`;
 
+    // Проверка: проверяем, не существует ли уже запись с таким userId и gradeId
+    try {
+      const queryCommand = new QueryCommand({
+        TableName: tableName,
+        IndexName: 'byGradeId', // Используем индекс для поиска
+        KeyConditionExpression: 'gradeId = :gradeId',
+        FilterExpression: 'userId = :userId',
+        ExpressionAttributeValues: marshall({
+          ':gradeId': linkData.gradeId,
+          ':userId': linkData.userId,
+        }),
+      });
+      
+      const existingResult = await client.send(queryCommand);
+      
+      if (existingResult.Items && existingResult.Items.length > 0) {
+        console.log(`${progress} ⏭️  Skipped: User-Grade link (duplicate: userId=${linkData.userId}, gradeId=${linkData.gradeId})`);
+        skipped++;
+        continue;
+      }
+    } catch (error) {
+      console.warn(`Warning: Could not check for existing UserGrade: ${error}`);
+      // Continue with creation attempt
+    }
+
     const data = {
       ...linkData,
       assignedAt: new Date().toISOString(),
@@ -533,6 +562,35 @@ async function seedLessonGoldenVerses(client: DynamoDBClient): Promise<{
   for (let i = 0; i < lessonGoldenVersesSeedData.length; i++) {
     const linkData = lessonGoldenVersesSeedData[i];
     const progress = `[${i + 1}/${lessonGoldenVersesSeedData.length}]`;
+
+    // Проверка: проверяем, не существует ли уже запись с таким lessonId, goldenVerseId и order
+    try {
+      const queryCommand = new QueryCommand({
+        TableName: tableName,
+        IndexName: 'byLessonId',
+        KeyConditionExpression: 'lessonId = :lessonId',
+        FilterExpression: 'goldenVerseId = :goldenVerseId AND #order = :order',
+        ExpressionAttributeNames: {
+          '#order': 'order',
+        },
+        ExpressionAttributeValues: marshall({
+          ':lessonId': linkData.lessonId,
+          ':goldenVerseId': linkData.goldenVerseId,
+          ':order': linkData.order,
+        }),
+      });
+      
+      const existingResult = await client.send(queryCommand);
+      
+      if (existingResult.Items && existingResult.Items.length > 0) {
+        console.log(`${progress} ⏭️  Skipped: Lesson-GoldenVerse link (duplicate: lessonId=${linkData.lessonId}, goldenVerseId=${linkData.goldenVerseId}, order=${linkData.order})`);
+        skipped++;
+        continue;
+      }
+    } catch (error) {
+      console.warn(`Warning: Could not check for existing LessonGoldenVerse: ${error}`);
+      // Continue with creation attempt
+    }
 
     const result = await createRecord(client, tableName, linkData as unknown as Record<string, unknown>, 'LessonGoldenVerse');
 
@@ -755,6 +813,31 @@ async function seedPupilAchievements(client: DynamoDBClient): Promise<{
     const linkData = pupilAchievementsSeedData[i];
     const progress = `[${i + 1}/${pupilAchievementsSeedData.length}]`;
 
+    // Проверка: проверяем, не существует ли уже запись с таким pupilId и achievementId
+    try {
+      const queryCommand = new QueryCommand({
+        TableName: tableName,
+        IndexName: 'byPupilId',
+        KeyConditionExpression: 'pupilId = :pupilId',
+        FilterExpression: 'achievementId = :achievementId',
+        ExpressionAttributeValues: marshall({
+          ':pupilId': linkData.pupilId,
+          ':achievementId': linkData.achievementId,
+        }),
+      });
+      
+      const existingResult = await client.send(queryCommand);
+      
+      if (existingResult.Items && existingResult.Items.length > 0) {
+        console.log(`${progress} ⏭️  Skipped: Pupil-Achievement link (duplicate: pupilId=${linkData.pupilId}, achievementId=${linkData.achievementId})`);
+        skipped++;
+        continue;
+      }
+    } catch (error) {
+      console.warn(`Warning: Could not check for existing PupilAchievement: ${error}`);
+      // Continue with creation attempt
+    }
+
     const data = {
       ...linkData,
       awardedAt: new Date().toISOString(),
@@ -840,6 +923,31 @@ async function seedFamilyMembers(client: DynamoDBClient): Promise<{
     const linkData = familyMembersSeedData[i];
     const progress = `[${i + 1}/${familyMembersSeedData.length}]`;
 
+    // Проверка: проверяем, не существует ли уже запись с таким familyId и pupilId
+    try {
+      const queryCommand = new QueryCommand({
+        TableName: tableName,
+        IndexName: 'byFamilyId',
+        KeyConditionExpression: 'familyId = :familyId',
+        FilterExpression: 'pupilId = :pupilId',
+        ExpressionAttributeValues: marshall({
+          ':familyId': linkData.familyId,
+          ':pupilId': linkData.pupilId,
+        }),
+      });
+      
+      const existingResult = await client.send(queryCommand);
+      
+      if (existingResult.Items && existingResult.Items.length > 0) {
+        console.log(`${progress} ⏭️  Skipped: Family-Member link (duplicate: familyId=${linkData.familyId}, pupilId=${linkData.pupilId})`);
+        skipped++;
+        continue;
+      }
+    } catch (error) {
+      console.warn(`Warning: Could not check for existing FamilyMember: ${error}`);
+      // Continue with creation attempt
+    }
+
     const result = await createRecord(client, tableName, linkData as unknown as Record<string, unknown>, 'FamilyMember');
 
     if (result.success) {
@@ -879,6 +987,31 @@ async function seedUserFamilies(client: DynamoDBClient): Promise<{
   for (let i = 0; i < userFamiliesSeedData.length; i++) {
     const linkData = userFamiliesSeedData[i];
     const progress = `[${i + 1}/${userFamiliesSeedData.length}]`;
+
+    // Проверка: проверяем, не существует ли уже запись с таким userId и familyId
+    try {
+      const queryCommand = new QueryCommand({
+        TableName: tableName,
+        IndexName: 'byUserId',
+        KeyConditionExpression: 'userId = :userId',
+        FilterExpression: 'familyId = :familyId',
+        ExpressionAttributeValues: marshall({
+          ':userId': linkData.userId,
+          ':familyId': linkData.familyId,
+        }),
+      });
+      
+      const existingResult = await client.send(queryCommand);
+      
+      if (existingResult.Items && existingResult.Items.length > 0) {
+        console.log(`${progress} ⏭️  Skipped: User-Family link (duplicate: userId=${linkData.userId}, familyId=${linkData.familyId})`);
+        skipped++;
+        continue;
+      }
+    } catch (error) {
+      console.warn(`Warning: Could not check for existing UserFamily: ${error}`);
+      // Continue with creation attempt
+    }
 
     const result = await createRecord(client, tableName, linkData as unknown as Record<string, unknown>, 'UserFamily');
 
@@ -982,6 +1115,223 @@ async function seedGradeSettings(client: DynamoDBClient): Promise<{
 }
 
 /**
+ * Seed Books
+ */
+async function seedBooks(client: DynamoDBClient): Promise<{
+  created: number;
+  skipped: number;
+  errors: number;
+}> {
+  const tableName = await getTableName(client, 'Book');
+  let created = 0;
+  let skipped = 0;
+  let errors = 0;
+
+  console.log(`\n📖 Creating ${booksSeedData.length} books...\n`);
+
+  for (let i = 0; i < booksSeedData.length; i++) {
+    const bookData = booksSeedData[i];
+    const progress = `[${i + 1}/${booksSeedData.length}]`;
+
+    const result = await createRecord(client, tableName, bookData as unknown as Record<string, unknown>, 'Book');
+
+    if (result.success) {
+      console.log(`${progress} ✅ Created: ${bookData.shortName} (${bookData.abbreviation})`);
+      created++;
+    } else if (result.error === 'already exists' || result.error?.includes('conditional')) {
+      console.log(`${progress} ⏭️  Skipped: ${bookData.shortName} (already exists)`);
+      skipped++;
+    } else {
+      console.error(`${progress} ❌ Error: ${bookData.shortName} - ${result.error}`);
+      errors++;
+    }
+
+    if (i < booksSeedData.length - 1) {
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+  }
+
+  return { created, skipped, errors };
+}
+
+/**
+ * Seed BricksIssues with validation against HomeworkCheck
+ */
+async function seedBricksIssues(client: DynamoDBClient): Promise<{
+  created: number;
+  skipped: number;
+  errors: number;
+}> {
+  const tableName = await getTableName(client, 'BricksIssue');
+  let created = 0;
+  let skipped = 0;
+  let errors = 0;
+
+  console.log(`\n🧱 Generating BricksIssue data based on HomeworkCheck...\n`);
+
+  // First, get all HomeworkCheck records to calculate points
+  const homeworkCheckTableName = await getTableName(client, 'HomeworkCheck');
+  const { ScanCommand } = await import('@aws-sdk/client-dynamodb');
+  const scanCommand = new ScanCommand({ TableName: homeworkCheckTableName });
+  const scanResult = await client.send(scanCommand);
+
+  if (!scanResult.Items || scanResult.Items.length === 0) {
+    console.log('⚠️  No HomeworkCheck records found. Skipping BricksIssue generation.');
+    return { created: 0, skipped: 0, errors: 0 };
+  }
+
+  const homeworkChecks = scanResult.Items.map((item) => unmarshall(item));
+
+  // Get all lessons to map lessonId to academicYearId
+  const lessonTableName = await getTableName(client, 'Lesson');
+  const lessonScan = await client.send(new ScanCommand({ TableName: lessonTableName }));
+  const lessons = (lessonScan.Items || []).map((item) => unmarshall(item));
+  const lessonMap = new Map<string, { academicYearId: string; gradeId: string }>();
+  for (const lesson of lessons) {
+    lessonMap.set(lesson.id as string, {
+      academicYearId: lesson.academicYearId as string,
+      gradeId: lesson.gradeId as string,
+    });
+  }
+
+  // Get all pupils, academic years, and teachers
+  const pupilTableName = await getTableName(client, 'Pupil');
+  const academicYearTableName = await getTableName(client, 'AcademicYear');
+  const userTableName = await getTableName(client, 'User');
+
+  const [pupilScan, academicYearScan, userScan] = await Promise.all([
+    client.send(new ScanCommand({ TableName: pupilTableName })),
+    client.send(new ScanCommand({ TableName: academicYearTableName })),
+    client.send(new ScanCommand({ TableName: userTableName })),
+  ]);
+
+  const pupils = (pupilScan.Items || []).map((item) => unmarshall(item));
+  const academicYears = (academicYearScan.Items || []).map((item) => unmarshall(item));
+  const users = (userScan.Items || []).map((item) => unmarshall(item));
+
+  // Generate BricksIssue data - map homework checks with academicYearId from lessons
+  const homeworkChecksWithAcademicYear = homeworkChecks
+    .map((hc) => {
+      const lesson = lessonMap.get(hc.lessonId as string);
+      if (!lesson) {
+        console.warn(`   ⚠️  Lesson ${hc.lessonId} not found for HomeworkCheck ${hc.id}`);
+        return null;
+      }
+      return {
+        pupilId: hc.pupilId as string,
+        gradeId: lesson.gradeId,
+        academicYearId: lesson.academicYearId,
+        points: hc.points as number,
+      };
+    })
+    .filter((hc): hc is NonNullable<typeof hc> => hc !== null);
+
+  if (homeworkChecksWithAcademicYear.length === 0) {
+    console.log('⚠️  No valid HomeworkCheck records found after mapping with lessons. Skipping BricksIssue generation.');
+    return { created: 0, skipped: 0, errors: 0 };
+  }
+
+  const bricksIssuesData = generateBricksIssuesSeedData(
+    homeworkChecksWithAcademicYear,
+    pupils.map((p) => ({
+      id: p.id as string,
+      gradeId: p.gradeId as string,
+    })),
+    academicYears.map((ay) => ({
+      id: ay.id as string,
+      gradeId: ay.gradeId as string,
+      startDate: ay.startDate as string,
+      endDate: ay.endDate as string,
+    })),
+    users.map((u) => ({
+      id: u.id as string,
+      role: u.role as UserRole,
+    }))
+  );
+
+  // Validate: sum of quantity ≤ sum of points for each pupil
+  console.log('   🔍 Validating BricksIssue data...\n');
+  
+  if (homeworkChecksWithAcademicYear.length === 0) {
+    console.log('⚠️  No valid HomeworkCheck records found. Skipping validation.');
+    return { created: 0, skipped: 0, errors: 0 };
+  }
+
+  // Debug: check homeworkChecksWithAcademicYear structure
+  console.log(`   📊 Total homeworkChecksWithAcademicYear: ${homeworkChecksWithAcademicYear.length}`);
+  if (homeworkChecksWithAcademicYear.length > 0) {
+    const sample = homeworkChecksWithAcademicYear[0];
+    console.log(`   📊 Sample record: pupilId=${sample.pupilId}, academicYearId=${sample.academicYearId}, points=${sample.points}`);
+  }
+
+  const pupilPointsMap = new Map<string, number>();
+  const pupilBricksMap = new Map<string, number>();
+
+  // Calculate total points per pupil (using mapped data with academicYearId)
+  for (const hc of homeworkChecksWithAcademicYear) {
+    const key = `${hc.pupilId}-${hc.academicYearId}`;
+    const current = pupilPointsMap.get(key) || 0;
+    pupilPointsMap.set(key, current + hc.points);
+  }
+
+  // Debug: show points map
+  console.log(`   📊 Total unique pupil-year combinations: ${pupilPointsMap.size}`);
+  if (pupilPointsMap.size > 0) {
+    const firstKey = Array.from(pupilPointsMap.keys())[0];
+    console.log(`   📊 Sample key: ${firstKey}, points: ${pupilPointsMap.get(firstKey)}`);
+  }
+
+  // Calculate total bricks issued per pupil per academic year
+  for (const bi of bricksIssuesData) {
+    const key = `${bi.pupilId}-${bi.academicYearId}`;
+    const current = pupilBricksMap.get(key) || 0;
+    pupilBricksMap.set(key, current + bi.quantity);
+  }
+
+  // Validate
+  let validationErrors = 0;
+  for (const [key, totalBricks] of Array.from(pupilBricksMap.entries())) {
+    const totalPoints = pupilPointsMap.get(key) || 0;
+    if (totalBricks > totalPoints) {
+      console.error(`   ❌ Validation failed for pupil-year ${key}: bricks (${totalBricks}) > points (${totalPoints})`);
+      validationErrors++;
+    }
+  }
+
+  if (validationErrors > 0) {
+    console.error(`\n❌ Validation failed: ${validationErrors} pupils have invalid BricksIssue data.`);
+    return { created: 0, skipped: 0, errors: validationErrors };
+  }
+
+  console.log(`   ✅ Validation passed: ${bricksIssuesData.length} BricksIssue records ready\n`);
+
+  // Create BricksIssue records
+  for (let i = 0; i < bricksIssuesData.length; i++) {
+    const bricksIssueData = bricksIssuesData[i];
+    const progress = `[${i + 1}/${bricksIssuesData.length}]`;
+
+    const result = await createRecord(client, tableName, bricksIssueData as unknown as Record<string, unknown>, 'BricksIssue');
+
+    if (result.success) {
+      console.log(`${progress} ✅ Created: BricksIssue for pupil ${bricksIssueData.pupilId} (quantity: ${bricksIssueData.quantity})`);
+      created++;
+    } else if (result.error === 'already exists') {
+      console.log(`${progress} ⏭️  Skipped: BricksIssue (already exists)`);
+      skipped++;
+    } else {
+      console.error(`${progress} ❌ Error: BricksIssue - ${result.error}`);
+      errors++;
+    }
+
+    if (i < bricksIssuesData.length - 1) {
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+  }
+
+  return { created, skipped, errors };
+}
+
+/**
  * Main seed function
  */
 async function seedAll(): Promise<void> {
@@ -1015,12 +1365,14 @@ async function seedAll(): Promise<void> {
     'UserGrade',
     'AcademicYear',
     'Lesson',
+    'Book',
     'GoldenVerse',
     'LessonGoldenVerse',
     'Pupil',
     'HomeworkCheck',
     'Achievement',
     'PupilAchievement',
+    'BricksIssue',
     'Family',
     'FamilyMember',
     'UserFamily',
@@ -1044,11 +1396,13 @@ async function seedAll(): Promise<void> {
   results.Grades = await seedGrades(client);
   results.UserGrades = await seedUserGrades(client);
   results.AcademicYears = await seedAcademicYears(client);
+  results.Books = await seedBooks(client); // Book must be seeded before GoldenVerse
   results.Lessons = await seedLessons(client);
   results.GoldenVerses = await seedGoldenVerses(client);
   results.LessonGoldenVerses = await seedLessonGoldenVerses(client);
   results.Pupils = await seedPupils(client);
   results.HomeworkChecks = await seedHomeworkChecks(client);
+  results.BricksIssues = await seedBricksIssues(client); // Must be after HomeworkChecks
   results.Achievements = await seedAchievements(client);
   results.PupilAchievements = await seedPupilAchievements(client);
   results.Families = await seedFamilies(client);

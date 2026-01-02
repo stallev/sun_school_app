@@ -3,8 +3,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { Search, X, User } from 'lucide-react';
-import { useAppStore } from '@/providers/store-provider';
-import { useShallow } from 'zustand/react/shallow';
 import { listTeachersForSelectionAction } from '@/actions/grades';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Input } from '@/components/ui/input';
@@ -13,6 +11,12 @@ import { Button } from '@/components/ui/button';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import type { CreateGradeInput, UpdateGradeInput } from '@/lib/validation/grades';
 
+interface Teacher {
+  id: string;
+  name: string;
+  email: string;
+}
+
 interface TeacherSelectorProps {
   disabled?: boolean;
 }
@@ -20,84 +24,36 @@ interface TeacherSelectorProps {
 /**
  * TeacherSelector component
  * Multi-select component for selecting teachers in grade form
- * Loads data from Zustand store (with fallback to Server Action if needed)
+ * Follows the same pattern as PupilSelector for consistency
  */
 export const TeacherSelector = ({ disabled = false }: TeacherSelectorProps) => {
   const { control, watch, setValue } = useFormContext<CreateGradeInput | UpdateGradeInput>();
+  const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
 
-  // Get teachers from Zustand store
-  const storeTeachers = useAppStore(
-    useShallow((state) => ({
-      teachers: state?.teachers ?? [],
-      loading: state?.loading ?? false,
-      isStale: state?.isTeachersDataStale() ?? true,
-    }))
-  );
-  const fetchTeachers = useAppStore((state) => state?.fetchTeachers);
+  const watchedTeacherIds = watch('teacherIds');
+  const selectedTeacherIds = useMemo(() => watchedTeacherIds || [], [watchedTeacherIds]);
 
-  const [teachers, setTeachers] = useState<Array<{ id: string; name: string; email: string }>>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Sync teachers from store to local state
-  useEffect(() => {
-    if (storeTeachers && storeTeachers.teachers.length > 0) {
-      setTeachers(storeTeachers.teachers);
-      setIsLoading(storeTeachers.loading);
-    }
-  }, [storeTeachers]);
-
-  // Load teachers from store or Server Action on mount
+  // Load teachers on mount
   useEffect(() => {
     const loadTeachers = async () => {
-      // Wait for hydration
-      if (!storeTeachers) {
-        return;
-      }
-
       setIsLoading(true);
-      try {
-        // Try to use store data if available and fresh
-        if (!storeTeachers.isStale && storeTeachers.teachers.length > 0) {
-          setTeachers(storeTeachers.teachers);
-          setIsLoading(false);
-          return;
-        }
-
-        // If store is stale or empty, try to fetch
-        if (fetchTeachers) {
-          await fetchTeachers();
-        } else {
-          // Fallback to Server Action
-          await loadFromServer();
-        }
-      } catch (error) {
-        console.error('Error loading teachers:', error);
-        // Fallback to Server Action
-        await loadFromServer();
-      }
-    };
-
-    const loadFromServer = async () => {
       try {
         const result = await listTeachersForSelectionAction();
         if (result.success && result.data) {
           setTeachers(result.data);
         }
       } catch (error) {
-        console.error('Error loading teachers from server:', error);
+        console.error('Error loading teachers:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
     loadTeachers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const watchedTeacherIds = watch('teacherIds');
-  const selectedTeacherIds = useMemo(() => watchedTeacherIds || [], [watchedTeacherIds]);
 
   // Filter teachers by search query
   const filteredTeachers = useMemo(() => {

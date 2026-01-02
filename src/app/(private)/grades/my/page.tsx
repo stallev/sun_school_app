@@ -34,7 +34,7 @@ export default async function MyGradesPage() {
   // Handle error state
   if (!result.success) {
     return (
-      <div className="container mx-auto p-4 md:p-6 lg:p-8">
+      <div className="container p-4 md:p-6 lg:p-8">
         <Card>
           <CardHeader>
             <CardTitle>Ошибка загрузки групп</CardTitle>

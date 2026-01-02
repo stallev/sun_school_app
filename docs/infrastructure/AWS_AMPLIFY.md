@@ -315,6 +315,38 @@ amplify add storage
 
 -   **Pupil Photos:** `public/pupils/{pupilId}/avatar.jpg`
 -   **Lesson Attachments:** `protected/lessons/{lessonId}/attachment.pdf` (Post-MVP)
+-   **User Photos:** `public/users/{userId}/avatar.jpg`
+
+**File Upload Configuration:**
+
+**⚠️ IMPORTANT: All files uploaded to S3 must use ACL: 'public-read'**
+
+When uploading files to S3 using AWS Amplify Storage (`uploadData`), you must specify `ACL: 'public-read'` in the upload options to ensure files are publicly accessible:
+
+```typescript
+import { uploadData } from 'aws-amplify/storage';
+
+await uploadData({
+  path: s3Path,
+  data: file,
+  options: {
+    contentType: file.type,
+    acl: 'public-read', // Required: Makes file publicly accessible
+  },
+}).result;
+```
+
+**Why public-read?**
+- Files (photos, attachments) need to be accessible via direct URLs
+- Public access allows embedding images in HTML without authentication
+- CloudFront CDN can serve public files efficiently
+- Reduces complexity in URL generation (no signed URLs needed for public content)
+
+**Security Note:**
+- Public files are accessible to anyone with the URL
+- Use appropriate path prefixes (`public/`, `protected/`) to organize files
+- Sensitive files should use `protected/` prefix and require authentication
+- Bucket policies should restrict access to authenticated users for `protected/` paths
 
 **Deploy Storage:**
 

@@ -13,7 +13,7 @@ import { GradeListSkeleton } from '@/components/molecules/grades/grade-list-skel
  */
 export default function MyGradesLoading() {
   return (
-    <div className="container mx-auto p-4 md:p-6 lg:p-8">
+    <div className="container p-4 md:p-6 lg:p-8">
       <div className="mb-6">
         <Skeleton className="h-9 w-40 mb-2 md:h-10 lg:h-11" aria-label="Loading page title" />
         <Skeleton className="h-4 w-64 md:h-5" aria-label="Loading page description" />

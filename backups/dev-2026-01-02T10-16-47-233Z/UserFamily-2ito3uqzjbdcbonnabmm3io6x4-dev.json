@@ -1,0 +1,110 @@
+[
+  {
+    "__typename": "UserFamily",
+    "familyId": "family-2",
+    "userId": "user-parent-4",
+    "updatedAt": "2025-12-30T11:28:05.031Z",
+    "createdAt": "2025-12-30T11:28:05.031Z",
+    "id": "userfamily-4",
+    "phone": "+7 (999) 234-56-79"
+  },
+  {
+    "__typename": "UserFamily",
+    "familyId": "family-1",
+    "userId": "user-parent-1",
+    "updatedAt": "2025-12-30T11:28:04.471Z",
+    "createdAt": "2025-12-30T11:28:04.471Z",
+    "id": "userfamily-1",
+    "phone": "+7 (999) 123-45-69"
+  },
+  {
+    "__typename": "UserFamily",
+    "familyId": "family-4",
+    "userId": "user-parent-8",
+    "updatedAt": "2025-12-30T11:28:05.779Z",
+    "createdAt": "2025-12-30T11:28:05.779Z",
+    "id": "userfamily-8",
+    "phone": "+7 (999) 456-78-91"
+  },
+  {
+    "__typename": "UserFamily",
+    "familyId": "family-5",
+    "userId": "user-parent-1",
+    "updatedAt": "2025-12-30T11:28:05.965Z",
+    "createdAt": "2025-12-30T11:28:05.965Z",
+    "id": "userfamily-9",
+    "phone": "+7 (999) 567-89-03"
+  },
+  {
+    "__typename": "UserFamily",
+    "familyId": "family-3",
+    "userId": "user-parent-6",
+    "updatedAt": "2025-12-30T11:28:05.404Z",
+    "createdAt": "2025-12-30T11:28:05.404Z",
+    "id": "userfamily-6",
+    "phone": "+7 (999) 345-67-90"
+  },
+  {
+    "__typename": "UserFamily",
+    "familyId": "family-2",
+    "userId": "user-parent-3",
+    "updatedAt": "2025-12-30T11:28:04.843Z",
+    "createdAt": "2025-12-30T11:28:04.843Z",
+    "id": "userfamily-3",
+    "phone": "+7 (999) 234-56-80"
+  },
+  {
+    "__typename": "UserFamily",
+    "familyId": "family-3",
+    "userId": "user-parent-4",
+    "updatedAt": "2025-12-30T11:28:06.526Z",
+    "createdAt": "2025-12-30T11:28:06.526Z",
+    "id": "userfamily-12",
+    "phone": "+7 (999) 345-67-89"
+  },
+  {
+    "__typename": "UserFamily",
+    "familyId": "family-3",
+    "userId": "user-parent-5",
+    "updatedAt": "2025-12-30T11:28:05.217Z",
+    "createdAt": "2025-12-30T11:28:05.217Z",
+    "id": "userfamily-5",
+    "phone": "+7 (999) 345-67-91"
+  },
+  {
+    "__typename": "UserFamily",
+    "familyId": "family-4",
+    "userId": "user-parent-7",
+    "updatedAt": "2025-12-30T11:28:05.593Z",
+    "createdAt": "2025-12-30T11:28:05.593Z",
+    "id": "userfamily-7",
+    "phone": "+7 (999) 456-78-92"
+  },
+  {
+    "__typename": "UserFamily",
+    "familyId": "family-1",
+    "userId": "user-parent-3",
+    "updatedAt": "2025-12-30T11:28:06.337Z",
+    "createdAt": "2025-12-30T11:28:06.337Z",
+    "id": "userfamily-11",
+    "phone": "+7 (999) 123-45-67"
+  },
+  {
+    "__typename": "UserFamily",
+    "familyId": "family-5",
+    "userId": "user-parent-2",
+    "updatedAt": "2025-12-30T11:28:06.150Z",
+    "createdAt": "2025-12-30T11:28:06.150Z",
+    "id": "userfamily-10",
+    "phone": "+7 (999) 567-89-02"
+  },
+  {
+    "__typename": "UserFamily",
+    "familyId": "family-1",
+    "userId": "user-parent-2",
+    "updatedAt": "2025-12-30T11:28:04.656Z",
+    "createdAt": "2025-12-30T11:28:04.656Z",
+    "id": "userfamily-2",
+    "phone": "+7 (999) 123-45-68"
+  }
+]

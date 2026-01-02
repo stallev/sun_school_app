@@ -1,0 +1,38 @@
+[
+  {
+    "gradeId": "grade-3",
+    "__typename": "UserGrade",
+    "userId": "user-teacher-3",
+    "updatedAt": "2025-12-30T11:27:34.257Z",
+    "createdAt": "2025-12-30T11:27:34.257Z",
+    "id": "usergrade-3",
+    "assignedAt": "2025-12-30T11:27:34.257Z"
+  },
+  {
+    "gradeId": "grade-2",
+    "__typename": "UserGrade",
+    "userId": "user-teacher-2",
+    "updatedAt": "2025-12-30T11:27:34.069Z",
+    "createdAt": "2025-12-30T11:27:34.069Z",
+    "id": "usergrade-2",
+    "assignedAt": "2025-12-30T11:27:34.069Z"
+  },
+  {
+    "gradeId": "grade-1",
+    "__typename": "UserGrade",
+    "userId": "user-teacher-1",
+    "updatedAt": "2025-12-30T11:27:33.882Z",
+    "createdAt": "2025-12-30T11:27:33.882Z",
+    "id": "usergrade-1",
+    "assignedAt": "2025-12-30T11:27:33.882Z"
+  },
+  {
+    "gradeId": "d9e397ca-0108-46aa-9c96-9d910c44fb56",
+    "__typename": "UserGrade",
+    "userId": "user-teacher-3",
+    "updatedAt": "2025-12-31T21:49:42.607Z",
+    "createdAt": "2025-12-31T21:49:42.607Z",
+    "id": "fe358e6e-c23c-48dd-b676-5c17f546876f",
+    "assignedAt": "2025-12-31T21:49:42.059Z"
+  }
+]

@@ -806,6 +806,15 @@ Test user credentials are stored in `docs/secure_data/cognito_users.md` (this fi
 
 ## 12. Cross-References
 
+### 12.1. Related Infrastructure Documentation
+
+-   [COGNITO_DYNAMODB_USER_SYNC.md](./COGNITO_DYNAMODB_USER_SYNC.md) — Связь между Cognito User Pool и таблицей User в DynamoDB, причины рассинхронизации и процесс регистрации пользователей
+-   [AWS_CLI_SCRIPTS.md](./AWS_CLI_SCRIPTS.md) — AWS CLI скрипты для управления Cognito группами и токенами
+-   [AWS_AMPLIFY.md](./AWS_AMPLIFY.md) — Конфигурация AWS Amplify Gen 1
+-   [INFRASTRUCTURE_AS_CODE.md](./INFRASTRUCTURE_AS_CODE.md) — Принципы Infrastructure as Code
+
+## 13. Cross-References (Legacy)
+
 -   **→ [AWS_AMPLIFY.md](AWS_AMPLIFY.md):** Cognito and AppSync configuration.
 -   **→ [INFRASTRUCTURE_AS_CODE.md](./INFRASTRUCTURE_AS_CODE.md):** Infrastructure as Code principles and requirements.
 -   **→ [COGNITO_GROUPS.md](./COGNITO_GROUPS.md):** Cognito User Pool Groups configuration and setup.

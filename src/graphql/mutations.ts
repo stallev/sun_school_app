@@ -1,5 +1,4 @@
 /* tslint:disable */
-/* eslint-disable */
 // this is an auto generated file. This will be overwritten
 
 import * as APITypes from "../API";
@@ -277,28 +276,6 @@ export const createUserGrade = /* GraphQL */ `mutation CreateUserGrade(
     id
     userId
     gradeId
-    user {
-      id
-      email
-      name
-      role
-      photo
-      active
-      createdAt
-      updatedAt
-      __typename
-    }
-    grade {
-      id
-      name
-      description
-      minAge
-      maxAge
-      active
-      createdAt
-      updatedAt
-      __typename
-    }
     assignedAt
     createdAt
     updatedAt
@@ -317,28 +294,6 @@ export const updateUserGrade = /* GraphQL */ `mutation UpdateUserGrade(
     id
     userId
     gradeId
-    user {
-      id
-      email
-      name
-      role
-      photo
-      active
-      createdAt
-      updatedAt
-      __typename
-    }
-    grade {
-      id
-      name
-      description
-      minAge
-      maxAge
-      active
-      createdAt
-      updatedAt
-      __typename
-    }
     assignedAt
     createdAt
     updatedAt
@@ -357,28 +312,6 @@ export const deleteUserGrade = /* GraphQL */ `mutation DeleteUserGrade(
     id
     userId
     gradeId
-    user {
-      id
-      email
-      name
-      role
-      photo
-      active
-      createdAt
-      updatedAt
-      __typename
-    }
-    grade {
-      id
-      name
-      description
-      minAge
-      maxAge
-      active
-      createdAt
-      updatedAt
-      __typename
-    }
     assignedAt
     createdAt
     updatedAt
@@ -1804,7 +1737,6 @@ export const createUserFamily = /* GraphQL */ `mutation CreateUserFamily(
     phone
     user {
       id
-      email
       name
       role
       photo
@@ -1851,7 +1783,6 @@ export const updateUserFamily = /* GraphQL */ `mutation UpdateUserFamily(
     phone
     user {
       id
-      email
       name
       role
       photo
@@ -1898,7 +1829,6 @@ export const deleteUserFamily = /* GraphQL */ `mutation DeleteUserFamily(
     phone
     user {
       id
-      email
       name
       role
       photo

@@ -1,0 +1,145 @@
+[
+  {
+    "__typename": "User",
+    "photo": null,
+    "active": true,
+    "role": "TEACHER",
+    "updatedAt": "2025-12-30T11:27:31.193Z",
+    "createdAt": "2025-12-30T11:27:31.193Z",
+    "id": "user-teacher-2",
+    "email": "teacher2@church.com",
+    "name": "Петров Иван Сергеевич"
+  },
+  {
+    "__typename": "User",
+    "photo": null,
+    "active": true,
+    "role": "PARENT",
+    "updatedAt": "2025-12-30T11:27:32.131Z",
+    "createdAt": "2025-12-30T11:27:32.131Z",
+    "id": "user-parent-2",
+    "email": "parent2@example.com",
+    "name": "Иванова Мария Ивановна"
+  },
+  {
+    "__typename": "User",
+    "photo": null,
+    "active": true,
+    "role": "PARENT",
+    "updatedAt": "2025-12-30T11:27:33.256Z",
+    "createdAt": "2025-12-30T11:27:33.256Z",
+    "id": "user-parent-8",
+    "email": "parent8@example.com",
+    "name": "Козлова Татьяна Козловна"
+  },
+  {
+    "__typename": "User",
+    "photo": null,
+    "active": true,
+    "role": "PARENT",
+    "updatedAt": "2025-12-30T11:27:32.507Z",
+    "createdAt": "2025-12-30T11:27:32.507Z",
+    "id": "user-parent-4",
+    "email": "parent4@example.com",
+    "name": "Петрова Ольга Петровна"
+  },
+  {
+    "__typename": "User",
+    "photo": null,
+    "active": true,
+    "role": "PARENT",
+    "updatedAt": "2025-12-30T11:27:32.319Z",
+    "createdAt": "2025-12-30T11:27:32.319Z",
+    "id": "user-parent-3",
+    "email": "parent3@example.com",
+    "name": "Петров Петр Петрович"
+  },
+  {
+    "__typename": "User",
+    "photo": null,
+    "active": true,
+    "role": "PARENT",
+    "updatedAt": "2025-12-30T11:27:33.068Z",
+    "createdAt": "2025-12-30T11:27:33.068Z",
+    "id": "user-parent-7",
+    "email": "parent7@example.com",
+    "name": "Козлов Козел Козлович"
+  },
+  {
+    "__typename": "User",
+    "photo": null,
+    "active": true,
+    "role": "TEACHER",
+    "updatedAt": "2025-12-30T11:27:31.379Z",
+    "createdAt": "2025-12-30T11:27:31.379Z",
+    "id": "user-teacher-3",
+    "email": "teacher3@church.com",
+    "name": "Сидорова Анна Петровна"
+  },
+  {
+    "__typename": "User",
+    "photo": null,
+    "active": true,
+    "role": "PARENT",
+    "updatedAt": "2025-12-30T11:27:32.881Z",
+    "createdAt": "2025-12-30T11:27:32.881Z",
+    "id": "user-parent-6",
+    "email": "parent6@example.com",
+    "name": "Сидорова Елена Сидоровна"
+  },
+  {
+    "__typename": "User",
+    "photo": null,
+    "active": true,
+    "role": "PARENT",
+    "updatedAt": "2025-12-30T11:27:31.944Z",
+    "createdAt": "2025-12-30T11:27:31.944Z",
+    "id": "user-parent-1",
+    "email": "parent1@example.com",
+    "name": "Иванов Иван Иванович"
+  },
+  {
+    "__typename": "User",
+    "photo": null,
+    "active": true,
+    "role": "TEACHER",
+    "updatedAt": "2025-12-30T11:27:31.000Z",
+    "createdAt": "2025-12-30T11:27:31.000Z",
+    "id": "user-teacher-1",
+    "email": "teacher1@church.com",
+    "name": "Иванова Мария Васильевна"
+  },
+  {
+    "__typename": "User",
+    "photo": null,
+    "active": true,
+    "role": "PARENT",
+    "updatedAt": "2025-12-30T11:27:32.695Z",
+    "createdAt": "2025-12-30T11:27:32.695Z",
+    "id": "user-parent-5",
+    "email": "parent5@example.com",
+    "name": "Сидоров Сидор Сидорович"
+  },
+  {
+    "__typename": "User",
+    "photo": null,
+    "active": true,
+    "role": "ADMIN",
+    "updatedAt": "2025-12-30T11:27:31.568Z",
+    "createdAt": "2025-12-30T11:27:31.568Z",
+    "id": "user-admin-1",
+    "email": "admin@church.com",
+    "name": "Смирнов Алексей Николаевич"
+  },
+  {
+    "__typename": "User",
+    "photo": null,
+    "active": true,
+    "role": "ADMIN",
+    "updatedAt": "2025-12-30T11:27:31.756Z",
+    "createdAt": "2025-12-30T11:27:31.756Z",
+    "id": "user-admin-2",
+    "email": "admin2@church.com",
+    "name": "Козлова Елена Владимировна"
+  }
+]

@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { RoutePath } from '@/lib/routes/RoutePath';
 import { formatAcademicYearStatus } from '@/lib/utils/grades';
+import { formatDateRange } from '@/lib/utils/date';
 import { LessonsList } from '@/components/molecules/lessons/lessons-list';
 import type { LessonWithStats, AcademicYearWithLessons } from '@/actions/grades';
 
@@ -159,28 +160,4 @@ const StatItem = ({ label, value }: StatItemProps) => {
   );
 };
 
-/**
- * Format date range for display
- */
-function formatDateRange(startDate: string, endDate: string): string {
-  try {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-
-    const startFormatted = start.toLocaleDateString('ru-RU', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    });
-    const endFormatted = end.toLocaleDateString('ru-RU', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    });
-
-    return `${startFormatted} - ${endFormatted}`;
-  } catch {
-    return `${startDate} - ${endDate}`;
-  }
-}
 

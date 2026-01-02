@@ -1,0 +1,134 @@
+[
+  {
+    "gradeId": "grade-2",
+    "__typename": "GradeEvent",
+    "eventDate": "2024-10-13",
+    "updatedAt": "2025-12-30T11:28:07.979Z",
+    "createdAt": "2025-12-30T11:28:07.979Z",
+    "eventType": "LESSON",
+    "description": "Стандартное занятие по расписанию",
+    "id": "gradeevent-2-4",
+    "title": "Обычный урок"
+  },
+  {
+    "gradeId": "grade-3",
+    "__typename": "GradeEvent",
+    "eventDate": "2024-10-06",
+    "updatedAt": "2025-12-30T11:28:08.540Z",
+    "createdAt": "2025-12-30T11:28:08.540Z",
+    "eventType": "LESSON",
+    "description": "Стандартное занятие по расписанию",
+    "id": "gradeevent-3-3",
+    "title": "Обычный урок"
+  },
+  {
+    "gradeId": "grade-3",
+    "__typename": "GradeEvent",
+    "eventDate": "2024-09-15",
+    "updatedAt": "2025-12-30T11:28:08.353Z",
+    "createdAt": "2025-12-30T11:28:08.353Z",
+    "eventType": "OUTDOOR_EVENT",
+    "description": "Выездное мероприятие для старшей группы",
+    "id": "gradeevent-3-2",
+    "title": "Молодежная встреча"
+  },
+  {
+    "gradeId": "grade-1",
+    "__typename": "GradeEvent",
+    "eventDate": "2024-09-22",
+    "updatedAt": "2025-12-30T11:28:06.851Z",
+    "createdAt": "2025-12-30T11:28:06.851Z",
+    "eventType": "OUTDOOR_EVENT",
+    "description": "Экскурсия для детей младшей группы",
+    "id": "gradeevent-1-2",
+    "title": "Поездка в музей"
+  },
+  {
+    "gradeId": "grade-3",
+    "__typename": "GradeEvent",
+    "eventDate": "2024-09-08",
+    "updatedAt": "2025-12-30T11:28:08.165Z",
+    "createdAt": "2025-12-30T11:28:08.165Z",
+    "eventType": "LESSON",
+    "description": "Стандартное занятие по расписанию",
+    "id": "gradeevent-3-1",
+    "title": "Обычный урок"
+  },
+  {
+    "gradeId": "grade-2",
+    "__typename": "GradeEvent",
+    "eventDate": "2024-09-29",
+    "updatedAt": "2025-12-30T11:28:07.605Z",
+    "createdAt": "2025-12-30T11:28:07.605Z",
+    "eventType": "OUTDOOR_EVENT",
+    "description": "Поездка на природу",
+    "id": "gradeevent-2-2",
+    "title": "Выездное мероприятие"
+  },
+  {
+    "gradeId": "grade-2",
+    "__typename": "GradeEvent",
+    "eventDate": "2024-10-06",
+    "updatedAt": "2025-12-30T11:28:07.793Z",
+    "createdAt": "2025-12-30T11:28:07.793Z",
+    "eventType": "LESSON",
+    "description": "Стандартное занятие по расписанию",
+    "id": "gradeevent-2-3",
+    "title": "Обычный урок"
+  },
+  {
+    "gradeId": "grade-2",
+    "__typename": "GradeEvent",
+    "eventDate": "2024-09-08",
+    "updatedAt": "2025-12-30T11:28:07.417Z",
+    "createdAt": "2025-12-30T11:28:07.417Z",
+    "eventType": "LESSON",
+    "description": "Стандартное занятие по расписанию",
+    "id": "gradeevent-2-1",
+    "title": "Обычный урок"
+  },
+  {
+    "gradeId": "grade-1",
+    "__typename": "GradeEvent",
+    "eventDate": "2024-10-06",
+    "updatedAt": "2025-12-30T11:28:07.039Z",
+    "createdAt": "2025-12-30T11:28:07.039Z",
+    "eventType": "LESSON",
+    "description": "Стандартное занятие по расписанию",
+    "id": "gradeevent-1-3",
+    "title": "Обычный урок"
+  },
+  {
+    "gradeId": "grade-1",
+    "__typename": "GradeEvent",
+    "eventDate": "2024-09-08",
+    "updatedAt": "2025-12-30T11:28:06.654Z",
+    "createdAt": "2025-12-30T11:28:06.654Z",
+    "eventType": "LESSON",
+    "description": "Стандартное занятие по расписанию",
+    "id": "gradeevent-1-1",
+    "title": "Обычный урок"
+  },
+  {
+    "gradeId": "grade-3",
+    "__typename": "GradeEvent",
+    "eventDate": "2024-10-13",
+    "updatedAt": "2025-12-30T11:28:08.727Z",
+    "createdAt": "2025-12-30T11:28:08.727Z",
+    "eventType": "LESSON",
+    "description": "Стандартное занятие по расписанию",
+    "id": "gradeevent-3-4",
+    "title": "Обычный урок"
+  },
+  {
+    "gradeId": "grade-1",
+    "__typename": "GradeEvent",
+    "eventDate": "2024-10-13",
+    "updatedAt": "2025-12-30T11:28:07.229Z",
+    "createdAt": "2025-12-30T11:28:07.229Z",
+    "eventType": "LESSON_SKIPPING",
+    "description": "Праздничный день",
+    "id": "gradeevent-1-4",
+    "title": "Отмена урока"
+  }
+]

@@ -647,16 +647,23 @@ export async function getGradeWithRelations(gradeId: string): Promise<{
       const userGrades = result.data?.userGradesByGradeIdAndUserId?.items || [];
       const userIds = userGrades.map((ug) => ug.userId).filter(Boolean);
       
-      if (userIds.length === 0) return [];
+      // Дедупликация userIds - убираем дубликаты
+      const uniqueUserIds = Array.from(new Set(userIds));
+      
+      if (uniqueUserIds.length === 0) return [];
       
       const users = await Promise.allSettled(
-        userIds.map((id: string) => getUser(id))
+        uniqueUserIds.map((id: string) => getUser(id))
       );
       return users
         .filter((u): u is PromiseFulfilledResult<APITypes.User> => 
           u.status === 'fulfilled' && u.value !== null
         )
-        .map((u) => u.value);
+        .map((u) => u.value)
+        // Дополнительная дедупликация на случай, если getUser вернул дубликаты
+        .filter((user, index, self) => 
+          index === self.findIndex((u) => u.id === user.id)
+        );
     } catch (error) {
       console.error('Error fetching teachers for grade:', error);
       return [];

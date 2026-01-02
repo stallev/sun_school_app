@@ -28,7 +28,12 @@ interface GradeTeachersProps {
  * @param teachers - Array of teacher users assigned to the grade
  */
 export const GradeTeachers = ({ teachers }: GradeTeachersProps) => {
-  if (teachers.length === 0) {
+  // Дедупликация преподавателей по id (защита от дубликатов)
+  const uniqueTeachers = teachers.filter((teacher, index, self) => 
+    index === self.findIndex((t) => t.id === teacher.id)
+  );
+
+  if (uniqueTeachers.length === 0) {
     return (
       <Card>
         <CardHeader>
@@ -47,12 +52,12 @@ export const GradeTeachers = ({ teachers }: GradeTeachersProps) => {
     <Card>
       <CardHeader>
         <CardTitle className="text-lg font-semibold md:text-xl">
-          Преподаватели ({teachers.length})
+          Преподаватели ({uniqueTeachers.length})
         </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {teachers.map((teacher) => (
+          {uniqueTeachers.map((teacher) => (
             <TeacherCard key={teacher.id} teacher={teacher} />
           ))}
         </div>
