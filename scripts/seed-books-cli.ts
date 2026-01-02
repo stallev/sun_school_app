@@ -24,7 +24,7 @@ import {
 import { 
   defaultProvider as credentialsProvider 
 } from '@aws-sdk/credential-provider-node';
-import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
+import { marshall } from '@aws-sdk/util-dynamodb';
 import { randomUUID } from 'crypto';
 import { booksSeedData, type BookSeedData } from './seed-books-data';
 
@@ -54,13 +54,13 @@ const getTableName = async (client: DynamoDBClient): Promise<string> => {
     if (apiId) {
       return `Book-${apiId}-${env}`;
     }
-  } catch (error) {
+  } catch (_error) {
     // Fall through to list tables
   }
 
   // Fallback: List tables and find Book table
   try {
-    const { DynamoDBClient: DDBClient, ListTablesCommand } = await import('@aws-sdk/client-dynamodb');
+    const { ListTablesCommand } = await import('@aws-sdk/client-dynamodb');
     const listCommand = new ListTablesCommand({});
     const result = await client.send(listCommand);
     
@@ -68,7 +68,7 @@ const getTableName = async (client: DynamoDBClient): Promise<string> => {
     if (bookTable) {
       return bookTable;
     }
-  } catch (error) {
+  } catch (_error) {
     console.warn('Could not auto-detect table name, using default pattern');
   }
 
@@ -132,7 +132,7 @@ async function bookExists(
 
     const result = await client.send(command);
     return (result.Items?.length || 0) > 0;
-  } catch (error) {
+  } catch (_error) {
     // If GSI doesn't exist or query fails, assume book doesn't exist
     return false;
   }
@@ -200,7 +200,7 @@ async function seedBooks(): Promise<void> {
     }
     console.log('✅ AWS credentials loaded from AWS CLI');
     console.log(`   Region: ${AWS_REGION}`);
-  } catch (error) {
+  } catch (_error) {
     console.error('❌ Failed to load AWS credentials!');
     console.error('   Make sure AWS CLI is configured:');
     console.error('   Run: aws configure');

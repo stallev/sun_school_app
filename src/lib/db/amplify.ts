@@ -57,26 +57,54 @@ export async function executeGraphQL<T = unknown>(
 
     // Check if result has errors property (GraphQLResult)
     if ('errors' in result && result.errors && result.errors.length > 0) {
+      console.error('[executeGraphQL] GraphQL errors in result:', {
+        errors: result.errors,
+        errorsCount: result.errors.length,
+        fullResult: result,
+      });
+
       const { GraphQLError: GraphQLErrorClass } = await import('./errors');
-      const errors = result.errors.map((e: { message: string; path?: readonly (string | number)[] }) => ({
+      const errors = result.errors.map((e: { message: string; path?: readonly (string | number)[]; extensions?: unknown }) => ({
         message: e.message,
         path: e.path ? (Array.isArray(e.path) ? [...e.path] : undefined) : undefined,
       }));
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/34588026-7cdb-499f-afd6-ebf2aee10626',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'amplify.ts:55',message:'throwing GraphQLError',data:{errors:JSON.stringify(errors)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-      // #endregion
+      
       throw new GraphQLErrorClass(
         `GraphQL errors: ${result.errors.map((e: { message: string }) => e.message).join(', ')}`,
-        errors
+        errors,
+        result
       );
     }
 
     // Return result as GraphQLResult (assuming it's a query/mutation, not subscription)
     return result as GraphQLResult<T>;
   } catch (error) {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/34588026-7cdb-499f-afd6-ebf2aee10626',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'amplify.ts:64',message:'executeGraphQL catch',data:{errorType:error instanceof Error?error.constructor.name:'unknown',errorMessage:error instanceof Error?error.message:String(error),errorStringified:JSON.stringify(error)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-    // #endregion
+    // Log full error structure before parsing
+    console.error('[executeGraphQL] Error caught:', {
+      errorType: error instanceof Error ? error.constructor.name : typeof error,
+      errorMessage: error instanceof Error ? error.message : String(error),
+      errorName: error instanceof Error ? error.name : undefined,
+      errorStack: error instanceof Error ? error.stack : undefined,
+      errorKeys: error && typeof error === 'object' ? Object.keys(error) : [],
+      fullError: error,
+      errorStringified: JSON.stringify(error, Object.getOwnPropertyNames(error)),
+    });
+
+    // Check for different Amplify error formats
+    if (error && typeof error === 'object') {
+      const errorObj = error as Record<string, unknown>;
+      
+      // Check if it's an Amplify error with errorInfo
+      if (errorObj.errorInfo && typeof errorObj.errorInfo === 'object') {
+        console.error('[executeGraphQL] Amplify errorInfo detected:', errorObj.errorInfo);
+      }
+      
+      // Check for extensions (AppSync format)
+      if (errorObj.extensions && typeof errorObj.extensions === 'object') {
+        console.error('[executeGraphQL] AppSync extensions detected:', errorObj.extensions);
+      }
+    }
+
     // Re-throw if already a DataAccessError, otherwise parse and wrap
     const { parseError } = await import('./errors');
     throw parseError(error);

@@ -1,0 +1,122 @@
+[
+  {
+    "__typename": "FamilyMember",
+    "createdAt": "2025-12-30T11:28:03.214Z",
+    "familyId": "family-5",
+    "id": "familymember-9",
+    "pupilId": "pupil-2-4",
+    "updatedAt": "2025-12-30T11:28:03.214Z"
+  },
+  {
+    "__typename": "FamilyMember",
+    "createdAt": "2025-12-30T11:28:03.025Z",
+    "familyId": "family-4",
+    "id": "familymember-8",
+    "pupilId": "pupil-2-3",
+    "updatedAt": "2025-12-30T11:28:03.025Z"
+  },
+  {
+    "__typename": "FamilyMember",
+    "createdAt": "2025-12-30T11:28:03.779Z",
+    "familyId": "family-2",
+    "id": "familymember-12",
+    "pupilId": "pupil-3-2",
+    "updatedAt": "2025-12-30T11:28:03.779Z"
+  },
+  {
+    "__typename": "FamilyMember",
+    "createdAt": "2025-12-30T11:28:02.837Z",
+    "familyId": "family-4",
+    "id": "familymember-7",
+    "pupilId": "pupil-2-2",
+    "updatedAt": "2025-12-30T11:28:02.837Z"
+  },
+  {
+    "__typename": "FamilyMember",
+    "createdAt": "2025-12-30T11:28:04.343Z",
+    "familyId": "family-5",
+    "id": "familymember-15",
+    "pupilId": "pupil-3-5",
+    "updatedAt": "2025-12-30T11:28:04.343Z"
+  },
+  {
+    "__typename": "FamilyMember",
+    "createdAt": "2025-12-30T11:28:03.590Z",
+    "familyId": "family-1",
+    "id": "familymember-11",
+    "pupilId": "pupil-3-1",
+    "updatedAt": "2025-12-30T11:28:03.590Z"
+  },
+  {
+    "__typename": "FamilyMember",
+    "createdAt": "2025-12-30T11:28:02.651Z",
+    "familyId": "family-4",
+    "id": "familymember-6",
+    "pupilId": "pupil-2-1",
+    "updatedAt": "2025-12-30T11:28:02.651Z"
+  },
+  {
+    "__typename": "FamilyMember",
+    "createdAt": "2025-12-30T11:28:02.463Z",
+    "familyId": "family-3",
+    "id": "familymember-5",
+    "pupilId": "pupil-1-5",
+    "updatedAt": "2025-12-30T11:28:02.463Z"
+  },
+  {
+    "__typename": "FamilyMember",
+    "createdAt": "2025-12-30T11:28:02.084Z",
+    "familyId": "family-2",
+    "id": "familymember-3",
+    "pupilId": "pupil-1-3",
+    "updatedAt": "2025-12-30T11:28:02.084Z"
+  },
+  {
+    "__typename": "FamilyMember",
+    "createdAt": "2025-12-30T11:28:03.401Z",
+    "familyId": "family-5",
+    "id": "familymember-10",
+    "pupilId": "pupil-2-5",
+    "updatedAt": "2025-12-30T11:28:03.401Z"
+  },
+  {
+    "__typename": "FamilyMember",
+    "createdAt": "2025-12-30T11:28:03.964Z",
+    "familyId": "family-3",
+    "id": "familymember-13",
+    "pupilId": "pupil-3-3",
+    "updatedAt": "2025-12-30T11:28:03.964Z"
+  },
+  {
+    "__typename": "FamilyMember",
+    "createdAt": "2025-12-30T11:28:01.713Z",
+    "familyId": "family-1",
+    "id": "familymember-1",
+    "pupilId": "pupil-1-1",
+    "updatedAt": "2025-12-30T11:28:01.713Z"
+  },
+  {
+    "__typename": "FamilyMember",
+    "createdAt": "2025-12-30T11:28:02.275Z",
+    "familyId": "family-2",
+    "id": "familymember-4",
+    "pupilId": "pupil-1-4",
+    "updatedAt": "2025-12-30T11:28:02.275Z"
+  },
+  {
+    "__typename": "FamilyMember",
+    "createdAt": "2025-12-30T11:28:01.898Z",
+    "familyId": "family-1",
+    "id": "familymember-2",
+    "pupilId": "pupil-1-2",
+    "updatedAt": "2025-12-30T11:28:01.898Z"
+  },
+  {
+    "__typename": "FamilyMember",
+    "createdAt": "2025-12-30T11:28:04.155Z",
+    "familyId": "family-4",
+    "id": "familymember-14",
+    "pupilId": "pupil-3-4",
+    "updatedAt": "2025-12-30T11:28:04.155Z"
+  }
+]

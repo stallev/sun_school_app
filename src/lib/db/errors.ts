@@ -161,24 +161,139 @@ export class RateLimitError extends DataAccessError {
 }
 
 /**
+ * Extract GraphQL errors from structured error object
+ */
+function extractGraphQLErrors(error: unknown): Array<{ message: string; path?: (string | number)[] }> | undefined {
+  if (!error || typeof error !== 'object') {
+    return undefined;
+  }
+
+  const errorObj = error as Record<string, unknown>;
+
+  // Check for errors array (GraphQL response format)
+  if (Array.isArray(errorObj.errors)) {
+    return errorObj.errors.map((e: unknown) => {
+      if (e && typeof e === 'object') {
+        const err = e as Record<string, unknown>;
+        return {
+          message: String(err.message || 'Unknown GraphQL error'),
+          path: Array.isArray(err.path) ? err.path as (string | number)[] : undefined,
+        };
+      }
+      return {
+        message: String(e || 'Unknown GraphQL error'),
+      };
+    });
+  }
+
+  // Check for errorInfo.errors (Amplify format)
+  if (errorObj.errorInfo && typeof errorObj.errorInfo === 'object') {
+    const errorInfo = errorObj.errorInfo as Record<string, unknown>;
+    if (Array.isArray(errorInfo.errors)) {
+      return errorInfo.errors.map((e: unknown) => {
+        if (e && typeof e === 'object') {
+          const err = e as Record<string, unknown>;
+          return {
+            message: String(err.message || 'Unknown GraphQL error'),
+            path: Array.isArray(err.path) ? err.path as (string | number)[] : undefined,
+          };
+        }
+        return {
+          message: String(e || 'Unknown GraphQL error'),
+        };
+      });
+    }
+  }
+
+  // Check for single error object with message
+  if (errorObj.message && typeof errorObj.message === 'string') {
+    return [{
+      message: errorObj.message,
+      path: Array.isArray(errorObj.path) ? errorObj.path as (string | number)[] : undefined,
+    }];
+  }
+
+  return undefined;
+}
+
+/**
  * Parse error from unknown error type
  * Attempts to classify and wrap unknown errors into typed error classes
  */
 export function parseError(error: unknown): DataAccessError {
-  // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/34588026-7cdb-499f-afd6-ebf2aee10626',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'errors.ts:167',message:'parseError entry',data:{errorType:error instanceof Error?error.constructor.name:'unknown',errorMessage:error instanceof Error?error.message:String(error),errorKeys:error && typeof error === 'object'?Object.keys(error):[]},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-  // #endregion
+  // Log original error for debugging
+  console.error('[parseError] Original error:', {
+    type: error instanceof Error ? error.constructor.name : typeof error,
+    message: error instanceof Error ? error.message : String(error),
+    keys: error && typeof error === 'object' ? Object.keys(error) : [],
+    fullError: error,
+  });
+
   // If already a DataAccessError, return as is
   if (error instanceof DataAccessError) {
     return error;
   }
 
+  // Check for structured GraphQL errors first (before checking Error type)
+  if (error && typeof error === 'object') {
+    const errorObj = error as Record<string, unknown>;
+    
+    // Check for GraphQL errors array
+    const graphQLErrors = extractGraphQLErrors(error);
+    if (graphQLErrors && graphQLErrors.length > 0) {
+      const firstError = graphQLErrors[0];
+      return new GraphQLError(
+        firstError.message,
+        graphQLErrors,
+        error
+      );
+    }
+
+    // Check for AppSync error extensions
+    if (errorObj.extensions && typeof errorObj.extensions === 'object') {
+      const extensions = errorObj.extensions as Record<string, unknown>;
+      if (extensions.errorType) {
+        const errorType = String(extensions.errorType);
+        const errorMessage = String(errorObj.message || extensions.errorInfo || 'AppSync error');
+        
+        // Check error type for classification
+        if (errorType.includes('Unauthorized') || errorType.includes('Authentication')) {
+          return new AuthenticationError(errorMessage, errorType, error);
+        }
+        if (errorType.includes('Forbidden') || errorType.includes('Authorization')) {
+          return new AuthorizationError(errorMessage, undefined, error);
+        }
+        if (errorType.includes('NotFound')) {
+          return new NotFoundError(errorMessage, undefined, undefined, error);
+        }
+        
+        // Default to GraphQL error for AppSync errors
+        return new GraphQLError(errorMessage, undefined, error);
+      }
+    }
+
+    // Check for errorType field (AppSync format)
+    if (errorObj.errorType && typeof errorObj.errorType === 'string') {
+      const errorType = errorObj.errorType;
+      const errorMessage = String(errorObj.message || errorObj.errorInfo || 'AppSync error');
+      
+      if (errorType.includes('Unauthorized') || errorType.includes('Authentication')) {
+        return new AuthenticationError(errorMessage, errorType, error);
+      }
+      if (errorType.includes('Forbidden') || errorType.includes('Authorization')) {
+        return new AuthorizationError(errorMessage, undefined, error);
+      }
+      if (errorType.includes('NotFound')) {
+        return new NotFoundError(errorMessage, undefined, undefined, error);
+      }
+      
+      return new GraphQLError(errorMessage, undefined, error);
+    }
+  }
+
   // If it's a standard Error, check the message
   if (error instanceof Error) {
     const message = error.message.toLowerCase();
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/34588026-7cdb-499f-afd6-ebf2aee10626',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'errors.ts:175',message:'parseError Error type',data:{message,errorName:error.name,errorStack:error.stack?.substring(0,200)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-    // #endregion
 
     // Check for authentication errors
     if (

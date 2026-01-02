@@ -1,0 +1,110 @@
+[
+  {
+    "__typename": "PupilAchievement",
+    "pupilId": "pupil-2-1",
+    "awardedAt": "2025-12-30T11:27:59.090Z",
+    "updatedAt": "2025-12-30T11:27:59.090Z",
+    "achievementId": "achievement-1",
+    "createdAt": "2025-12-30T11:27:59.090Z",
+    "id": "pupilachievement-4"
+  },
+  {
+    "__typename": "PupilAchievement",
+    "pupilId": "pupil-2-2",
+    "awardedAt": "2025-12-30T11:27:59.464Z",
+    "updatedAt": "2025-12-30T11:27:59.464Z",
+    "achievementId": "achievement-2",
+    "createdAt": "2025-12-30T11:27:59.464Z",
+    "id": "pupilachievement-6"
+  },
+  {
+    "__typename": "PupilAchievement",
+    "pupilId": "pupil-3-1",
+    "awardedAt": "2025-12-30T11:27:59.866Z",
+    "updatedAt": "2025-12-30T11:27:59.866Z",
+    "achievementId": "achievement-6",
+    "createdAt": "2025-12-30T11:27:59.866Z",
+    "id": "pupilachievement-8"
+  },
+  {
+    "__typename": "PupilAchievement",
+    "pupilId": "pupil-2-1",
+    "awardedAt": "2025-12-30T11:27:59.277Z",
+    "updatedAt": "2025-12-30T11:27:59.277Z",
+    "achievementId": "achievement-4",
+    "createdAt": "2025-12-30T11:27:59.277Z",
+    "id": "pupilachievement-5"
+  },
+  {
+    "__typename": "PupilAchievement",
+    "pupilId": "pupil-3-4",
+    "awardedAt": "2025-12-30T11:28:00.692Z",
+    "updatedAt": "2025-12-30T11:28:00.692Z",
+    "achievementId": "achievement-2",
+    "createdAt": "2025-12-30T11:28:00.692Z",
+    "id": "pupilachievement-12"
+  },
+  {
+    "__typename": "PupilAchievement",
+    "pupilId": "pupil-3-3",
+    "awardedAt": "2025-12-30T11:28:00.503Z",
+    "updatedAt": "2025-12-30T11:28:00.504Z",
+    "achievementId": "achievement-4",
+    "createdAt": "2025-12-30T11:28:00.504Z",
+    "id": "pupilachievement-11"
+  },
+  {
+    "__typename": "PupilAchievement",
+    "pupilId": "pupil-3-1",
+    "awardedAt": "2025-12-30T11:28:00.126Z",
+    "updatedAt": "2025-12-30T11:28:00.126Z",
+    "achievementId": "achievement-1",
+    "createdAt": "2025-12-30T11:28:00.126Z",
+    "id": "pupilachievement-9"
+  },
+  {
+    "__typename": "PupilAchievement",
+    "pupilId": "pupil-1-2",
+    "awardedAt": "2025-12-30T11:27:58.901Z",
+    "updatedAt": "2025-12-30T11:27:58.901Z",
+    "achievementId": "achievement-3",
+    "createdAt": "2025-12-30T11:27:58.901Z",
+    "id": "pupilachievement-3"
+  },
+  {
+    "__typename": "PupilAchievement",
+    "pupilId": "pupil-1-1",
+    "awardedAt": "2025-12-30T11:27:58.532Z",
+    "updatedAt": "2025-12-30T11:27:58.532Z",
+    "achievementId": "achievement-1",
+    "createdAt": "2025-12-30T11:27:58.532Z",
+    "id": "pupilachievement-1"
+  },
+  {
+    "__typename": "PupilAchievement",
+    "pupilId": "pupil-3-2",
+    "awardedAt": "2025-12-30T11:28:00.315Z",
+    "updatedAt": "2025-12-30T11:28:00.315Z",
+    "achievementId": "achievement-3",
+    "createdAt": "2025-12-30T11:28:00.315Z",
+    "id": "pupilachievement-10"
+  },
+  {
+    "__typename": "PupilAchievement",
+    "pupilId": "pupil-2-3",
+    "awardedAt": "2025-12-30T11:27:59.655Z",
+    "updatedAt": "2025-12-30T11:27:59.655Z",
+    "achievementId": "achievement-5",
+    "createdAt": "2025-12-30T11:27:59.655Z",
+    "id": "pupilachievement-7"
+  },
+  {
+    "__typename": "PupilAchievement",
+    "pupilId": "pupil-1-1",
+    "awardedAt": "2025-12-30T11:27:58.715Z",
+    "updatedAt": "2025-12-30T11:27:58.715Z",
+    "achievementId": "achievement-2",
+    "createdAt": "2025-12-30T11:27:58.715Z",
+    "id": "pupilachievement-2"
+  }
+]

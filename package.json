@@ -16,6 +16,7 @@
     "@aws-amplify/adapter-nextjs": "^1.6.12",
     "@aws-crypto/sha256-js": "5.2.0",
     "@aws-sdk/client-appsync": "3.958.0",
+    "@aws-sdk/client-cognito-identity-provider": "^3.958.0",
     "@aws-sdk/client-dynamodb": "3.958.0",
     "@aws-sdk/credential-provider-node": "3.958.0",
     "@aws-sdk/node-http-handler": "3.370.0",

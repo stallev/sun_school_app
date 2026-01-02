@@ -70,7 +70,7 @@ export default async function EditGradePage({
     maxAge: grade.maxAge ?? undefined,
     active: grade.active,
     pupilIds: pupils.map((pupil) => pupil.id),
-    teacherIds: teachers.map((teacher) => teacher.id),
+    teacherIds: Array.from(new Set(teachers.map((teacher) => teacher.id))),
   };
 
   // 5. Render form
@@ -98,7 +98,7 @@ export default async function EditGradePage({
         </div>
       </div>
 
-      <div className="mx-auto md:max-w-2xl">
+      <div className="md:max-w-2xl">
         <Card>
           <CardHeader>
             <CardTitle>Информация о группе</CardTitle>

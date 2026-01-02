@@ -316,54 +316,143 @@ export async function updateGradeAction(
     if (validatedData.teacherIds !== undefined) {
       try {
         // Get current teachers via UserGrade junction table
+        // Use GraphQL query userGradesByGradeIdAndUserId (UserGrade has @model(queries: null))
         const queries = await import('../graphql/queries');
         const { executeGraphQL } = await import('../lib/db/amplify');
         const query = (queries as Record<string, string>).userGradesByGradeIdAndUserId;
         
-        if (query) {
-          // Get all UserGrade records for this grade
-          // Query requires gradeId, userId is optional - omit it to get all
-          const result = await executeGraphQL<{
-            userGradesByGradeIdAndUserId?: {
-              items?: Array<{ id: string; userId: string }>;
-            };
-          }>(query, { 
-            gradeId: validatedData.id,
-          });
-          
-          const currentUserGrades = result.data?.userGradesByGradeIdAndUserId?.items || [];
-          const currentTeacherIds = currentUserGrades.map((ug) => ug.userId).filter(Boolean);
-          
-          const newTeacherIds = validatedData.teacherIds || [];
-          
-          // Find teachers to add (in newTeacherIds but not in currentTeacherIds)
-          const teachersToAdd = newTeacherIds.filter((id) => !currentTeacherIds.includes(id));
-          
-          // Find teachers to remove (in currentTeacherIds but not in newTeacherIds)
-          const teachersToRemove = currentUserGrades.filter(
-            (ug) => !newTeacherIds.includes(ug.userId)
-          );
-
-          // Add teachers to grade
-          const assignedAt = new Date().toISOString();
-          await Promise.allSettled(
-            teachersToAdd.map((teacherId) =>
-              createUserGrade({
-                userId: teacherId,
-                gradeId: validatedData.id,
-                assignedAt,
-              })
-            )
-          );
-
-          // Remove teachers from grade
-          await Promise.allSettled(
-            teachersToRemove.map((userGrade) => deleteUserGrade(userGrade.id))
-          );
+        if (!query) {
+          console.error('Query userGradesByGradeIdAndUserId not found');
+          throw new Error('Query userGradesByGradeIdAndUserId not found');
         }
+        
+        // Get all UserGrade records for this grade
+        // Query requires gradeId, userId is optional - omit it to get all
+        const result = await executeGraphQL<{
+          userGradesByGradeIdAndUserId?: {
+            items?: Array<{ id: string; userId: string }>;
+          };
+        }>(query, { 
+          gradeId: validatedData.id,
+        });
+        
+        const currentUserGrades = result.data?.userGradesByGradeIdAndUserId?.items || [];
+        
+        // Дедупликация по userId - если есть несколько записей UserGrade с одним userId, берем только одну
+        const uniqueUserGrades = currentUserGrades.filter((ug, index, self) => 
+          index === self.findIndex((u) => u.userId === ug.userId)
+        );
+        const currentTeacherIds = uniqueUserGrades.map((ug) => ug.userId).filter(Boolean);
+        
+        const newTeacherIds = validatedData.teacherIds || [];
+        
+        // Find teachers to add (in newTeacherIds but not in currentTeacherIds)
+        const teachersToAdd = newTeacherIds.filter((id) => !currentTeacherIds.includes(id));
+        
+        // Find teachers to remove (in currentTeacherIds but not in newTeacherIds)
+        const teachersToRemove = uniqueUserGrades.filter(
+          (ug) => !newTeacherIds.includes(ug.userId)
+        );
+
+        // Add teachers to grade
+        const assignedAt = new Date().toISOString();
+        const addResults = await Promise.allSettled(
+          teachersToAdd.map(async (teacherId) => {
+            // Проверка: не создаем дубликат, если запись уже существует
+            const existingUserGrade = uniqueUserGrades.find(
+              (ug) => ug.userId === teacherId
+            );
+            if (!existingUserGrade && teacherId && validatedData.id) {
+              try {
+                const result = await createUserGrade({
+                  userId: teacherId,
+                  gradeId: validatedData.id,
+                  assignedAt,
+                });
+                console.log(`Successfully created UserGrade for teacher ${teacherId} and grade ${validatedData.id}`);
+                return result;
+              } catch (createError) {
+                console.error(`Error creating UserGrade for teacher ${teacherId} and grade ${validatedData.id}:`, {
+                  error: createError,
+                  errorType: createError instanceof Error ? createError.constructor.name : typeof createError,
+                  errorMessage: createError instanceof Error ? createError.message : String(createError),
+                  errorStack: createError instanceof Error ? createError.stack : undefined,
+                  errorKeys: createError && typeof createError === 'object' ? Object.keys(createError) : [],
+                  fullError: createError,
+                  input: {
+                    userId: teacherId,
+                    gradeId: validatedData.id,
+                    assignedAt,
+                  },
+                });
+                throw createError;
+              }
+            }
+            return Promise.resolve();
+          })
+        );
+
+        // Log any failures when adding teachers
+        addResults.forEach((result, index) => {
+          if (result.status === 'rejected') {
+            const error = result.reason;
+            console.error(`Failed to add teacher ${teachersToAdd[index]}:`, {
+              error,
+              errorType: error instanceof Error ? error.constructor.name : typeof error,
+              errorMessage: error instanceof Error ? error.message : String(error),
+              errorStack: error instanceof Error ? error.stack : undefined,
+              errorKeys: error && typeof error === 'object' ? Object.keys(error) : [],
+              fullError: error,
+              teacherId: teachersToAdd[index],
+              gradeId: validatedData.id,
+            });
+          }
+        });
+
+        // Remove teachers from grade
+        const removeResults = await Promise.allSettled(
+          teachersToRemove.map((userGrade) => {
+            try {
+              return deleteUserGrade(userGrade.id);
+            } catch (deleteError) {
+              console.error(`Error deleting UserGrade ${userGrade.id}:`, {
+                error: deleteError,
+                errorType: deleteError instanceof Error ? deleteError.constructor.name : typeof deleteError,
+                errorMessage: deleteError instanceof Error ? deleteError.message : String(deleteError),
+                errorStack: deleteError instanceof Error ? deleteError.stack : undefined,
+                errorKeys: deleteError && typeof deleteError === 'object' ? Object.keys(deleteError) : [],
+                fullError: deleteError,
+                userGradeId: userGrade.id,
+                userId: userGrade.userId,
+                gradeId: validatedData.id,
+              });
+              throw deleteError;
+            }
+          })
+        );
+
+        // Log any failures when removing teachers
+        removeResults.forEach((result, index) => {
+          if (result.status === 'rejected') {
+            const error = result.reason;
+            const userGrade = teachersToRemove[index];
+            console.error(`Failed to remove teacher ${userGrade?.userId}:`, {
+              error,
+              errorType: error instanceof Error ? error.constructor.name : typeof error,
+              errorMessage: error instanceof Error ? error.message : String(error),
+              errorStack: error instanceof Error ? error.stack : undefined,
+              errorKeys: error && typeof error === 'object' ? Object.keys(error) : [],
+              fullError: error,
+              userGradeId: userGrade?.id,
+              userId: userGrade?.userId,
+              gradeId: validatedData.id,
+            });
+          }
+        });
       } catch (error) {
         console.error('Error updating teacher assignments:', error);
         // Don't fail the entire operation if teacher assignment fails
+        // But log the error for debugging
       }
     }
 
@@ -827,7 +916,11 @@ export async function getGradeWithFullDataAction(
           createdAt: user.createdAt,
           updatedAt: user.updatedAt,
         };
-      });
+      })
+      // Дедупликация по userId - оставляем только уникальных преподавателей
+      .filter((teacher, index, self) => 
+        index === self.findIndex((t) => t.id === teacher.id)
+      );
 
     // 9. Get total pupils count for statistics
     const totalPupils = serializedPupils.length;

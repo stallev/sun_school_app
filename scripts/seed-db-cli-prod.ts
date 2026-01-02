@@ -1,17 +1,20 @@
 /**
- * CLI script to seed all DynamoDB tables with test data
+ * CLI script to seed all DynamoDB tables with test data for PROD environment
  * Uses AWS CLI credentials to access DynamoDB directly
  * 
+ * ⚠️ WARNING: This script is for PROD environment. Use with extreme caution!
+ * 
  * Usage:
- *   npm run seed:db
+ *   AWS_BRANCH=prod npx tsx scripts/seed-db-cli-prod.ts
  *   or
- *   npx tsx scripts/seed-db-cli.ts
+ *   $env:AWS_BRANCH="prod"; npx tsx scripts/seed-db-cli-prod.ts
  * 
  * Requirements:
  *   - AWS credentials configured via AWS CLI (`aws configure`)
  *   - IAM permissions for DynamoDB (PutItem, Query, Scan on all tables)
- *   - DynamoDB tables created via `amplify push`
+ *   - DynamoDB tables created via `amplify push` in prod environment
  *   - Book table already populated (use `npm run seed:books` first)
+ *   - AWS_BRANCH environment variable set to 'prod'
  */
 
 import { readFileSync } from 'fs';
@@ -52,7 +55,7 @@ import {
   type HomeworkCheckSeedData,
   type LessonSeedData,
   type UserRole,
-} from './seed-db-data';
+} from './seed-db-data-prod';
 
 // Load Amplify configuration
 const amplifyConfigPath = join(__dirname, '../src/amplifyconfiguration.json');
@@ -90,7 +93,7 @@ async function getTableName(
     const amplifyMetaPath = join(__dirname, '../amplify/backend/amplify-meta.json');
     const amplifyMeta = JSON.parse(readFileSync(amplifyMetaPath, 'utf-8'));
     const apiId = amplifyMeta?.api?.sunsch?.GraphQLAPIIdOutput;
-    const env = process.env.AWS_BRANCH || 'dev';
+    const env = process.env.AWS_BRANCH || 'prod';
 
     if (apiId) {
       const tableName = `${modelName}-${apiId}-${env}`;
@@ -118,7 +121,8 @@ async function getTableName(
   }
 
   // Default pattern (will fail if incorrect, but provides a fallback)
-  const defaultTableName = `${modelName}-2ito3uqzjbdcbonnabmm3io6x4-dev`;
+  // NOTE: This is a placeholder - actual table names will be detected from Amplify meta
+  const defaultTableName = `${modelName}-2ito3uqzjbdcbonnabmm3io6x4-prod`;
   tableNameCache[modelName] = defaultTableName;
   return defaultTableName;
 }
@@ -1335,7 +1339,16 @@ async function seedBricksIssues(client: DynamoDBClient): Promise<{
  * Main seed function
  */
 async function seedAll(): Promise<void> {
-  console.log('🌱 Starting database seed using AWS CLI credentials...\n');
+  const env = process.env.AWS_BRANCH || 'prod';
+  if (env !== 'prod') {
+    console.error('❌ ERROR: This script is for PROD environment only!');
+    console.error(`   Current environment: ${env}`);
+    console.error('   Set AWS_BRANCH=prod to continue');
+    process.exit(1);
+  }
+
+  console.log('🌱 Starting database seed for PROD environment using AWS CLI credentials...\n');
+  console.log('⚠️  WARNING: You are about to seed PRODUCTION database!\n');
 
   // Verify AWS credentials
   let credentials;

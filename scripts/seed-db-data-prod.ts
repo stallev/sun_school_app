@@ -1,10 +1,14 @@
 /**
- * Данные для заполнения всех таблиц DynamoDB тестовыми данными
- * Используется при инициализации базы данных для тестирования интерфейса и функционала
+ * Данные для заполнения всех таблиц DynamoDB тестовыми данными для PROD окружения
+ * Используется при инициализации базы данных для production окружения
  * 
  * Все данные типизированы строго по GraphQL схеме
  * 
- * ВАЖНО: Все ID должны быть UUID v4. Данные Book должны быть идентичны текущим в БД.
+ * ВАЖНО: 
+ * - Все ID должны быть UUID v4
+ * - Данные Book должны быть идентичны текущим в БД
+ * - Количество данных меньше, чем в dev (для prod используется минимальный набор)
+ * - BricksIssue: 10-15 записей (вместо 50-60 в dev)
  */
 
 import { randomUUID, createHash } from 'crypto';
@@ -1497,11 +1501,11 @@ export const gradeSettingsSeedData: GradeSettingsSeedData[] = [
   },
 ];
 
-// BricksIssue: 50-60 записей (по 2-3 выдачи на каждого ученика)
+// BricksIssue: 10-15 записей (по 1-2 выдачи на каждого ученика) - PROD версия
 // ВАЖНО: Данные должны быть взаимосвязаны с HomeworkCheck
 // Логика: 1 балл из HomeworkCheck = 1 кирпичик
 // Сумма всех quantity из BricksIssue для ученика ≤ сумма всех points из HomeworkCheck для ученика за учебный год
-// Данные будут созданы программно в seed-db-cli.ts после создания всех HomeworkCheck
+// Данные будут созданы программно в seed-db-cli-prod.ts после создания всех HomeworkCheck
 // Функция-генератор для создания данных BricksIssue на основе HomeworkCheck
 export function generateBricksIssuesSeedData(
   homeworkChecks: Array<{ pupilId: string; gradeId: string; academicYearId: string; points: number }>,
@@ -1537,8 +1541,8 @@ export function generateBricksIssuesSeedData(
     const pupilId = key.substring(0, key.length - academicYearId.length - 1); // -1 for the separator '-'
     const gradeId = pupilGradeMap.get(key) || '';
     
-    // Количество выдач: 2-3 на ученика
-    const numIssues = Math.floor(Math.random() * 2) + 2; // 2 или 3
+    // Количество выдач: 1-2 на ученика (для prod меньше, чем в dev)
+    const numIssues = Math.floor(Math.random() * 2) + 1; // 1 или 2
     
     // Распределяем выдачи так, чтобы сумма была 80-90% от totalPoints (оставляем остаток)
     const targetTotal = Math.floor(totalPoints * (0.8 + Math.random() * 0.1)); // 80-90%

@@ -26,7 +26,7 @@ export const GradeForm = ({ gradeId, initialData, onSuccess }: GradeFormProps) =
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="w-full space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="w-full space-y-4 align-start">
         <GradeNameField control={form.control} disabled={isPending} />
         <GradeDescriptionField control={form.control} disabled={isPending} />
         <div className="grid grid-cols-2 gap-4">

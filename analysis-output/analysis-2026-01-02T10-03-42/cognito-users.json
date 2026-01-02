@@ -1,0 +1,65 @@
+[
+  {
+    "Username": "04b80498-b0d1-7025-3ba7-a22b99506dae",
+    "Attributes": [
+      {
+        "Name": "email",
+        "Value": "superadmin@test.com"
+      },
+      {
+        "Name": "email_verified",
+        "Value": "true"
+      },
+      {
+        "Name": "sub",
+        "Value": "04b80498-b0d1-7025-3ba7-a22b99506dae"
+      }
+    ],
+    "UserStatus": "CONFIRMED",
+    "Groups": [
+      "SUPERADMIN"
+    ]
+  },
+  {
+    "Username": "c46814c8-9011-7070-d574-20d53a5d8ff8",
+    "Attributes": [
+      {
+        "Name": "email",
+        "Value": "admin@test.com"
+      },
+      {
+        "Name": "email_verified",
+        "Value": "true"
+      },
+      {
+        "Name": "sub",
+        "Value": "c46814c8-9011-7070-d574-20d53a5d8ff8"
+      }
+    ],
+    "UserStatus": "CONFIRMED",
+    "Groups": [
+      "ADMIN"
+    ]
+  },
+  {
+    "Username": "6418f488-8001-70b2-b88d-49bc855e72e3",
+    "Attributes": [
+      {
+        "Name": "email",
+        "Value": "teacher@test.com"
+      },
+      {
+        "Name": "email_verified",
+        "Value": "true"
+      },
+      {
+        "Name": "sub",
+        "Value": "6418f488-8001-70b2-b88d-49bc855e72e3"
+      }
+    ],
+    "UserStatus": "CONFIRMED",
+    "Groups": [
+      "TEACHER"
+    ]
+  }
+]

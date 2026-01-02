@@ -1,0 +1,35 @@
+[
+  {
+    "__typename": "Grade",
+    "active": true,
+    "updatedAt": "2025-12-30T11:27:33.755Z",
+    "maxAge": 14,
+    "createdAt": "2025-12-30T11:27:33.755Z",
+    "description": "Группа для детей 12-14 лет",
+    "id": "grade-3",
+    "name": "Старшая группа",
+    "minAge": 12
+  },
+  {
+    "__typename": "Grade",
+    "active": true,
+    "updatedAt": "2025-12-30T11:27:33.568Z",
+    "maxAge": 11,
+    "createdAt": "2025-12-30T11:27:33.568Z",
+    "description": "Группа для детей 9-11 лет",
+    "id": "grade-2",
+    "name": "Средняя группа",
+    "minAge": 9
+  },
+  {
+    "__typename": "Grade",
+    "active": true,
+    "updatedAt": "2025-12-30T11:27:33.384Z",
+    "maxAge": 8,
+    "createdAt": "2025-12-30T11:27:33.384Z",
+    "description": "Группа для детей 6-8 лет",
+    "id": "grade-1",
+    "name": "Младшая группа",
+    "minAge": 6
+  }
+]

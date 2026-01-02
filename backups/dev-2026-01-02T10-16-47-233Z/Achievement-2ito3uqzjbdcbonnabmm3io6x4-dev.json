@@ -1,0 +1,62 @@
+[
+  {
+    "__typename": "Achievement",
+    "icon": "🤝",
+    "updatedAt": "2025-12-30T11:27:58.027Z",
+    "createdAt": "2025-12-30T11:27:58.027Z",
+    "description": "Активное участие в жизни группы",
+    "id": "achievement-4",
+    "name": "Лучший помощник",
+    "criteria": "{\"type\":\"participation\",\"level\":\"high\"}"
+  },
+  {
+    "__typename": "Achievement",
+    "icon": "🎨",
+    "updatedAt": "2025-12-30T11:27:58.215Z",
+    "createdAt": "2025-12-30T11:27:58.215Z",
+    "description": "Выполнение творческих заданий на отлично",
+    "id": "achievement-5",
+    "name": "Творческий подход",
+    "criteria": "{\"type\":\"creative_tasks\",\"score\":10}"
+  },
+  {
+    "__typename": "Achievement",
+    "icon": "📖",
+    "updatedAt": "2025-12-30T11:27:57.839Z",
+    "createdAt": "2025-12-30T11:27:57.839Z",
+    "description": "Выучено 20 золотых стихов",
+    "id": "achievement-3",
+    "name": "Знаток Библии",
+    "criteria": "{\"type\":\"golden_verses\",\"count\":20}"
+  },
+  {
+    "__typename": "Achievement",
+    "icon": "⭐",
+    "updatedAt": "2025-12-30T11:27:57.458Z",
+    "createdAt": "2025-12-30T11:27:57.458Z",
+    "description": "Получение максимальных баллов за 5 уроков подряд",
+    "id": "achievement-1",
+    "name": "Отличник",
+    "criteria": "{\"type\":\"consecutive_max_points\",\"count\":5}"
+  },
+  {
+    "__typename": "Achievement",
+    "icon": "🏃",
+    "updatedAt": "2025-12-30T11:27:57.652Z",
+    "createdAt": "2025-12-30T11:27:57.652Z",
+    "description": "Посещение всех уроков в течение месяца",
+    "id": "achievement-2",
+    "name": "Активный ученик",
+    "criteria": "{\"type\":\"attendance\",\"period\":\"month\",\"rate\":1}"
+  },
+  {
+    "__typename": "Achievement",
+    "icon": "👑",
+    "updatedAt": "2025-12-30T11:27:58.403Z",
+    "createdAt": "2025-12-30T11:27:58.403Z",
+    "description": "Первое место в рейтинге группы",
+    "id": "achievement-6",
+    "name": "Лидер группы",
+    "criteria": "{\"type\":\"leaderboard\",\"position\":1}"
+  }
+]

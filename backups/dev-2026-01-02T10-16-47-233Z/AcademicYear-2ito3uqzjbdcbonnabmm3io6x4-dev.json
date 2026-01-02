@@ -1,0 +1,35 @@
+[
+  {
+    "__typename": "AcademicYear",
+    "gradeId": "grade-3",
+    "endDate": "2025-05-31",
+    "updatedAt": "2026-01-01T22:56:33.835Z",
+    "status": "ACTIVE",
+    "startDate": "2024-09-01",
+    "createdAt": "2025-12-30T11:27:34.775Z",
+    "id": "academicyear-3",
+    "name": "2024-2025"
+  },
+  {
+    "gradeId": "grade-1",
+    "__typename": "AcademicYear",
+    "endDate": "2025-05-31",
+    "updatedAt": "2025-12-30T11:27:34.386Z",
+    "status": "ACTIVE",
+    "startDate": "2024-09-01",
+    "createdAt": "2025-12-30T11:27:34.386Z",
+    "id": "academicyear-1",
+    "name": "2024-2025"
+  },
+  {
+    "gradeId": "grade-2",
+    "__typename": "AcademicYear",
+    "endDate": "2025-05-31",
+    "updatedAt": "2025-12-30T11:27:34.570Z",
+    "status": "ACTIVE",
+    "startDate": "2024-09-01",
+    "createdAt": "2025-12-30T11:27:34.570Z",
+    "id": "academicyear-2",
+    "name": "2024-2025"
+  }
+]
