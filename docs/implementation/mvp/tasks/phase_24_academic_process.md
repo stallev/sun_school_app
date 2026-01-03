@@ -1,4 +1,4 @@
-# Phase 24: Управление учебным процессом (Admin)
+﻿# Phase 24: Управление учебным процессом (Admin)
 
 ## Описание фазы
 Реализация управления учебным процессом для Admin: глобальное завершение учебного года, создание нового учебного года для выбранных групп, блокировка создания уроков после завершения года.
@@ -42,10 +42,63 @@ Phase 12: Управление учебными годами (Academic Years)
 5. Используй Context7 для получения актуальной документации Shadcn UI компонентов
 6. Следуй принципам из `docs/guidelines/prompts/general_prompt_guidelines.md`
 7. **При написании программного кода руководствуйся требованиями из документов каталогов `docs/guidelines/nextjs/` и `docs/guidelines/react/`**
+8. **⚠️ ОБЯЗАТЕЛЬНО**: При создании компонентов страниц (page.tsx) строго следуй принципам из [ai_suspense_fast_navigation.md](../../../guidelines/nextjs/ai_suspense_fast_navigation.md):
+   - Страница должна открываться мгновенно при навигации
+   - Используй Suspense boundaries с skeleton fallback
+   - Разделяй page.tsx (только проверка аутентификации) и content component (загрузка данных)
+9. **⚠️ ОБЯЗАТЕЛЬНО**: Для страниц просмотра (list pages, detail pages) используй ISR generation согласно [ai_isr_optimization_guidelines.md](../../../guidelines/nextjs/ai_isr_optimization_guidelines.md):
+   - Используй `export const revalidate = 60` вместо `force-dynamic`
+   - Добавляй `revalidatePath` и `revalidateTag` в Server Actions после изменений
+10. **⚠️ ОБЯЗАТЕЛЬНО**: При создании React компонентов и компонентов страниц строго соблюдай требования из [ai_component_guidelines.md](../../../guidelines/react/ai_component_guidelines.md):
+   - Компоненты должны быть arrow functions
+   - Максимальный размер компонента: 100 строк кода
+   - Использование explicit typing вместо React.FC
+   - Следование Atomic Design hierarchy
 
 <CONSTRAINT>Все компоненты должны следовать дизайн-системе проекта и быть доступными (WCAG 2.1 AA). Проверка прав доступа (Admin only) обязательна для всех операций. Блокировка создания уроков после завершения года критически важна для целостности данных.</CONSTRAINT>
 </critical_instructions>
 </requirements>
+
+## Релевантная документация
+
+При создании программного кода для данной фазы используй следующие документы как источники требований и спецификаций:
+
+### Функциональные требования
+- **[app_functionality.md](../../../app_functionality.md)** - единственный источник истины для функциональных требований
+  - Раздел 5.0 Управление учебным процессом - описание функционала завершения учебного года
+
+### Пользовательские сценарии
+- **[USER_FLOW.md](../../../user_flows/USER_FLOW.md)** - общие пользовательские сценарии и flow-диаграммы
+  - Раздел 5.2 Завершение учебного года (глобально) - flow завершения года
+- **[ADMIN_FLOWS.md](../../../user_flows/ADMIN_FLOWS.md)** - детальные flow для администраторов
+  - Раздел 6.1 Завершение учебного года - детальный flow завершения года
+
+### Визуальные макеты
+- **[WIREFRAMES.md](../../../ui_ux/WIREFRAMES.md)** - визуальные макеты страниц и компонентов
+  - Раздел 4.5 Управление учебным процессом - макеты для управления процессом
+
+### API и валидация
+- **[SERVER_ACTIONS.md](../../../api/SERVER_ACTIONS.md)** - спецификация Server Actions API
+  - Раздел Academic Process - API для управления учебным процессом
+- **[VALIDATION.md](../../../api/VALIDATION.md)** - схемы валидации Zod
+
+### База данных
+- **[GRAPHQL_SCHEMA.md](../../../database/GRAPHQL_SCHEMA.md)** - GraphQL схема
+- **[ERD.md](../../../database/ERD.md)** - диаграмма сущностей
+
+### Guidelines
+- **[guidelines/react/](../../../guidelines/react/)** - руководящие принципы для React компонентов
+  - **[ai_component_guidelines.md](../../../guidelines/react/ai_component_guidelines.md)** - ⚠️ **ОБЯЗАТЕЛЬНО**: требования для создания React компонентов и компонентов страниц (arrow functions, размер до 100 строк, explicit typing, Atomic Design)
+- **[guidelines/nextjs/](../../../guidelines/nextjs/)** - руководящие принципы для Next.js
+  - **[ai_suspense_fast_navigation.md](../../../guidelines/nextjs/ai_suspense_fast_navigation.md)** - ⚠️ **ОБЯЗАТЕЛЬНО**: принцип построения компонентов страниц (мгновенное открытие страниц, Suspense boundaries, разделение page.tsx и content component)
+  - **[ai_isr_optimization_guidelines.md](../../../guidelines/nextjs/ai_isr_optimization_guidelines.md)** - ⚠️ **ОБЯЗАТЕЛЬНО**: ISR generation для страниц просмотра (revalidate, revalidatePath, revalidateTag)
+- **[guidelines/prompts/general_prompt_guidelines.md](../../../guidelines/prompts/general_prompt_guidelines.md)** - общие принципы работы
+
+> [!NOTE]
+> **Принцип единственного источника истины:** 
+> - `app_functionality.md` является единственным источником истины для функциональных требований
+> - Документы в `user_flows/` содержат детальные flow-диаграммы, ссылающиеся на `app_functionality.md`
+> - При изменении функциональных требований обновляй `app_functionality.md`, затем при необходимости обновляй ссылки в других документах
 
 ## Задачи
 
@@ -56,7 +109,9 @@ Phase 12: Управление учебными годами (Academic Years)
 </context>
 
 <task>
-Создай Server Actions файл `actions/academicProcess.ts` с функциями для управления учебным процессом. Реализуй `completeAllAcademicYears()` для глобального завершения всех активных годов и `createNewAcademicYearForGroups(groups, yearData)` для создания нового года для выбранных групп. Добавь проверку прав доступа (Admin only).
+Создай Server Actions файл `src/actions/academicProcess.ts` с функциями для управления учебным процессом. Реализуй `completeAllAcademicYears()` для глобального завершения всех активных годов и `createNewAcademicYearForGroups(groups, yearData)` для создания нового года для выбранных групп. Добавь проверку прав доступа (Admin only).
+
+⚠️ **Важно:** Код Server Actions должен находиться в файле `src/actions/academicProcess.ts` в каталоге `src/actions/`.
 </task>
 
 <constraints>
@@ -81,7 +136,7 @@ Phase 12: Управление учебными годами (Academic Years)
 </thinking>
 
 **Действия:**
-- [ ] Создать `actions/academicProcess.ts`
+- [ ] Создать `src/actions/academicProcess.ts` с директивой `'use server'`
 - [ ] Реализовать `completeAllAcademicYears()` - глобальное завершение всех активных годов
 - [ ] Реализовать `createNewAcademicYearForGroups(groups, yearData)` - создание нового года для групп
 - [ ] Добавить проверку прав доступа (Admin only)

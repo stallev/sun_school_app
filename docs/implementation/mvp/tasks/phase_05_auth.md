@@ -1,4 +1,4 @@
-# Phase 05: Настройка аутентификации (Cognito)
+﻿# Phase 05: Настройка аутентификации (Cognito)
 
 ## Описание фазы
 Настройка AWS Cognito User Pools, создание групп (TEACHER, ADMIN, SUPERADMIN), настройка политик авторизации, интеграция с AppSync.
@@ -47,6 +47,35 @@ Phase 04: Настройка GraphQL API (AppSync)
 <CONSTRAINT>Группы Cognito используются для RBAC в AppSync через @auth директивы. Precedence групп критически важен для правильной работы авторизации!</CONSTRAINT>
 </critical_instructions>
 </requirements>
+
+## Релевантная документация
+
+При создании программного кода для данной фазы используй следующие документы как источники требований и спецификаций:
+
+### Безопасность и аутентификация
+- **[SECURITY.md](../../../infrastructure/SECURITY.md)** - архитектура безопасности, AWS Cognito, RBAC
+- **[AWS_AMPLIFY.md](../../../infrastructure/AWS_AMPLIFY.md)** - настройка Cognito через Amplify
+
+### Функциональные требования
+- **[app_functionality.md](../../../app_functionality.md)** - единственный источник истины для функциональных требований
+  - Раздел 3.1 Страница аутентификации - описание страницы входа
+
+### Пользовательские сценарии
+- **[USER_FLOW.md](../../../user_flows/USER_FLOW.md)** - общие пользовательские сценарии
+  - Раздел 3.1 Аутентификация через AWS Cognito - flow аутентификации
+
+### Архитектура
+- **[ARCHITECTURE.md](../../../architecture/ARCHITECTURE.md)** - архитектура системы, слой безопасности
+
+### Guidelines
+- **[guidelines/nextjs/](../../../guidelines/nextjs/)** - руководящие принципы для Next.js
+- **[guidelines/prompts/general_prompt_guidelines.md](../../../guidelines/prompts/general_prompt_guidelines.md)** - общие принципы работы
+
+> [!NOTE]
+> **Принцип единственного источника истины:** 
+> - `app_functionality.md` является единственным источником истины для функциональных требований
+> - Документы в `user_flows/` содержат детальные flow-диаграммы, ссылающиеся на `app_functionality.md`
+> - При изменении функциональных требований обновляй `app_functionality.md`, затем при необходимости обновляй ссылки в других документах
 
 ## Задачи
 

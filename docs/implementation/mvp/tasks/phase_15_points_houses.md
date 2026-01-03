@@ -1,4 +1,4 @@
-# Phase 15: Система баллов и кирпичиков
+﻿# Phase 15: Система баллов и кирпичиков
 
 ## Описание фазы
 Реализация системы баллов и кирпичиков: автоматический расчет баллов на основе настроек группы, логика выдачи кирпичиков (за каждый балл = 1 кирпичик), интерфейс выдачи кирпичиков, визуализация баллов и кирпичиков.
@@ -39,10 +39,62 @@ Phase 14: Проверка домашних заданий (Homework Checks)
 4. Следуй принципам из `docs/guidelines/prompts/general_prompt_guidelines.md`
 5. Используй строго Next.js 15.5.9, не более новую версию
 6. **При написании программного кода руководствуйся требованиями из документов каталогов `docs/guidelines/nextjs/` и `docs/guidelines/react/`**
+7. **⚠️ ОБЯЗАТЕЛЬНО**: При создании компонентов страниц (page.tsx) строго следуй принципам из [ai_suspense_fast_navigation.md](../../../guidelines/nextjs/ai_suspense_fast_navigation.md):
+   - Страница должна открываться мгновенно при навигации
+   - Используй Suspense boundaries с skeleton fallback
+   - Разделяй page.tsx (только проверка аутентификации) и content component (загрузка данных)
+8. **⚠️ ОБЯЗАТЕЛЬНО**: Для страниц просмотра (list pages, detail pages) используй ISR generation согласно [ai_isr_optimization_guidelines.md](../../../guidelines/nextjs/ai_isr_optimization_guidelines.md):
+   - Используй `export const revalidate = 60` вместо `force-dynamic`
+   - Добавляй `revalidatePath` и `revalidateTag` в Server Actions после изменений
+9. **⚠️ ОБЯЗАТЕЛЬНО**: При создании React компонентов и компонентов страниц строго соблюдай требования из [ai_component_guidelines.md](../../../guidelines/react/ai_component_guidelines.md):
+   - Компоненты должны быть arrow functions
+   - Максимальный размер компонента: 100 строк кода
+   - Использование explicit typing вместо React.FC
+   - Следование Atomic Design hierarchy
 
 <CONSTRAINT>Расчет баллов должен учитывать настройки группы. Логика выдачи кирпичиков должна работать корректно (за каждый балл = 1 кирпичик). Визуализация баллов и кирпичиков должна быть понятной для пользователей. Интерфейс выдачи кирпичиков должен быть построен по аналогии с интерфейсом проверки ДЗ.</CONSTRAINT>
 </critical_instructions>
 </requirements>
+
+## Релевантная документация
+
+При создании программного кода для данной фазы используй следующие документы как источники требований и спецификаций:
+
+### Функциональные требования
+- **[app_functionality.md](../../../app_functionality.md)** - единственный источник истины для функциональных требований
+  - Раздел 4.9 Личные данные ученика - описание системы баллов и кирпичиков
+  - Раздел 4.14 Выдача кирпичиков - описание функционала выдачи кирпичиков
+
+### Пользовательские сценарии
+- **[USER_FLOW.md](../../../user_flows/USER_FLOW.md)** - общие пользовательские сценарии и flow-диаграммы
+- **[TEACHER_FLOWS.md](../../../user_flows/TEACHER_FLOWS.md)** - детальные flow для преподавателей
+  - Раздел 5.2 Выдача кирпичиков ученикам - flow выдачи кирпичиков
+
+### Визуальные макеты
+- **[WIREFRAMES.md](../../../ui_ux/WIREFRAMES.md)** - визуальные макеты страниц и компонентов
+  - Раздел 3.5 Выдача кирпичиков - макеты для выдачи кирпичиков
+
+### API и валидация
+- **[SERVER_ACTIONS.md](../../../api/SERVER_ACTIONS.md)** - спецификация Server Actions API
+- **[VALIDATION.md](../../../api/VALIDATION.md)** - схемы валидации Zod
+
+### База данных
+- **[GRAPHQL_SCHEMA.md](../../../database/GRAPHQL_SCHEMA.md)** - GraphQL схема
+- **[ERD.md](../../../database/ERD.md)** - диаграмма сущностей
+
+### Guidelines
+- **[guidelines/react/](../../../guidelines/react/)** - руководящие принципы для React компонентов
+  - **[ai_component_guidelines.md](../../../guidelines/react/ai_component_guidelines.md)** - ⚠️ **ОБЯЗАТЕЛЬНО**: требования для создания React компонентов и компонентов страниц (arrow functions, размер до 100 строк, explicit typing, Atomic Design)
+- **[guidelines/nextjs/](../../../guidelines/nextjs/)** - руководящие принципы для Next.js
+  - **[ai_suspense_fast_navigation.md](../../../guidelines/nextjs/ai_suspense_fast_navigation.md)** - ⚠️ **ОБЯЗАТЕЛЬНО**: принцип построения компонентов страниц (мгновенное открытие страниц, Suspense boundaries, разделение page.tsx и content component)
+  - **[ai_isr_optimization_guidelines.md](../../../guidelines/nextjs/ai_isr_optimization_guidelines.md)** - ⚠️ **ОБЯЗАТЕЛЬНО**: ISR generation для страниц просмотра (revalidate, revalidatePath, revalidateTag)
+- **[guidelines/prompts/general_prompt_guidelines.md](../../../guidelines/prompts/general_prompt_guidelines.md)** - общие принципы работы
+
+> [!NOTE]
+> **Принцип единственного источника истины:** 
+> - `app_functionality.md` является единственным источником истины для функциональных требований
+> - Документы в `user_flows/` содержат детальные flow-диаграммы, ссылающиеся на `app_functionality.md`
+> - При изменении функциональных требований обновляй `app_functionality.md`, затем при необходимости обновляй ссылки в других документах
 
 ## Задачи
 
@@ -273,7 +325,7 @@ Phase 14: Проверка домашних заданий (Homework Checks)
   - Отображает информацию о баллах и кирпичиках для каждого ученика
   - Интегрирует accordion для истории выдачи
   - Позволяет отметить выдачу кирпичиков (количество, дата)
-- [ ] Создать Server Action `actions/bricks.ts`:
+- [ ] Создать Server Action `src/actions/bricks.ts`:
   - Сохраняет информацию о выдаче кирпичиков (количество, дата, ученик, учебный год)
   - Получает историю выдачи кирпичиков для отображения в accordion
 - [ ] Добавить обработку ошибок
@@ -325,7 +377,7 @@ Phase 14: Проверка домашних заданий (Homework Checks)
 </thinking>
 
 **Действия:**
-- [ ] Создать Server Action `actions/bricks.ts`:
+- [ ] Создать Server Action `src/actions/bricks.ts`:
   - Сохранять информацию о выдаче кирпичиков (количество, дата выдачи, ученик, учебный год)
   - Сохранение даты выдачи при отметке выдачи (обязательное поле)
   - Связывать выдачу с учеником и учебным годом через связи в базе данных
@@ -335,7 +387,7 @@ Phase 14: Проверка домашних заданий (Homework Checks)
 - [ ] Добавить обработку ошибок
 
 **Действия:**
-- [ ] Создать Server Action `actions/bricks.ts`:
+- [ ] Создать Server Action `src/actions/bricks.ts`:
   - Сохранять информацию о выдаче кирпичиков (количество, дата выдачи, ученик, учебный год)
   - Сохранение даты выдачи при отметке выдачи (обязательное поле, автоматически = текущая дата, можно изменить)
   - Связывать выдачу с учеником и учебным годом через связи в базе данных

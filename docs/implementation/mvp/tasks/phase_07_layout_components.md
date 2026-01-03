@@ -1,4 +1,4 @@
-# Phase 07: Создание базовых layout компонентов
+﻿# Phase 07: Создание базовых layout компонентов
 
 ## Описание фазы
 Создание базовых layout компонентов: Header, Sidebar, Footer, Navigation, адаптивная навигация для мобильных устройств.
@@ -41,6 +41,27 @@ Phase 06: Настройка UI библиотеки (Shadcn UI)
 <CONSTRAINT>Layout компоненты должны быть Server Components по умолчанию. MobileNav должен быть Client Component из-за интерактивности. Навигация должна адаптироваться к роли пользователя!</CONSTRAINT>
 </critical_instructions>
 </requirements>
+
+## Релевантная документация
+
+При создании программного кода для данной фазы используй следующие документы как источники требований и спецификаций:
+
+### Дизайн-система и компоненты
+- **[DESIGN_SYSTEM.md](../../../ui_ux/DESIGN_SYSTEM.md)** - дизайн-система проекта, layout паттерны
+- **[COMPONENT_LIBRARY.md](../../../components/COMPONENT_LIBRARY.md)** - структура компонентов, layout компоненты
+- **[WIREFRAMES.md](../../../ui_ux/WIREFRAMES.md)** - визуальные макеты для layout компонентов
+
+### Guidelines
+- **[guidelines/react/](../../../guidelines/react/)** - руководящие принципы для React компонентов
+  - [ai_component_guidelines.md](../../../guidelines/react/ai_component_guidelines.md) - принципы создания компонентов
+- **[guidelines/nextjs/](../../../guidelines/nextjs/)** - руководящие принципы для Next.js
+- **[guidelines/prompts/general_prompt_guidelines.md](../../../guidelines/prompts/general_prompt_guidelines.md)** - общие принципы работы
+
+> [!NOTE]
+> **Принцип единственного источника истины:** 
+> - `app_functionality.md` является единственным источником истины для функциональных требований
+> - Документы в `user_flows/` содержат детальные flow-диаграммы, ссылающиеся на `app_functionality.md`
+> - При изменении функциональных требований обновляй `app_functionality.md`, затем при необходимости обновляй ссылки в других документах
 
 ## Задачи
 

@@ -31,6 +31,9 @@ export const RoutePath = {
   /** Authentication page */
   auth: '/auth',
   
+  /** 404 Not Found page */
+  notFound: '/not-found',
+  
   // ============================================
   // Protected Routes (require authentication)
   // ============================================
@@ -55,11 +58,31 @@ export const RoutePath = {
     /** Get grade settings page by ID */
     settings: (id: string) => `/grades/${id}/settings`,
     
-    /** Get grade schedule page by ID */
-    schedule: (id: string) => `/grades/${id}/schedule`,
-    
     /** Get academic years management page by ID */
     academicYears: (id: string) => `/grades/${id}/academic-years`,
+    
+    /** Get lessons list page for academic year */
+    academicYearLessons: (gradeId: string, yearId: string) => 
+      `/grades/${gradeId}/academic-years/${yearId}/lessons`,
+    
+    /** Get grade rating page by ID */
+    rating: (id: string) => `/grades/${id}/rating`,
+    
+    /** Get grade issue bricks page by ID */
+    issueBricks: (id: string) => `/grades/${id}/issue-bricks`,
+    
+    /** Schedule routes for a grade */
+    schedule: {
+      /** Get grade schedule page by ID */
+      base: (id: string) => `/grades/${id}/schedule`,
+      
+      /** Create new schedule event for a grade */
+      new: (id: string) => `/grades/${id}/schedule/new`,
+      
+      /** Get schedule event edit page by grade ID and event ID */
+      edit: (gradeId: string, eventId: string) => 
+        `/grades/${gradeId}/schedule/${eventId}/edit`,
+    },
     
     /** Lessons routes for a grade */
     lessons: {
@@ -68,20 +91,59 @@ export const RoutePath = {
     },
   },
   
-  /** Lessons list page */
-  lessons: '/lessons',
+  /** Lessons routes */
+  lessons: {
+    /** Base lessons list page */
+    base: '/lessons',
+    
+    /** Create new lesson page */
+    new: '/lessons/new',
+    
+    /** Get lesson detail page by ID */
+    byId: (id: string) => `/lessons/${id}`,
+    
+    /** Get lesson edit page by ID */
+    edit: (id: string) => `/lessons/${id}/edit`,
+    
+    /** Get lesson complete table page by ID */
+    completeTable: (id: string) => `/lessons/${id}/complete-table`,
+    
+    /** Get lesson homework checking page by ID */
+    checkingHomework: (id: string) => `/lessons/${id}/checking-homework`,
+  },
   
   /** Homework check page */
   homeworkCheck: '/homework-check',
   
-  /** Pupil personal data page */
-  pupilPersonalData: '/pupil-personal-data',
+  /** Pupil personal data routes */
+  pupilPersonalData: {
+    /** Base pupil personal data page */
+    base: '/pupil-personal-data',
+    
+    /** Get pupil personal data page by ID */
+    byId: (id: string) => `/pupil-personal-data/${id}`,
+    
+    /** Get pupil achievements page by ID */
+    achievements: (id: string) => `/pupil-achievements/${id}`,
+  },
   
   /** Grade leaderboard page */
   gradeLeaderboard: '/grade-leaderboard',
   
-  /** Golden verses library page */
-  goldenVersesLibrary: '/golden-verses-library',
+  /** Golden verses library routes */
+  goldenVersesLibrary: {
+    /** Base golden verses library page */
+    base: '/golden-verses-library',
+    
+    /** Create new golden verse page */
+    new: '/golden-verses-library/new',
+    
+    /** Get golden verse edit page by ID */
+    edit: (id: string) => `/golden-verses-library/${id}/edit`,
+    
+    /** Golden verses statistics page */
+    statistics: '/golden-verses-library/statistics',
+  },
   
   /** Schedule page */
   schedule: '/schedule',
@@ -90,17 +152,53 @@ export const RoutePath = {
   // Admin Routes (require ADMIN or SUPERADMIN role)
   // ============================================
   
-  /** Teachers management page */
-  teachersManagement: '/teachers-management',
+  /** Teachers management routes */
+  teachersManagement: {
+    /** Base teachers management page */
+    base: '/teachers-management',
+    
+    /** Create new teacher page */
+    new: '/teachers-management/new',
+    
+    /** Get teacher edit page by ID */
+    edit: (id: string) => `/teachers-management/${id}/edit`,
+  },
   
-  /** Pupils management page */
-  pupilsManagement: '/pupils-management',
+  /** Pupils management routes */
+  pupilsManagement: {
+    /** Base pupils management page */
+    base: '/pupils-management',
+    
+    /** Create new pupil page */
+    new: '/pupils-management/new',
+    
+    /** Get pupil edit page by ID */
+    edit: (id: string) => `/pupils-management/${id}/edit`,
+  },
   
-  /** Families management page */
-  familiesManagement: '/families-management',
+  /** Families management routes */
+  familiesManagement: {
+    /** Base families management page */
+    base: '/families-management',
+    
+    /** Create new family page */
+    new: '/families-management/new',
+    
+    /** Get family edit page by ID */
+    edit: (id: string) => `/families-management/${id}/edit`,
+  },
   
-  /** School process management page */
-  schoolProcessManagement: '/school-process-management',
+  /** School process management routes */
+  schoolProcessManagement: {
+    /** Base school process management page */
+    base: '/school-process-management',
+    
+    /** Academic years routes */
+    academicYears: {
+      /** Create new academic year page */
+      new: '/school-process-management/academic-years/new',
+    },
+  },
 } as const;
 
 /**
@@ -108,7 +206,7 @@ export const RoutePath = {
  * Used in middleware for route protection
  */
 export const getPublicRoutes = (): string[] => {
-  return [RoutePath.auth, '/api'];
+  return [RoutePath.auth, RoutePath.notFound, '/api'];
 };
 
 /**
@@ -118,11 +216,11 @@ export const getPublicRoutes = (): string[] => {
 export const getProtectedRoutes = (): string[] => {
   return [
     RoutePath.grades.base,
-    RoutePath.lessons,
+    RoutePath.lessons.base,
     RoutePath.homeworkCheck,
-    RoutePath.pupilPersonalData,
+    RoutePath.pupilPersonalData.base,
     RoutePath.gradeLeaderboard,
-    RoutePath.goldenVersesLibrary,
+    RoutePath.goldenVersesLibrary.base,
   ];
 };
 
@@ -132,10 +230,10 @@ export const getProtectedRoutes = (): string[] => {
  */
 export const getAdminRoutes = (): string[] => {
   return [
-    RoutePath.teachersManagement,
-    RoutePath.pupilsManagement,
-    RoutePath.familiesManagement,
-    RoutePath.schoolProcessManagement,
+    RoutePath.teachersManagement.base,
+    RoutePath.pupilsManagement.base,
+    RoutePath.familiesManagement.base,
+    RoutePath.schoolProcessManagement.base,
   ];
 };
 

@@ -15,6 +15,7 @@ import { RoutePath } from '@/lib/routes/RoutePath';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { GradesList } from '@/components/organisms/grades-list';
+import { AppBreadcrumb } from '@/components/shared/breadcrumb';
 import Link from 'next/link';
 
 export default async function GradesPage() {
@@ -62,7 +63,13 @@ export default async function GradesPage() {
 
   return (
     <div className="container mx-auto p-4 md:p-6 lg:p-8">
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <AppBreadcrumb
+        items={[
+          { label: 'Dashboard', href: '/grades' },
+          { label: 'Все группы' },
+        ]}
+      />
+      <div className="mb-6 mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight md:text-3xl lg:text-4xl">
             Группы

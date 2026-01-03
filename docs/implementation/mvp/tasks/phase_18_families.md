@@ -1,4 +1,4 @@
-# Phase 18: Управление семьями (Families)
+﻿# Phase 18: Управление семьями (Families)
 
 ## Описание фазы
 Реализация CRUD операций для семей: создание, редактирование, удаление. Связывание учеников с семьями, управление контактами семьи.
@@ -39,10 +39,64 @@ Phase 16: Управление учениками (Pupils)
 4. Следуй принципам из `docs/guidelines/prompts/general_prompt_guidelines.md`
 5. Используй строго Next.js 15.5.9, не более новую версию
 6. **При написании программного кода руководствуйся требованиями из документов каталогов `docs/guidelines/nextjs/` и `docs/guidelines/react/`**
+7. **⚠️ ОБЯЗАТЕЛЬНО**: При создании компонентов страниц (page.tsx) строго следуй принципам из [ai_suspense_fast_navigation.md](../../../guidelines/nextjs/ai_suspense_fast_navigation.md):
+   - Страница должна открываться мгновенно при навигации
+   - Используй Suspense boundaries с skeleton fallback
+   - Разделяй page.tsx (только проверка аутентификации) и content component (загрузка данных)
+8. **⚠️ ОБЯЗАТЕЛЬНО**: Для страниц просмотра (list pages, detail pages) используй ISR generation согласно [ai_isr_optimization_guidelines.md](../../../guidelines/nextjs/ai_isr_optimization_guidelines.md):
+   - Используй `export const revalidate = 60` вместо `force-dynamic`
+   - Добавляй `revalidatePath` и `revalidateTag` в Server Actions после изменений
+9. **⚠️ ОБЯЗАТЕЛЬНО**: При создании React компонентов и компонентов страниц строго соблюдай требования из [ai_component_guidelines.md](../../../guidelines/react/ai_component_guidelines.md):
+   - Компоненты должны быть arrow functions
+   - Максимальный размер компонента: 100 строк кода
+   - Использование explicit typing вместо React.FC
+   - Следование Atomic Design hierarchy
 
 <CONSTRAINT>Все операции с семьями доступны только для Admin. Управление членами семьи должно работать корректно. Контакты семьи должны валидироваться.</CONSTRAINT>
 </critical_instructions>
 </requirements>
+
+## Релевантная документация
+
+При создании программного кода для данной фазы используй следующие документы как источники требований и спецификаций:
+
+### Функциональные требования
+- **[app_functionality.md](../../../app_functionality.md)** - единственный источник истины для функциональных требований
+  - Раздел 5.4 Управление семьями - описание функционала управления семьями
+
+### Пользовательские сценарии
+- **[USER_FLOW.md](../../../user_flows/USER_FLOW.md)** - общие пользовательские сценарии и flow-диаграммы
+  - Раздел 5.3 Управление семьями - flow управления семьями
+- **[ADMIN_FLOWS.md](../../../user_flows/ADMIN_FLOWS.md)** - детальные flow для администраторов
+  - Раздел 5.1 Создание новой семьи - flow создания семьи
+
+### Визуальные макеты
+- **[WIREFRAMES.md](../../../ui_ux/WIREFRAMES.md)** - визуальные макеты страниц и компонентов
+  - Раздел 4.4 Управление семьями - макеты для управления семьями
+
+### API и валидация
+- **[SERVER_ACTIONS.md](../../../api/SERVER_ACTIONS.md)** - спецификация Server Actions API
+  - Раздел Families - API для управления семьями
+- **[VALIDATION.md](../../../api/VALIDATION.md)** - схемы валидации Zod
+  - Раздел Family Schemas - схемы валидации для семей
+
+### База данных
+- **[GRAPHQL_SCHEMA.md](../../../database/GRAPHQL_SCHEMA.md)** - GraphQL схема
+- **[ERD.md](../../../database/ERD.md)** - диаграмма сущностей
+
+### Guidelines
+- **[guidelines/react/](../../../guidelines/react/)** - руководящие принципы для React компонентов
+  - **[ai_component_guidelines.md](../../../guidelines/react/ai_component_guidelines.md)** - ⚠️ **ОБЯЗАТЕЛЬНО**: требования для создания React компонентов и компонентов страниц (arrow functions, размер до 100 строк, explicit typing, Atomic Design)
+- **[guidelines/nextjs/](../../../guidelines/nextjs/)** - руководящие принципы для Next.js
+  - **[ai_suspense_fast_navigation.md](../../../guidelines/nextjs/ai_suspense_fast_navigation.md)** - ⚠️ **ОБЯЗАТЕЛЬНО**: принцип построения компонентов страниц (мгновенное открытие страниц, Suspense boundaries, разделение page.tsx и content component)
+  - **[ai_isr_optimization_guidelines.md](../../../guidelines/nextjs/ai_isr_optimization_guidelines.md)** - ⚠️ **ОБЯЗАТЕЛЬНО**: ISR generation для страниц просмотра (revalidate, revalidatePath, revalidateTag)
+- **[guidelines/prompts/general_prompt_guidelines.md](../../../guidelines/prompts/general_prompt_guidelines.md)** - общие принципы работы
+
+> [!NOTE]
+> **Принцип единственного источника истины:** 
+> - `app_functionality.md` является единственным источником истины для функциональных требований
+> - Документы в `user_flows/` содержат детальные flow-диаграммы, ссылающиеся на `app_functionality.md`
+> - При изменении функциональных требований обновляй `app_functionality.md`, затем при необходимости обновляй ссылки в других документах
 
 ## Задачи
 
@@ -53,7 +107,9 @@ Phase 16: Управление учениками (Pupils)
 </context>
 
 <task>
-Создай Server Actions для управления семьями в файле `actions/families.ts`. Реализуй все CRUD операции, добавление и удаление учеников из семьи с проверкой прав доступа и валидацией через Zod схемы.
+Создай Server Actions для управления семьями в файле `src/actions/families.ts`. Реализуй все CRUD операции, добавление и удаление учеников из семьи с проверкой прав доступа и валидацией через Zod схемы.
+
+⚠️ **Важно:** Код Server Actions должен находиться в файле `src/actions/families.ts` в каталоге `src/actions/`.
 </task>
 
 <constraints>
@@ -75,7 +131,7 @@ Phase 16: Управление учениками (Pupils)
 </thinking>
 
 **Действия:**
-- [ ] Создать `actions/families.ts` с директивой `'use server'`
+- [ ] Создать `src/actions/families.ts` с директивой `'use server'`
 - [ ] Реализовать CRUD операции: create, update, delete, get, list
 - [ ] Реализовать `addPupilToFamily(familyId, pupilId)` - добавление ученика в семью
 - [ ] Реализовать `removePupilFromFamily(familyId, pupilId)` - удаление ученика из семьи

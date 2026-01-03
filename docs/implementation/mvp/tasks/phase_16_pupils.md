@@ -1,4 +1,4 @@
-# Phase 16: Управление учениками (Pupils)
+﻿# Phase 16: Управление учениками (Pupils)
 
 ## Описание фазы
 Реализация CRUD операций для учеников: создание, редактирование, просмотр, деактивация. Привязка к группам и семьям, просмотр истории групп.
@@ -39,10 +39,65 @@ Phase 11: Управление группами (Grades)
 4. Следуй принципам из `docs/guidelines/prompts/general_prompt_guidelines.md`
 5. Используй строго Next.js 15.5.9, не более новую версию
 6. **При написании программного кода руководствуйся требованиями из документов каталогов `docs/guidelines/nextjs/` и `docs/guidelines/react/`**
+7. **⚠️ ОБЯЗАТЕЛЬНО**: При создании компонентов страниц (page.tsx) строго следуй принципам из [ai_suspense_fast_navigation.md](../../../guidelines/nextjs/ai_suspense_fast_navigation.md):
+   - Страница должна открываться мгновенно при навигации
+   - Используй Suspense boundaries с skeleton fallback
+   - Разделяй page.tsx (только проверка аутентификации) и content component (загрузка данных)
+8. **⚠️ ОБЯЗАТЕЛЬНО**: Для страниц просмотра (list pages, detail pages) используй ISR generation согласно [ai_isr_optimization_guidelines.md](../../../guidelines/nextjs/ai_isr_optimization_guidelines.md):
+   - Используй `export const revalidate = 60` вместо `force-dynamic`
+   - Добавляй `revalidatePath` и `revalidateTag` в Server Actions после изменений
+9. **⚠️ ОБЯЗАТЕЛЬНО**: При создании React компонентов и компонентов страниц строго соблюдай требования из [ai_component_guidelines.md](../../../guidelines/react/ai_component_guidelines.md):
+   - Компоненты должны быть arrow functions
+   - Максимальный размер компонента: 100 строк кода
+   - Использование explicit typing вместо React.FC
+   - Следование Atomic Design hierarchy
 
 <CONSTRAINT>Все операции с учениками доступны только для Admin. Привязка к группам и семьям должна работать корректно. История групп должна отслеживаться.</CONSTRAINT>
 </critical_instructions>
 </requirements>
+
+## Релевантная документация
+
+При создании программного кода для данной фазы используй следующие документы как источники требований и спецификаций:
+
+### Функциональные требования
+- **[app_functionality.md](../../../app_functionality.md)** - единственный источник истины для функциональных требований
+  - Раздел 5.3 Управление учениками - описание функционала управления учениками
+
+### Пользовательские сценарии
+- **[USER_FLOW.md](../../../user_flows/USER_FLOW.md)** - общие пользовательские сценарии и flow-диаграммы
+  - Раздел 5.2 Управление учениками - flow управления учениками
+- **[ADMIN_FLOWS.md](../../../user_flows/ADMIN_FLOWS.md)** - детальные flow для администраторов
+  - Раздел 4.1 Создание нового ученика - flow создания ученика
+  - Раздел 4.2 Перемещение ученика между группами - flow перемещения
+
+### Визуальные макеты
+- **[WIREFRAMES.md](../../../ui_ux/WIREFRAMES.md)** - визуальные макеты страниц и компонентов
+  - Раздел 4.3 Управление учениками - макеты для управления учениками
+
+### API и валидация
+- **[SERVER_ACTIONS.md](../../../api/SERVER_ACTIONS.md)** - спецификация Server Actions API
+  - Раздел Pupils - API для управления учениками
+- **[VALIDATION.md](../../../api/VALIDATION.md)** - схемы валидации Zod
+  - Раздел Pupil Schemas - схемы валидации для учеников
+
+### База данных
+- **[GRAPHQL_SCHEMA.md](../../../database/GRAPHQL_SCHEMA.md)** - GraphQL схема
+- **[ERD.md](../../../database/ERD.md)** - диаграмма сущностей
+
+### Guidelines
+- **[guidelines/react/](../../../guidelines/react/)** - руководящие принципы для React компонентов
+  - **[ai_component_guidelines.md](../../../guidelines/react/ai_component_guidelines.md)** - ⚠️ **ОБЯЗАТЕЛЬНО**: требования для создания React компонентов и компонентов страниц (arrow functions, размер до 100 строк, explicit typing, Atomic Design)
+- **[guidelines/nextjs/](../../../guidelines/nextjs/)** - руководящие принципы для Next.js
+  - **[ai_suspense_fast_navigation.md](../../../guidelines/nextjs/ai_suspense_fast_navigation.md)** - ⚠️ **ОБЯЗАТЕЛЬНО**: принцип построения компонентов страниц (мгновенное открытие страниц, Suspense boundaries, разделение page.tsx и content component)
+  - **[ai_isr_optimization_guidelines.md](../../../guidelines/nextjs/ai_isr_optimization_guidelines.md)** - ⚠️ **ОБЯЗАТЕЛЬНО**: ISR generation для страниц просмотра (revalidate, revalidatePath, revalidateTag)
+- **[guidelines/prompts/general_prompt_guidelines.md](../../../guidelines/prompts/general_prompt_guidelines.md)** - общие принципы работы
+
+> [!NOTE]
+> **Принцип единственного источника истины:** 
+> - `app_functionality.md` является единственным источником истины для функциональных требований
+> - Документы в `user_flows/` содержат детальные flow-диаграммы, ссылающиеся на `app_functionality.md`
+> - При изменении функциональных требований обновляй `app_functionality.md`, затем при необходимости обновляй ссылки в других документах
 
 ## Задачи
 
@@ -53,7 +108,9 @@ Phase 11: Управление группами (Grades)
 </context>
 
 <task>
-Создай Server Actions для управления учениками в файле `actions/pupils.ts`. Реализуй все CRUD операции, назначение на группу и получение истории групп с проверкой прав доступа и валидацией через Zod схемы.
+Создай Server Actions для управления учениками в файле `src/actions/pupils.ts`. Реализуй все CRUD операции, назначение на группу и получение истории групп с проверкой прав доступа и валидацией через Zod схемы.
+
+⚠️ **Важно:** Код Server Actions должен находиться в файле `src/actions/pupils.ts` в каталоге `src/actions/`.
 </task>
 
 <constraints>
@@ -75,7 +132,7 @@ Phase 11: Управление группами (Grades)
 </thinking>
 
 **Действия:**
-- [ ] Создать `actions/pupils.ts` с директивой `'use server'`
+- [ ] Создать `src/actions/pupils.ts` с директивой `'use server'`
 - [ ] Реализовать CRUD операции: create, update, delete, get, list
 - [ ] Реализовать `assignPupilToGrade(pupilId, gradeId)` - назначение на группу с обновлением истории
 - [ ] Реализовать `getPupilHistory(pupilId)` - история групп ученика

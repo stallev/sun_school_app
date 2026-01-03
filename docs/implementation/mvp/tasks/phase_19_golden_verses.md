@@ -1,4 +1,4 @@
-# Phase 19: Библиотека золотых стихов
+﻿# Phase 19: Библиотека золотых стихов
 
 ## Описание фазы
 Реализация библиотеки золотых стихов: просмотр списка всех стихов, поиск по тексту, фильтрация по книге/главе, статистика использования в уроках.
@@ -39,10 +39,66 @@ Phase 13: Управление уроками (Lessons)
 4. Следуй принципам из `docs/guidelines/prompts/general_prompt_guidelines.md`
 5. Используй строго Next.js 15.5.9, не более новую версию
 6. **При написании программного кода руководствуйся требованиями из документов каталогов `docs/guidelines/nextjs/` и `docs/guidelines/react/`**
+7. **⚠️ ОБЯЗАТЕЛЬНО**: При создании компонентов страниц (page.tsx) строго следуй принципам из [ai_suspense_fast_navigation.md](../../../guidelines/nextjs/ai_suspense_fast_navigation.md):
+   - Страница должна открываться мгновенно при навигации
+   - Используй Suspense boundaries с skeleton fallback
+   - Разделяй page.tsx (только проверка аутентификации) и content component (загрузка данных)
+8. **⚠️ ОБЯЗАТЕЛЬНО**: Для страниц просмотра (list pages, detail pages) используй ISR generation согласно [ai_isr_optimization_guidelines.md](../../../guidelines/nextjs/ai_isr_optimization_guidelines.md):
+   - Используй `export const revalidate = 60` вместо `force-dynamic`
+   - Добавляй `revalidatePath` и `revalidateTag` в Server Actions после изменений
+9. **⚠️ ОБЯЗАТЕЛЬНО**: При создании React компонентов и компонентов страниц строго соблюдай требования из [ai_component_guidelines.md](../../../guidelines/react/ai_component_guidelines.md):
+   - Компоненты должны быть arrow functions
+   - Максимальный размер компонента: 100 строк кода
+   - Использование explicit typing вместо React.FC
+   - Следование Atomic Design hierarchy
 
 <CONSTRAINT>Поиск по тексту стиха обязателен. Фильтрация по книге и главе должна работать корректно. Статистика использования должна отображаться для каждого стиха.</CONSTRAINT>
 </critical_instructions>
 </requirements>
+
+## Релевантная документация
+
+При создании программного кода для данной фазы используй следующие документы как источники требований и спецификаций:
+
+### Функциональные требования
+- **[app_functionality.md](../../../app_functionality.md)** - единственный источник истины для функциональных требований
+  - Раздел 4.12 Список золотых стихов - описание библиотеки золотых стихов
+  - Раздел 4.13 Статистика по золотым стихам - описание статистики
+
+### Пользовательские сценарии
+- **[USER_FLOW.md](../../../user_flows/USER_FLOW.md)** - общие пользовательские сценарии и flow-диаграммы
+  - Раздел 4.5 Золотые стихи - flow работы с золотыми стихами
+- **[TEACHER_FLOWS.md](../../../user_flows/TEACHER_FLOWS.md)** - детальные flow для преподавателей
+  - Раздел 8.1 Просмотр библиотеки золотых стихов - flow просмотра
+  - Раздел 8.2 Просмотр статистики по золотым стихам - flow статистики
+
+### Визуальные макеты
+- **[WIREFRAMES.md](../../../ui_ux/WIREFRAMES.md)** - визуальные макеты страниц и компонентов
+  - Раздел 3.6 Библиотека золотых стихов - макеты для золотых стихов
+
+### API и валидация
+- **[SERVER_ACTIONS.md](../../../api/SERVER_ACTIONS.md)** - спецификация Server Actions API
+  - Раздел Golden Verses - API для управления золотыми стихами
+- **[VALIDATION.md](../../../api/VALIDATION.md)** - схемы валидации Zod
+  - Раздел Golden Verse Schemas - схемы валидации для золотых стихов
+
+### База данных
+- **[GRAPHQL_SCHEMA.md](../../../database/GRAPHQL_SCHEMA.md)** - GraphQL схема
+- **[ERD.md](../../../database/ERD.md)** - диаграмма сущностей
+
+### Guidelines
+- **[guidelines/react/](../../../guidelines/react/)** - руководящие принципы для React компонентов
+  - **[ai_component_guidelines.md](../../../guidelines/react/ai_component_guidelines.md)** - ⚠️ **ОБЯЗАТЕЛЬНО**: требования для создания React компонентов и компонентов страниц (arrow functions, размер до 100 строк, explicit typing, Atomic Design)
+- **[guidelines/nextjs/](../../../guidelines/nextjs/)** - руководящие принципы для Next.js
+  - **[ai_suspense_fast_navigation.md](../../../guidelines/nextjs/ai_suspense_fast_navigation.md)** - ⚠️ **ОБЯЗАТЕЛЬНО**: принцип построения компонентов страниц (мгновенное открытие страниц, Suspense boundaries, разделение page.tsx и content component)
+  - **[ai_isr_optimization_guidelines.md](../../../guidelines/nextjs/ai_isr_optimization_guidelines.md)** - ⚠️ **ОБЯЗАТЕЛЬНО**: ISR generation для страниц просмотра (revalidate, revalidatePath, revalidateTag)
+- **[guidelines/prompts/general_prompt_guidelines.md](../../../guidelines/prompts/general_prompt_guidelines.md)** - общие принципы работы
+
+> [!NOTE]
+> **Принцип единственного источника истины:** 
+> - `app_functionality.md` является единственным источником истины для функциональных требований
+> - Документы в `user_flows/` содержат детальные flow-диаграммы, ссылающиеся на `app_functionality.md`
+> - При изменении функциональных требований обновляй `app_functionality.md`, затем при необходимости обновляй ссылки в других документах
 
 ## Задачи
 
@@ -53,7 +109,9 @@ Phase 13: Управление уроками (Lessons)
 </context>
 
 <task>
-Создай Server Actions для работы с золотыми стихами в файле `actions/goldenVerses.ts`. Реализуй получение стиха, список стихов с фильтрацией, поиск по тексту и статистику использования.
+Создай Server Actions для работы с золотыми стихами в файле `src/actions/goldenVerses.ts`. Реализуй получение стиха, список стихов с фильтрацией, поиск по тексту и статистику использования.
+
+⚠️ **Важно:** Код Server Actions должен находиться в файле `src/actions/goldenVerses.ts` в каталоге `src/actions/`.
 </task>
 
 <constraints>
@@ -75,7 +133,7 @@ Phase 13: Управление уроками (Lessons)
 </thinking>
 
 **Действия:**
-- [ ] Создать `actions/goldenVerses.ts` с директивой `'use server'`
+- [ ] Создать `src/actions/goldenVerses.ts` с директивой `'use server'`
 - [ ] Реализовать `getGoldenVerse(id)` - получение стиха с загрузкой связанного Book
 - [ ] Реализовать `listGoldenVerses(filters)` - список стихов с фильтрацией по bookId и главе
 - [ ] Реализовать `searchGoldenVerses(query)` - поиск по тексту стиха
@@ -120,6 +178,8 @@ Phase 13: Управление уроками (Lessons)
 
 <task>
 Создай Server Actions для работы с книгами Библии в файле `src/actions/books.ts`. Реализуй получение книги, список книг с фильтрацией по завету, поиск по названию и функцию заполнения таблицы при инициализации.
+
+⚠️ **Важно:** Код Server Actions должен находиться в файле `src/actions/books.ts` в каталоге `src/actions/`.
 </task>
 
 <constraints>
@@ -509,7 +569,7 @@ Phase 13: Управление уроками (Lessons)
 </thinking>
 
 **Действия:**
-- [ ] Добавить функцию `getGoldenVersesByAcademicYear(academicYearId)` в `actions/goldenVerses.ts`
+- [ ] Добавить функцию `getGoldenVersesByAcademicYear(academicYearId)` в `src/actions/goldenVerses.ts`
 - [ ] Реализовать получение уроков года через GSI-1 (academicYearId-lessonDate)
 - [ ] Для каждого урока получить стихи через GSI-1 (lessonId-order)
 - [ ] Дедуплицировать стихи по goldenVerseId
@@ -564,7 +624,7 @@ Phase 13: Управление уроками (Lessons)
 </thinking>
 
 **Действия:**
-- [ ] Добавить функцию `getGoldenVerseDifficultyAnalysis(gradeId, startDate, endDate)` в `actions/goldenVerses.ts`
+- [ ] Добавить функцию `getGoldenVerseDifficultyAnalysis(gradeId, startDate, endDate)` в `src/actions/goldenVerses.ts`
 - [ ] Реализовать получение всех проверок группы за период через GSI-3 (gradeId-createdAt)
 - [ ] Для каждой проверки получить Lesson и LessonGoldenVerses
 - [ ] Сопоставить баллы со стихами:
