@@ -1,4 +1,4 @@
-# Phase 09: Создание Data Access Layer
+﻿# Phase 09: Создание Data Access Layer
 
 ## Описание фазы
 Реализация Data Access Layer с использованием `amplifyData` из `@/lib/db/amplify`, утилиты для работы с AppSync GraphQL API.
@@ -42,6 +42,31 @@ Phase 04: Настройка GraphQL API (AppSync)
 <CONSTRAINT>⚠️ КРИТИЧНО: Использовать AWS Amplify Gen 1, НЕ Gen 2! Все операции должны быть типизированы. Ошибки должны обрабатываться корректно!</CONSTRAINT>
 </critical_instructions>
 </requirements>
+
+## Релевантная документация
+
+При создании программного кода для данной фазы используй следующие документы как источники требований и спецификаций:
+
+### База данных
+- **[GRAPHQL_SCHEMA.md](../../../database/GRAPHQL_SCHEMA.md)** - GraphQL схема для AppSync
+- **[DATA_MODELING.md](../../../database/DATA_MODELING.md)** - стратегии моделирования данных
+
+### Архитектура
+- **[ARCHITECTURE.md](../../../architecture/ARCHITECTURE.md)** - архитектура системы, Data Access Layer
+- **[DATA_FLOW.md](../../../architecture/DATA_FLOW.md)** - потоки данных от UI к базе данных
+
+### Инфраструктура
+- **[AWS_AMPLIFY.md](../../../infrastructure/AWS_AMPLIFY.md)** - настройка amplifyData, AppSync
+
+### Guidelines
+- **[guidelines/nextjs/](../../../guidelines/nextjs/)** - руководящие принципы для Next.js
+- **[guidelines/prompts/general_prompt_guidelines.md](../../../guidelines/prompts/general_prompt_guidelines.md)** - общие принципы работы
+
+> [!NOTE]
+> **Принцип единственного источника истины:** 
+> - `app_functionality.md` является единственным источником истины для функциональных требований
+> - Документы в `user_flows/` содержат детальные flow-диаграммы, ссылающиеся на `app_functionality.md`
+> - При изменении функциональных требований обновляй `app_functionality.md`, затем при необходимости обновляй ссылки в других документах
 
 ## Задачи
 

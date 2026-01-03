@@ -34,9 +34,10 @@ import { RoutePath } from '@/lib/routes/RoutePath';
 
 // Статические пути
 RoutePath.auth                    // '/auth'
-RoutePath.lessons                 // '/lessons'
+RoutePath.notFound                // '/not-found'
+RoutePath.lessons.base            // '/lessons'
 RoutePath.homeworkCheck           // '/homework-check'
-RoutePath.goldenVersesLibrary    // '/golden-verses-library'
+RoutePath.goldenVersesLibrary.base // '/golden-verses-library'
 ```
 
 ### 2.2. Вложенные пути (Grades)
@@ -50,17 +51,74 @@ RoutePath.grades.new              // '/grades/new'
 // Динамические пути (функции)
 RoutePath.grades.byId(gradeId)                    // '/grades/:gradeId'
 RoutePath.grades.settings(gradeId)                 // '/grades/:gradeId/settings'
-RoutePath.grades.schedule(gradeId)                 // '/grades/:gradeId/schedule'
-RoutePath.grades.lessons.new(gradeId)              // '/grades/:gradeId/lessons/new'
+RoutePath.grades.academicYears(gradeId)           // '/grades/:gradeId/academic-years'
+RoutePath.grades.academicYearLessons(gradeId, yearId) // '/grades/:gradeId/academic-years/:yearId/lessons'
+RoutePath.grades.rating(gradeId)                  // '/grades/:gradeId/rating'
+RoutePath.grades.issueBricks(gradeId)             // '/grades/:gradeId/issue-bricks'
+RoutePath.grades.schedule.base(gradeId)           // '/grades/:gradeId/schedule'
+RoutePath.grades.schedule.new(gradeId)            // '/grades/:gradeId/schedule/new'
+RoutePath.grades.schedule.edit(gradeId, eventId) // '/grades/:gradeId/schedule/:eventId/edit'
+RoutePath.grades.lessons.new(gradeId)             // '/grades/:gradeId/lessons/new'
 ```
 
-### 2.3. Admin пути
+### 2.3. Lessons пути
 
 ```typescript
-RoutePath.teachersManagement      // '/teachers-management'
-RoutePath.pupilsManagement        // '/pupils-management'
-RoutePath.familiesManagement      // '/families-management'
-RoutePath.schoolProcessManagement // '/school-process-management'
+// Базовые пути для lessons
+RoutePath.lessons.base            // '/lessons'
+RoutePath.lessons.new             // '/lessons/new'
+
+// Динамические пути (функции)
+RoutePath.lessons.byId(lessonId)                 // '/lessons/:lessonId'
+RoutePath.lessons.edit(lessonId)                  // '/lessons/:lessonId/edit'
+RoutePath.lessons.completeTable(lessonId)         // '/lessons/:lessonId/complete-table'
+RoutePath.lessons.checkingHomework(lessonId)       // '/lessons/:lessonId/checking-homework'
+```
+
+### 2.4. Pupil Personal Data пути
+
+```typescript
+// Базовые пути
+RoutePath.pupilPersonalData.base  // '/pupil-personal-data'
+
+// Динамические пути (функции)
+RoutePath.pupilPersonalData.byId(pupilId)        // '/pupil-personal-data/:id'
+RoutePath.pupilPersonalData.achievements(pupilId) // '/pupil-achievements/:id'
+```
+
+### 2.5. Golden Verses Library пути
+
+```typescript
+// Базовые пути
+RoutePath.goldenVersesLibrary.base      // '/golden-verses-library'
+RoutePath.goldenVersesLibrary.new       // '/golden-verses-library/new'
+RoutePath.goldenVersesLibrary.statistics // '/golden-verses-library/statistics'
+
+// Динамические пути (функции)
+RoutePath.goldenVersesLibrary.edit(id)  // '/golden-verses-library/:id/edit'
+```
+
+### 2.6. Admin пути
+
+```typescript
+// Teachers Management
+RoutePath.teachersManagement.base       // '/teachers-management'
+RoutePath.teachersManagement.new        // '/teachers-management/new'
+RoutePath.teachersManagement.edit(id)  // '/teachers-management/:id/edit'
+
+// Pupils Management
+RoutePath.pupilsManagement.base         // '/pupils-management'
+RoutePath.pupilsManagement.new          // '/pupils-management/new'
+RoutePath.pupilsManagement.edit(id)     // '/pupils-management/:id/edit'
+
+// Families Management
+RoutePath.familiesManagement.base       // '/families-management'
+RoutePath.familiesManagement.new        // '/families-management/new'
+RoutePath.familiesManagement.edit(id)   // '/families-management/:id/edit'
+
+// School Process Management
+RoutePath.schoolProcessManagement.base  // '/school-process-management'
+RoutePath.schoolProcessManagement.academicYears.new // '/school-process-management/academic-years/new'
 ```
 
 ---
@@ -161,7 +219,89 @@ const navItems = [
     label: 'Все группы',
     roles: ['ADMIN', 'SUPERADMIN'],
   },
+  {
+    href: RoutePath.goldenVersesLibrary.base,
+    label: 'Золотые стихи',
+    roles: ['TEACHER', 'ADMIN', 'SUPERADMIN'],
+  },
 ];
+```
+
+#### Примеры использования новых путей
+
+**Lessons пути:**
+```typescript
+// Создание урока
+router.push(RoutePath.lessons.new);
+
+// Просмотр урока
+router.push(RoutePath.lessons.byId(lessonId));
+
+// Редактирование урока
+router.push(RoutePath.lessons.edit(lessonId));
+
+// Сводная таблица урока
+router.push(RoutePath.lessons.completeTable(lessonId));
+
+// Проверка ДЗ
+router.push(RoutePath.lessons.checkingHomework(lessonId));
+```
+
+**Grades расширенные пути:**
+```typescript
+// Рейтинг группы
+router.push(RoutePath.grades.rating(gradeId));
+
+// Выдача кирпичиков
+router.push(RoutePath.grades.issueBricks(gradeId));
+
+// Создание события расписания
+router.push(RoutePath.grades.schedule.new(gradeId));
+
+// Редактирование события расписания
+router.push(RoutePath.grades.schedule.edit(gradeId, eventId));
+
+// Список уроков за учебный год
+router.push(RoutePath.grades.academicYearLessons(gradeId, yearId));
+```
+
+**Pupil Personal Data пути:**
+```typescript
+// Просмотр карточки ученика
+router.push(RoutePath.pupilPersonalData.byId(pupilId));
+
+// Просмотр достижений ученика
+router.push(RoutePath.pupilPersonalData.achievements(pupilId));
+```
+
+**Golden Verses Library пути:**
+```typescript
+// Создание золотого стиха
+router.push(RoutePath.goldenVersesLibrary.new);
+
+// Редактирование золотого стиха
+router.push(RoutePath.goldenVersesLibrary.edit(verseId));
+
+// Статистика по золотым стихам
+router.push(RoutePath.goldenVersesLibrary.statistics);
+```
+
+**Admin пути:**
+```typescript
+// Создание преподавателя
+router.push(RoutePath.teachersManagement.new);
+
+// Редактирование преподавателя
+router.push(RoutePath.teachersManagement.edit(teacherId));
+
+// Создание ученика
+router.push(RoutePath.pupilsManagement.new);
+
+// Редактирование семьи
+router.push(RoutePath.familiesManagement.edit(familyId));
+
+// Создание учебного года
+router.push(RoutePath.schoolProcessManagement.academicYears.new);
 ```
 
 ### 3.2. ❌ Неправильное использование
@@ -203,11 +343,18 @@ export const RoutePath = {
   // ... существующие пути
   
   /** New feature page */
-  newFeature: '/new-feature',
-  
-  /** New feature detail page */
-  newFeatureDetail: {
+  newFeature: {
+    /** Base new feature page */
+    base: '/new-feature',
+    
+    /** Create new feature page */
+    new: '/new-feature/new',
+    
+    /** Get feature detail page by ID */
     byId: (id: string) => `/new-feature/${id}`,
+    
+    /** Get feature edit page by ID */
+    edit: (id: string) => `/new-feature/${id}/edit`,
   },
 } as const;
 
@@ -215,7 +362,7 @@ export const RoutePath = {
 export const getProtectedRoutes = (): string[] => {
   return [
     // ... существующие пути
-    RoutePath.newFeature,
+    RoutePath.newFeature.base,
   ];
 };
 ```
@@ -316,7 +463,41 @@ const navItems = [
   { href: RoutePath.grades.my, label: 'Мои группы' },
   { href: RoutePath.grades.base, label: 'Все группы' },
   { href: RoutePath.schedule, label: 'Расписание' },
+  { href: RoutePath.goldenVersesLibrary.base, label: 'Золотые стихи' },
+  { href: RoutePath.teachersManagement.base, label: 'Преподаватели' },
+  { href: RoutePath.pupilsManagement.base, label: 'Ученики' },
 ];
+```
+
+### 7.4. Lesson Management
+
+```typescript
+import { RoutePath } from '@/lib/routes/RoutePath';
+
+// Создание урока
+router.push(RoutePath.lessons.new);
+
+// После создания урока - редирект на страницу урока
+redirect(RoutePath.lessons.byId(newLessonId));
+
+// Revalidate после обновления урока
+revalidatePath(RoutePath.lessons.byId(lessonId));
+revalidatePath(RoutePath.lessons.completeTable(lessonId));
+```
+
+### 7.5. Grade Schedule Management
+
+```typescript
+import { RoutePath } from '@/lib/routes/RoutePath';
+
+// Создание события расписания
+router.push(RoutePath.grades.schedule.new(gradeId));
+
+// Редактирование события
+router.push(RoutePath.grades.schedule.edit(gradeId, eventId));
+
+// Revalidate после изменения расписания
+revalidatePath(RoutePath.grades.schedule.base(gradeId));
 ```
 
 ---

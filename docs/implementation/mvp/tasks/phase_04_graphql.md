@@ -1,4 +1,4 @@
-# Phase 04: Настройка GraphQL API (AppSync)
+﻿# Phase 04: Настройка GraphQL API (AppSync)
 
 ## Описание фазы
 Создание GraphQL schema для AWS AppSync, настройка resolvers, типов, queries, mutations, subscriptions, авторизация через @auth директивы.
@@ -43,6 +43,30 @@ Phase 03: Настройка базы данных DynamoDB
 <CONSTRAINT>@auth директивы должны быть настроены правильно для всех типов, queries и mutations. Неправильная настройка авторизации приведет к уязвимостям безопасности!</CONSTRAINT>
 </critical_instructions>
 </requirements>
+
+## Релевантная документация
+
+При создании программного кода для данной фазы используй следующие документы как источники требований и спецификаций:
+
+### База данных
+- **[GRAPHQL_SCHEMA.md](../../../database/GRAPHQL_SCHEMA.md)** - GraphQL схема для AppSync, типы, queries, mutations, subscriptions
+- **[ERD.md](../../../database/ERD.md)** - диаграмма сущностей и связей
+- **[DYNAMODB_SCHEMA.md](../../../database/DYNAMODB_SCHEMA.md)** - схема DynamoDB
+
+### Безопасность
+- **[SECURITY.md](../../../infrastructure/SECURITY.md)** - авторизация через @auth директивы, RBAC
+
+### Архитектура
+- **[ARCHITECTURE.md](../../../architecture/ARCHITECTURE.md)** - архитектура системы, API слой
+
+### Guidelines
+- **[guidelines/prompts/general_prompt_guidelines.md](../../../guidelines/prompts/general_prompt_guidelines.md)** - общие принципы работы
+
+> [!NOTE]
+> **Принцип единственного источника истины:** 
+> - `app_functionality.md` является единственным источником истины для функциональных требований
+> - Документы в `user_flows/` содержат детальные flow-диаграммы, ссылающиеся на `app_functionality.md`
+> - При изменении функциональных требований обновляй `app_functionality.md`, затем при необходимости обновляй ссылки в других документах
 
 ## Задачи
 

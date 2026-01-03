@@ -1,4 +1,4 @@
-# Phase 10: Создание системы валидации
+﻿# Phase 10: Создание системы валидации
 
 ## Описание фазы
 Создание Zod схем валидации для всех сущностей, утилиты валидации, обработка ошибок валидации, интеграция с формами.
@@ -41,6 +41,28 @@ Phase 09: Создание Data Access Layer
 <CONSTRAINT>Zod схемы должны быть единым источником истины для валидации. Типы должны быть выведены из схем через z.infer. Все схемы должны соответствовать GraphQL Input Types!</CONSTRAINT>
 </critical_instructions>
 </requirements>
+
+## Релевантная документация
+
+При создании программного кода для данной фазы используй следующие документы как источники требований и спецификаций:
+
+### API и валидация
+- **[VALIDATION.md](../../../api/VALIDATION.md)** - схемы валидации Zod для всех сущностей
+- **[SERVER_ACTIONS.md](../../../api/SERVER_ACTIONS.md)** - спецификация Server Actions API, требования к валидации
+
+### База данных
+- **[GRAPHQL_SCHEMA.md](../../../database/GRAPHQL_SCHEMA.md)** - GraphQL схема, типы данных
+
+### Guidelines
+- **[guidelines/react/](../../../guidelines/react/)** - руководящие принципы для React компонентов
+- **[guidelines/nextjs/](../../../guidelines/nextjs/)** - руководящие принципы для Next.js
+- **[guidelines/prompts/general_prompt_guidelines.md](../../../guidelines/prompts/general_prompt_guidelines.md)** - общие принципы работы
+
+> [!NOTE]
+> **Принцип единственного источника истины:** 
+> - `app_functionality.md` является единственным источником истины для функциональных требований
+> - Документы в `user_flows/` содержат детальные flow-диаграммы, ссылающиеся на `app_functionality.md`
+> - При изменении функциональных требований обновляй `app_functionality.md`, затем при необходимости обновляй ссылки в других документах
 
 ## Задачи
 

@@ -1,4 +1,4 @@
-# Phase 02: Настройка AWS Amplify Gen 1
+﻿# Phase 02: Настройка AWS Amplify Gen 1
 
 ## Описание фазы
 Инициализация AWS Amplify Gen 1, настройка CLI, конфигурация окружений (dev/prod), создание Amplify app.
@@ -41,6 +41,25 @@ Phase 01: Настройка проекта и окружения
 <CONSTRAINT>Использовать только AWS Amplify Gen 1, НЕ Gen 2! Команды Gen 2 (npx ampx) НЕ ИСПОЛЬЗОВАТЬ!</CONSTRAINT>
 </critical_instructions>
 </requirements>
+
+## Релевантная документация
+
+При создании программного кода для данной фазы используй следующие документы как источники требований и спецификаций:
+
+### Инфраструктура
+- **[AWS_AMPLIFY.md](../../../infrastructure/AWS_AMPLIFY.md)** - настройка AWS Amplify Gen 1
+- **[AMPLIFY_COMPATIBILITY.md](../../../infrastructure/AMPLIFY_COMPATIBILITY.md)** - совместимость Next.js 15.5.9 с AWS Amplify Hosting
+- **[ARCHITECTURE.md](../../../architecture/ARCHITECTURE.md)** - архитектура системы, инфраструктурный слой
+
+### Guidelines
+- **[guidelines/nextjs/](../../../guidelines/nextjs/)** - руководящие принципы для Next.js
+- **[guidelines/prompts/general_prompt_guidelines.md](../../../guidelines/prompts/general_prompt_guidelines.md)** - общие принципы работы
+
+> [!NOTE]
+> **Принцип единственного источника истины:** 
+> - `app_functionality.md` является единственным источником истины для функциональных требований
+> - Документы в `user_flows/` содержат детальные flow-диаграммы, ссылающиеся на `app_functionality.md`
+> - При изменении функциональных требований обновляй `app_functionality.md`, затем при необходимости обновляй ссылки в других документах
 
 ## Задачи
 

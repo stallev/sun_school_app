@@ -1,4 +1,4 @@
-# Phase 06: Настройка UI библиотеки (Shadcn UI)
+﻿# Phase 06: Настройка UI библиотеки (Shadcn UI)
 
 ## Описание фазы
 Установка и настройка Shadcn UI компонентов, настройка Tailwind CSS, темизация, интеграция с дизайн-системой.
@@ -43,6 +43,26 @@ Phase 01: Настройка проекта и окружения
 <CONSTRAINT>Все компоненты должны следовать дизайн-системе проекта и быть доступными (WCAG 2.1 AA). Shadcn UI компоненты копируются в проект, что дает полный контроль над кодом!</CONSTRAINT>
 </critical_instructions>
 </requirements>
+
+## Релевантная документация
+
+При создании программного кода для данной фазы используй следующие документы как источники требований и спецификаций:
+
+### Дизайн-система и компоненты
+- **[DESIGN_SYSTEM.md](../../../ui_ux/DESIGN_SYSTEM.md)** - полная дизайн-система проекта, токены, компоненты
+- **[COMPONENT_LIBRARY.md](../../../components/COMPONENT_LIBRARY.md)** - структура компонентов, Atomic Design
+
+### Guidelines
+- **[guidelines/react/](../../../guidelines/react/)** - руководящие принципы для React компонентов
+  - [ai_component_guidelines.md](../../../guidelines/react/ai_component_guidelines.md) - принципы создания компонентов
+- **[guidelines/nextjs/](../../../guidelines/nextjs/)** - руководящие принципы для Next.js
+- **[guidelines/prompts/general_prompt_guidelines.md](../../../guidelines/prompts/general_prompt_guidelines.md)** - общие принципы работы
+
+> [!NOTE]
+> **Принцип единственного источника истины:** 
+> - `app_functionality.md` является единственным источником истины для функциональных требований
+> - Документы в `user_flows/` содержат детальные flow-диаграммы, ссылающиеся на `app_functionality.md`
+> - При изменении функциональных требований обновляй `app_functionality.md`, затем при необходимости обновляй ссылки в других документах
 
 ## Задачи
 

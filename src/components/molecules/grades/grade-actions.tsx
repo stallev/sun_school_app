@@ -86,7 +86,7 @@ export const GradeActions = ({ gradeId, isAdmin }: GradeActionsProps) => {
               variant="outline"
               aria-label="Расписание"
             >
-              <Link href={RoutePath.grades.schedule(gradeId)}>
+              <Link href={RoutePath.grades.schedule.base(gradeId)}>
                 <Calendar className="h-5 w-5" />
               </Link>
             </Button>

@@ -1,4 +1,4 @@
-# Phase 03: Настройка базы данных DynamoDB
+﻿# Phase 03: Настройка базы данных DynamoDB
 
 ## Описание фазы
 Создание DynamoDB таблиц на основе ERD, настройка Partition Keys, Sort Keys, Global Secondary Indexes (GSI).
@@ -41,6 +41,28 @@ Phase 02: Настройка AWS Amplify Gen 1
 <CONSTRAINT>Partition Keys и Sort Keys критически важны для производительности. Неправильный выбор ключей приведет к проблемам с производительностью!</CONSTRAINT>
 </critical_instructions>
 </requirements>
+
+## Релевантная документация
+
+При создании программного кода для данной фазы используй следующие документы как источники требований и спецификаций:
+
+### База данных
+- **[ERD.md](../../../database/ERD.md)** - диаграмма сущностей и связей
+- **[DYNAMODB_SCHEMA.md](../../../database/DYNAMODB_SCHEMA.md)** - схема DynamoDB, Partition Keys, Sort Keys, GSI
+- **[DATA_MODELING.md](../../../database/DATA_MODELING.md)** - стратегии моделирования данных для DynamoDB
+- **[GRAPHQL_SCHEMA.md](../../../database/GRAPHQL_SCHEMA.md)** - GraphQL схема для AppSync
+
+### Архитектура
+- **[ARCHITECTURE.md](../../../architecture/ARCHITECTURE.md)** - архитектура системы, слой данных
+
+### Guidelines
+- **[guidelines/prompts/general_prompt_guidelines.md](../../../guidelines/prompts/general_prompt_guidelines.md)** - общие принципы работы
+
+> [!NOTE]
+> **Принцип единственного источника истины:** 
+> - `app_functionality.md` является единственным источником истины для функциональных требований
+> - Документы в `user_flows/` содержат детальные flow-диаграммы, ссылающиеся на `app_functionality.md`
+> - При изменении функциональных требований обновляй `app_functionality.md`, затем при необходимости обновляй ссылки в других документах
 
 ## Задачи
 

@@ -30,6 +30,34 @@ This master plan serves as:
 
 ---
 
+## 1.1. Принцип единственного источника истины (Single Source of Truth)
+
+Для обеспечения согласованности документации и упрощения поддержки установлена следующая иерархия источников истины:
+
+### Иерархия источников
+
+1. **app_functionality.md** - ЕДИНСТВЕННЫЙ ИСТОЧНИК ИСТИНЫ для:
+   - Описания ролей пользователей (Teacher, Admin, Superadmin)
+   - Функциональных требований к страницам и элементам интерфейса
+   - Типичных сценариев использования (высокоуровневые описания)
+
+2. **user_flows/** - ДЕТАЛИЗАЦИЯ и flow-диаграммы:
+   - USER_FLOW.md - общие flow, ссылается на app_functionality.md для ролей
+   - TEACHER_FLOWS.md - детальные flow для Teacher, ссылается на app_functionality.md
+   - ADMIN_FLOWS.md - детальные flow для Admin, ссылается на app_functionality.md
+   - ERROR_HANDLING.md - обработка ошибок (независимый документ)
+
+3. **WIREFRAMES.md** - ВИЗУАЛЬНЫЕ МАКЕТЫ:
+   - Ссылается на app_functionality.md и user_flows/ для функциональных требований
+
+### Правила обновления документации
+
+- При изменении описания ролей обновлять ТОЛЬКО app_functionality.md
+- Документы user_flows/ должны содержать ссылки на app_functionality.md, а не дублировать информацию
+- При изменении функциональных требований обновлять app_functionality.md, затем при необходимости обновлять ссылки в других документах
+
+---
+
 ## 2. Documentation Status Dashboard
 
 | # | Document | Category | Priority | Status | Location |
@@ -942,8 +970,14 @@ All **Must-have** and **Should-have** documents are now complete. All **Could-ha
 - VALIDATION.md (depends on SERVER_ACTIONS.md)
 
 **UI Layer (Depends on Foundation):**
-- USER_FLOW.md (depends on ARCHITECTURE.md, app_functionality.md)
-- WIREFRAMES.md (depends on USER_FLOW.md)
+- USER_FLOW.md (depends on ARCHITECTURE.md, app_functionality.md) ✅
+  - **Примечание:** Ссылается на app_functionality.md для описания ролей (единственный источник истины)
+- TEACHER_FLOWS.md (depends on USER_FLOW.md, app_functionality.md) ✅
+  - **Примечание:** Ссылается на app_functionality.md для описания роли Teacher
+- ADMIN_FLOWS.md (depends on USER_FLOW.md, app_functionality.md) ✅
+  - **Примечание:** Ссылается на app_functionality.md для описания роли Admin
+- WIREFRAMES.md (depends on USER_FLOW.md, app_functionality.md) ✅
+  - **Примечание:** Ссылается на app_functionality.md и user_flows/ для функциональных требований
 - DESIGN_SYSTEM.md (depends on WIREFRAMES.md)
 
 **Component Layer (Depends on API & UI):**
