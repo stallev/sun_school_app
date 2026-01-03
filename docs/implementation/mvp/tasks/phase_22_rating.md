@@ -40,6 +40,18 @@ Phase 15: Система баллов и домиков
 5. Используй Context7 для получения актуальной документации Next.js Server Actions
 6. Следуй принципам из `docs/guidelines/prompts/general_prompt_guidelines.md`
 7. **При написании программного кода руководствуйся требованиями из документов каталогов `docs/guidelines/nextjs/` и `docs/guidelines/react/`**
+8. **⚠️ ОБЯЗАТЕЛЬНО**: При создании компонентов страниц (page.tsx) строго следуй принципам из [ai_suspense_fast_navigation.md](../../../guidelines/nextjs/ai_suspense_fast_navigation.md):
+   - Страница должна открываться мгновенно при навигации
+   - Используй Suspense boundaries с skeleton fallback
+   - Разделяй page.tsx (только проверка аутентификации) и content component (загрузка данных)
+9. **⚠️ ОБЯЗАТЕЛЬНО**: Для страниц просмотра (list pages, detail pages) используй ISR generation согласно [ai_isr_optimization_guidelines.md](../../../guidelines/nextjs/ai_isr_optimization_guidelines.md):
+   - Используй `export const revalidate = 60` вместо `force-dynamic`
+   - Добавляй `revalidatePath` и `revalidateTag` в Server Actions после изменений
+10. **⚠️ ОБЯЗАТЕЛЬНО**: При создании React компонентов и компонентов страниц строго соблюдай требования из [ai_component_guidelines.md](../../../guidelines/react/ai_component_guidelines.md):
+   - Компоненты должны быть arrow functions
+   - Максимальный размер компонента: 100 строк кода
+   - Использование explicit typing вместо React.FC
+   - Следование Atomic Design hierarchy
 
 <CONSTRAINT>Все компоненты должны следовать дизайн-системе проекта и быть доступными (WCAG 2.1 AA). Фильтрация и сортировка должны работать быстро и корректно.</CONSTRAINT>
 </critical_instructions>
@@ -73,7 +85,10 @@ Phase 15: Система баллов и домиков
 
 ### Guidelines
 - **[guidelines/react/](../../../guidelines/react/)** - руководящие принципы для React компонентов
+  - **[ai_component_guidelines.md](../../../guidelines/react/ai_component_guidelines.md)** - ⚠️ **ОБЯЗАТЕЛЬНО**: требования для создания React компонентов и компонентов страниц (arrow functions, размер до 100 строк, explicit typing, Atomic Design)
 - **[guidelines/nextjs/](../../../guidelines/nextjs/)** - руководящие принципы для Next.js
+  - **[ai_suspense_fast_navigation.md](../../../guidelines/nextjs/ai_suspense_fast_navigation.md)** - ⚠️ **ОБЯЗАТЕЛЬНО**: принцип построения компонентов страниц (мгновенное открытие страниц, Suspense boundaries, разделение page.tsx и content component)
+  - **[ai_isr_optimization_guidelines.md](../../../guidelines/nextjs/ai_isr_optimization_guidelines.md)** - ⚠️ **ОБЯЗАТЕЛЬНО**: ISR generation для страниц просмотра (revalidate, revalidatePath, revalidateTag)
 - **[guidelines/prompts/general_prompt_guidelines.md](../../../guidelines/prompts/general_prompt_guidelines.md)** - общие принципы работы
 
 > [!NOTE]
@@ -91,7 +106,9 @@ Phase 15: Система баллов и домиков
 </context>
 
 <task>
-Создай Server Actions файл `actions/rating.ts` с функцией `getGroupRating(gradeId, period)` для получения рейтинга группы. Реализуй расчет рейтинга с учетом периода: весь учебный год, текущий месяц, кастомный период (с даты по дату). Добавь сортировку по баллам (по убыванию).
+Создай Server Actions файл `src/actions/rating.ts` с функцией `getGroupRating(gradeId, period)` для получения рейтинга группы. Реализуй расчет рейтинга с учетом периода: весь учебный год, текущий месяц, кастомный период (с даты по дату). Добавь сортировку по баллам (по убыванию).
+
+⚠️ **Важно:** Код Server Actions должен находиться в файле `src/actions/rating.ts` в каталоге `src/actions/`.
 </task>
 
 <constraints>
@@ -117,7 +134,7 @@ Phase 15: Система баллов и домиков
 </thinking>
 
 **Действия:**
-- [ ] Создать `actions/rating.ts`
+- [ ] Создать `src/actions/rating.ts` с директивой `'use server'`
 - [ ] Реализовать `getGroupRating(gradeId, period)` - получение рейтинга группы
 - [ ] Реализовать расчет рейтинга с учетом периода:
   - Весь учебный год

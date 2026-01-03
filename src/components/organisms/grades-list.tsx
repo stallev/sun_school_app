@@ -90,7 +90,7 @@ export const GradesList = ({ grades }: GradesListProps) => {
                   </TableCell>
                   <TableCell className="text-center">
                     <Badge variant={grade.active ? 'default' : 'secondary'} className="text-xs">
-                      {grade.active ? 'Активна' : 'Неактивна'}
+                      {grade.active ? '🟢 Активна' : '⚪ Неактивна'}
                     </Badge>
                   </TableCell>
                 </TableRow>

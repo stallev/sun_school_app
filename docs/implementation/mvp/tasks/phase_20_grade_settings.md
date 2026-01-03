@@ -39,6 +39,18 @@ Phase 11: Управление группами (Grades)
 4. Следуй принципам из `docs/guidelines/prompts/general_prompt_guidelines.md`
 5. Используй строго Next.js 15.5.9, не более новую версию
 6. **При написании программного кода руководствуйся требованиями из документов каталогов `docs/guidelines/nextjs/` и `docs/guidelines/react/`**
+7. **⚠️ ОБЯЗАТЕЛЬНО**: При создании компонентов страниц (page.tsx) строго следуй принципам из [ai_suspense_fast_navigation.md](../../../guidelines/nextjs/ai_suspense_fast_navigation.md):
+   - Страница должна открываться мгновенно при навигации
+   - Используй Suspense boundaries с skeleton fallback
+   - Разделяй page.tsx (только проверка аутентификации) и content component (загрузка данных)
+8. **⚠️ ОБЯЗАТЕЛЬНО**: Для страниц просмотра (list pages, detail pages) используй ISR generation согласно [ai_isr_optimization_guidelines.md](../../../guidelines/nextjs/ai_isr_optimization_guidelines.md):
+   - Используй `export const revalidate = 60` вместо `force-dynamic`
+   - Добавляй `revalidatePath` и `revalidateTag` в Server Actions после изменений
+9. **⚠️ ОБЯЗАТЕЛЬНО**: При создании React компонентов и компонентов страниц строго соблюдай требования из [ai_component_guidelines.md](../../../guidelines/react/ai_component_guidelines.md):
+   - Компоненты должны быть arrow functions
+   - Максимальный размер компонента: 100 строк кода
+   - Использование explicit typing вместо React.FC
+   - Следование Atomic Design hierarchy
 
 <CONSTRAINT>Все операции с настройками доступны только для Admin. Настройки должны применяться к проверке ДЗ. Кастомные метки и баллы должны валидироваться.</CONSTRAINT>
 </critical_instructions>
@@ -73,7 +85,10 @@ Phase 11: Управление группами (Grades)
 
 ### Guidelines
 - **[guidelines/react/](../../../guidelines/react/)** - руководящие принципы для React компонентов
+  - **[ai_component_guidelines.md](../../../guidelines/react/ai_component_guidelines.md)** - ⚠️ **ОБЯЗАТЕЛЬНО**: требования для создания React компонентов и компонентов страниц (arrow functions, размер до 100 строк, explicit typing, Atomic Design)
 - **[guidelines/nextjs/](../../../guidelines/nextjs/)** - руководящие принципы для Next.js
+  - **[ai_suspense_fast_navigation.md](../../../guidelines/nextjs/ai_suspense_fast_navigation.md)** - ⚠️ **ОБЯЗАТЕЛЬНО**: принцип построения компонентов страниц (мгновенное открытие страниц, Suspense boundaries, разделение page.tsx и content component)
+  - **[ai_isr_optimization_guidelines.md](../../../guidelines/nextjs/ai_isr_optimization_guidelines.md)** - ⚠️ **ОБЯЗАТЕЛЬНО**: ISR generation для страниц просмотра (revalidate, revalidatePath, revalidateTag)
 - **[guidelines/prompts/general_prompt_guidelines.md](../../../guidelines/prompts/general_prompt_guidelines.md)** - общие принципы работы
 
 > [!NOTE]
@@ -91,7 +106,9 @@ Phase 11: Управление группами (Grades)
 </context>
 
 <task>
-Создай Server Actions для управления настройками групп в файле `actions/gradeSettings.ts`. Реализуй получение и обновление настроек с проверкой прав доступа и валидацией через Zod схемы.
+Создай Server Actions для управления настройками групп в файле `src/actions/gradeSettings.ts`. Реализуй получение и обновление настроек с проверкой прав доступа и валидацией через Zod схемы.
+
+⚠️ **Важно:** Код Server Actions должен находиться в файле `src/actions/gradeSettings.ts` в каталоге `src/actions/`.
 </task>
 
 <constraints>
@@ -113,7 +130,7 @@ Phase 11: Управление группами (Grades)
 </thinking>
 
 **Действия:**
-- [ ] Создать `actions/gradeSettings.ts` с директивой `'use server'`
+- [ ] Создать `src/actions/gradeSettings.ts` с директивой `'use server'`
 - [ ] Реализовать `getGradeSettings(gradeId)` - получение настроек группы
 - [ ] Реализовать `updateGradeSettings(gradeId, settings)` - обновление настроек
 - [ ] Добавить проверку прав доступа в каждую функцию через Cognito (Admin only)

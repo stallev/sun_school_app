@@ -40,6 +40,18 @@ Phase 12: Управление учебными годами (Academic Years)
 5. Следуй принципам из `docs/guidelines/prompts/general_prompt_guidelines.md`
 6. Используй строго Next.js 15.5.9, не более новую версию
 7. **При написании программного кода руководствуйся требованиями из документов каталогов `docs/guidelines/nextjs/` и `docs/guidelines/react/`**
+8. **⚠️ ОБЯЗАТЕЛЬНО**: При создании компонентов страниц (page.tsx) строго следуй принципам из [ai_suspense_fast_navigation.md](../../../guidelines/nextjs/ai_suspense_fast_navigation.md):
+   - Страница должна открываться мгновенно при навигации
+   - Используй Suspense boundaries с skeleton fallback
+   - Разделяй page.tsx (только проверка аутентификации) и content component (загрузка данных)
+9. **⚠️ ОБЯЗАТЕЛЬНО**: Для страниц просмотра (list pages, detail pages) используй ISR generation согласно [ai_isr_optimization_guidelines.md](../../../guidelines/nextjs/ai_isr_optimization_guidelines.md):
+   - Используй `export const revalidate = 60` вместо `force-dynamic`
+   - Добавляй `revalidatePath` и `revalidateTag` в Server Actions после изменений
+10. **⚠️ ОБЯЗАТЕЛЬНО**: При создании React компонентов и компонентов страниц строго соблюдай требования из [ai_component_guidelines.md](../../../guidelines/react/ai_component_guidelines.md):
+   - Компоненты должны быть arrow functions
+   - Максимальный размер компонента: 100 строк кода
+   - Использование explicit typing вместо React.FC
+   - Следование Atomic Design hierarchy
 
 <CONSTRAINT>Интеграция BlockNote обязательна для описания уроков. Контент должен сохраняться в формате JSON и корректно загружаться для редактирования.</CONSTRAINT>
 </critical_instructions>
@@ -92,7 +104,10 @@ Phase 12: Управление учебными годами (Academic Years)
 
 ### Guidelines
 - **[guidelines/react/](../../../guidelines/react/)** - руководящие принципы для React компонентов
+  - **[ai_component_guidelines.md](../../../guidelines/react/ai_component_guidelines.md)** - ⚠️ **ОБЯЗАТЕЛЬНО**: требования для создания React компонентов и компонентов страниц (arrow functions, размер до 100 строк, explicit typing, Atomic Design)
 - **[guidelines/nextjs/](../../../guidelines/nextjs/)** - руководящие принципы для Next.js
+  - **[ai_suspense_fast_navigation.md](../../../guidelines/nextjs/ai_suspense_fast_navigation.md)** - ⚠️ **ОБЯЗАТЕЛЬНО**: принцип построения компонентов страниц (мгновенное открытие страниц, Suspense boundaries, разделение page.tsx и content component)
+  - **[ai_isr_optimization_guidelines.md](../../../guidelines/nextjs/ai_isr_optimization_guidelines.md)** - ⚠️ **ОБЯЗАТЕЛЬНО**: ISR generation для страниц просмотра (revalidate, revalidatePath, revalidateTag)
   - [ai_loading_patterns.md](../../../guidelines/nextjs/ai_loading_patterns.md) - guidelines for loading states and skeleton components
 - **[guidelines/prompts/general_prompt_guidelines.md](../../../guidelines/prompts/general_prompt_guidelines.md)** - общие принципы работы
 
@@ -113,6 +128,8 @@ Phase 12: Управление учебными годами (Academic Years)
 
 <task>
 Создай Server Actions для управления уроками в файле `src/actions/lessons.ts`. Реализуй все CRUD операции с проверкой прав доступа, активного учебного года и валидацией через Zod схемы.
+
+⚠️ **Важно:** Код Server Actions должен находиться в файле `src/actions/lessons.ts` в каталоге `src/actions/`.
 </task>
 
 <constraints>
@@ -752,6 +769,8 @@ Phase 12: Управление учебными годами (Academic Years)
 
 <task>
 Реализуй функционал прикрепления файлов к урокам. Создай Server Actions для работы с файлами в S3, компоненты для загрузки и отображения файлов. Интегрируй в формы создания и редактирования урока.
+
+⚠️ **Важно:** Код Server Actions для работы с файлами должен находиться в файле `src/actions/lesson-files.ts` в каталоге `src/actions/`.
 </task>
 
 <constraints>
