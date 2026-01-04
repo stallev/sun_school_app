@@ -192,6 +192,7 @@ Phase 11: Управление группами (Grades)
 - Пагинация должна быть реализована для больших списков
 - Кнопка создания нового ученика должна быть видна только для Admin
 - Используй компоненты Shadcn UI для отображения
+- Страница должна включать breadcrumb навигацию с использованием компонента `AppBreadcrumb`
 </constraints>
 
 <thinking>
@@ -211,6 +212,7 @@ Phase 11: Управление группами (Grades)
 - [ ] Добавить пагинацию для больших списков
 - [ ] Добавить кнопку создания нового ученика (Admin only)
 - [ ] Использовать компоненты Shadcn UI (Table, Input, Button, Pagination)
+- [ ] Добавить breadcrumb навигацию с использованием компонента `AppBreadcrumb` из `components/shared/breadcrumb.tsx`
 
 **Документация:**
 - <CRITICAL>[WIREFRAMES.md](../../../ui_ux/WIREFRAMES.md) - раздел Pupils List</CRITICAL>
@@ -221,6 +223,7 @@ Phase 11: Управление группами (Grades)
 - **Код реализации:**
   - [src/lib/db/queries.ts](../../../../src/lib/db/queries.ts) - для получения данных групп
   - [src/lib/validation/pupils.ts](../../../../src/lib/validation/pupils.ts) - для валидации форм
+  - [src/components/shared/breadcrumb.tsx](../../../../src/components/shared/breadcrumb.tsx) - компонент AppBreadcrumb для breadcrumb навигации
 
 **Критерии приемки:**
 - Страница списка создана

@@ -525,7 +525,7 @@ Cache query results on the client to reduce API calls and improve performance.
 const CreateLessonSchema = z.object({
   academicYearId: z.string().uuid(),
   title: z.string().min(1).max(200),
-  content: z.string().optional(), // Rich text from BlockNote
+  content: z.string().optional(), // Rich text from Novel (Tiptap JSON)
   lessonDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   goldenVerseIds: z.array(z.string().uuid()).max(5),
 })

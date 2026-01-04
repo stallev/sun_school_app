@@ -844,7 +844,7 @@ All **Must-have** and **Should-have** documents are now complete. All **Could-ha
 - ✅ **AWS Cognito** - Authentication & authorization (SECURITY.md, AWS_AMPLIFY.md)
 - ✅ **Shadcn UI** - UI component library (DESIGN_SYSTEM.md, COMPONENT_LIBRARY.md)
 - ✅ **Zod** - Validation library (VALIDATION.md, SERVER_ACTIONS.md)
-- ✅ **BlockNote** - Rich text editor (mentioned in DESIGN_SYSTEM.md)
+- ✅ **Novel** - WYSIWYG редактор на базе Tiptap (mentioned in DESIGN_SYSTEM.md)
 
 ### Documentation Tools Used
 - **Mermaid** - Diagrams (architecture, ERD, flowcharts, sequence diagrams)

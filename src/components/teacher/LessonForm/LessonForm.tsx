@@ -1,82 +1,114 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Form } from '@/components/ui/form';
+import { FormProvider, type FieldErrors } from 'react-hook-form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { LessonFileUploader } from '../LessonFileUploader';
-import { LessonFileList } from '../LessonFileList';
-import type { LessonFile } from '@/API';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useLessonForm } from '@/hooks/useLessonForm';
+import { LessonTitleField } from '@/components/molecules/lessons/lesson-title-field';
+import { LessonDateField } from '@/components/molecules/lessons/lesson-date-field';
+import { LessonContentField } from '@/components/molecules/lessons/lesson-content-field';
+import { LessonSubmitButton } from '@/components/molecules/lessons/lesson-submit-button';
+import { GoldenVerseSelector } from '@/components/shared/golden-verse-selector';
+import type { CreateLessonInput, UpdateLessonInput } from '@/lib/validation/lessons';
 
 interface LessonFormProps {
   mode: 'create' | 'edit';
   gradeId: string;
-  academicYearId: string;
   lessonId?: string;
-  initialFiles?: LessonFile[];
+  initialData?: {
+    title?: string;
+    content?: string;
+    lessonDate?: string;
+    goldenVerseIds?: string[];
+  };
+  onSuccess?: () => void;
 }
 
-/**
- * Form component for creating/editing lessons with file attachments
- * @description Main form component that integrates lesson data and file management
- */
 export const LessonForm = ({
   mode,
+  gradeId,
   lessonId,
-  initialFiles = [],
+  initialData,
+  onSuccess,
 }: LessonFormProps) => {
-  const [files, setFiles] = useState<LessonFile[]>(initialFiles);
-
-  useEffect(() => {
-    setFiles(initialFiles);
-  }, [initialFiles]);
-
-  const handleUploadSuccess = (file: LessonFile) => {
-    setFiles((prev) => [...prev, file]);
-  };
-
-  const handleDeleteSuccess = (fileId: string) => {
-    setFiles((prev) => prev.filter((f) => f.id !== fileId));
-  };
+  const { form, isPending, isEditMode, onSubmit, yearError } = useLessonForm({
+    lessonId,
+    gradeId,
+    initialData,
+    onSuccess,
+  });
 
   if (!lessonId && mode === 'edit') {
     return <div>Lesson ID is required for edit mode</div>;
   }
 
-  const currentLessonId = lessonId || 'new';
+  // Wrapper для onSubmit с логированием успешной валидации
+  const handleSubmit = (data: CreateLessonInput | UpdateLessonInput) => {
+    console.log('✅ Валидация прошла успешно');
+    console.log('📋 Данные формы:', data);
+    onSubmit(data);
+  };
+
+  // Обработчик ошибок валидации
+  const handleSubmitError = (errors: FieldErrors<CreateLessonInput | UpdateLessonInput>) => {
+    console.error('❌ Ошибки валидации формы:');
+    console.error('🔴 Объект ошибок:', errors);
+
+    // Детальный вывод ошибок по полям
+    Object.keys(errors).forEach((fieldName) => {
+      const fieldError = errors[fieldName as keyof (CreateLessonInput | UpdateLessonInput)];
+      if (fieldError) {
+        const fieldValue = form.getValues(fieldName as keyof (CreateLessonInput | UpdateLessonInput));
+        console.error(`  📌 Поле "${fieldName}":`, {
+          type: fieldError.type,
+          message: fieldError.message,
+          value: fieldValue,
+        });
+      }
+    });
+
+    // Вывод всех значений формы для отладки
+    console.log('📋 Текущие значения формы:', form.getValues());
+    console.log('🔍 Состояние формы:', {
+      isValid: form.formState.isValid,
+      isDirty: form.formState.isDirty,
+      isSubmitting: form.formState.isSubmitting,
+      errors: form.formState.errors,
+    });
+  };
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Lesson Information</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground">
-            Lesson form fields will be added here (title, date, content, etc.)
-          </p>
-        </CardContent>
-      </Card>
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(handleSubmit, handleSubmitError)}
+        className="w-full space-y-4 align-start"
+      >
+        {yearError && (
+          <Alert variant="destructive">
+            <AlertDescription>{yearError}</AlertDescription>
+          </Alert>
+        )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Attached Files</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {lessonId && (
-            <LessonFileUploader
-              lessonId={lessonId}
-              currentFileCount={files.length}
-              onUploadSuccess={handleUploadSuccess}
-            />
-          )}
-          <LessonFileList
-            files={files}
-            lessonId={currentLessonId}
-            onDeleteSuccess={handleDeleteSuccess}
-            maxFiles={10}
-          />
-        </CardContent>
-      </Card>
-    </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Информация об уроке</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <LessonTitleField control={form.control} disabled={isPending} />
+            <LessonDateField control={form.control} disabled={isPending} />
+            <LessonContentField control={form.control} disabled={isPending} />
+            <FormProvider {...form}>
+              <GoldenVerseSelector disabled={isPending} />
+            </FormProvider>
+          </CardContent>
+        </Card>
+
+        <LessonSubmitButton
+          isPending={isPending}
+          isEditMode={isEditMode}
+        />
+      </form>
+    </Form>
   );
 };
-

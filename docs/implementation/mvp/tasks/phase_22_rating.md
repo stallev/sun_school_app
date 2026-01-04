@@ -194,6 +194,7 @@ Phase 15: Система баллов и домиков
 - Структура должна соответствовать WIREFRAMES.md
 - Таблица должна быть адаптивной для разных экранов
 - Обработка ошибок обязательна
+- Страница должна включать breadcrumb навигацию с использованием компонента `AppBreadcrumb`
 </constraints>
 
 <thinking>
@@ -213,6 +214,7 @@ Phase 15: Система баллов и домиков
 - [ ] Использовать компоненты Shadcn UI (Table, Badge)
 - [ ] Добавить адаптивность для мобильных устройств
 - [ ] Добавить обработку ошибок и loading states
+- [ ] Добавить breadcrumb навигацию с использованием компонента `AppBreadcrumb` из `components/shared/breadcrumb.tsx`
 
 **Документация:**
 - <CRITICAL>[WIREFRAMES.md](../../../ui_ux/WIREFRAMES.md) - раздел Rating Table</CRITICAL>
@@ -220,6 +222,7 @@ Phase 15: Система баллов и домиков
 - <CRITICAL>[TEACHER_FLOWS.md](../../../user_flows/TEACHER_FLOWS.md) - раздел 7.1 Просмотр рейтинга группы</CRITICAL>
 - Context7: Next.js 15.5.9 App Router документация
 - Context7: Shadcn UI компоненты документация
+- [src/components/shared/breadcrumb.tsx](../../../../src/components/shared/breadcrumb.tsx) - компонент AppBreadcrumb для breadcrumb навигации
 
 **Критерии приемки:**
 - Страница рейтинга создана

@@ -13,6 +13,7 @@ import { getAuthenticatedUser, checkRole } from '@/lib/auth/cognito';
 import { getGradeWithFullDataAction } from '@/actions/grades';
 import { RoutePath } from '@/lib/routes/RoutePath';
 import { Button } from '@/components/ui/button';
+import { AppBreadcrumb } from '@/components/shared/breadcrumb';
 import { GradeHeader } from '@/components/molecules/grades/grade-header';
 import { GradeActions } from '@/components/molecules/grades/grade-actions';
 import { GradeInfo } from '@/components/molecules/grades/grade-info';
@@ -70,7 +71,13 @@ export default async function GradeDetailPage({
 
   return (
     <div className="container max-w-5xl p-4 md:p-6 lg:p-8">
-      <div className="space-y-4 md:space-y-6">
+      <AppBreadcrumb
+        items={[
+          { label: 'Группы', href: RoutePath.grades.base },
+          { label: grade.name },
+        ]}
+      />
+      <div className="space-y-4 md:space-y-6 mt-4">
         <GradeHeader grade={grade} />
 
         <GradeActions gradeId={gradeId} isAdmin={isAdmin} />
@@ -120,6 +127,49 @@ export default async function GradeDetailPage({
             </div>
           )}
         </div>
+
+        {/* Lessons by Academic Year Links */}
+        {academicYears.length > 0 && (
+          <div className="space-y-4">
+            <h2 className="text-xl font-bold md:text-2xl">📖 Уроки по учебным годам</h2>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {academicYears.map((yearData) => {
+                const lessonsCount = yearData.lessons.length;
+                const isActive = yearData.academicYear.status === 'ACTIVE';
+                return (
+                  <Link
+                    key={yearData.academicYear.id}
+                    href={RoutePath.grades.academicYearLessons(gradeId, yearData.academicYear.id)}
+                    className="group rounded-lg border bg-card p-4 transition-colors hover:bg-accent"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-base md:text-lg group-hover:underline">
+                          {yearData.academicYear.name}
+                        </h3>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          {lessonsCount === 0
+                            ? 'Нет уроков'
+                            : `${lessonsCount} ${lessonsCount === 1 ? 'урок' : lessonsCount < 5 ? 'урока' : 'уроков'}`}
+                        </p>
+                      </div>
+                      <span className="text-2xl opacity-60 transition-opacity group-hover:opacity-100">
+                        →
+                      </span>
+                    </div>
+                    {isActive && (
+                      <div className="mt-2">
+                        <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-1 text-xs font-medium text-primary">
+                          Активный
+                        </span>
+                      </div>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

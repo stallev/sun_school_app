@@ -11,6 +11,7 @@ import { getAuthenticatedUser, checkRole } from '@/lib/auth/cognito';
 import { listAcademicYearsAction } from '@/actions/academicYears';
 import { getGradeWithFullDataAction } from '@/actions/grades';
 import { RoutePath } from '@/lib/routes/RoutePath';
+import { AppBreadcrumb } from '@/components/shared/breadcrumb';
 import { AcademicYearsPageHeader } from '@/components/molecules/academic-years/academic-years-page-header';
 import { AcademicYearsTable } from '@/components/molecules/academic-years/academic-years-table';
 import { AcademicYearsCardList } from '@/components/molecules/academic-years/academic-years-card-list';
@@ -81,8 +82,15 @@ export default async function AcademicYearsPage({
 
   return (
     <div className="container mx-auto max-w-5xl p-4 md:p-6 lg:p-8">
+      <AppBreadcrumb
+        items={[
+          { label: 'Группы', href: RoutePath.grades.base },
+          { label: grade.name, href: RoutePath.grades.byId(gradeId) },
+          { label: 'Учебные годы' },
+        ]}
+      />
       <AcademicYearActivateHandlerWrapper academicYears={academicYears} />
-      <div className="space-y-4 md:space-y-6">
+      <div className="space-y-4 md:space-y-6 mt-4">
         <AcademicYearsPageHeader
           gradeId={gradeId}
           gradeName={grade.name}

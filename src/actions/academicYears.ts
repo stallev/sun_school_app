@@ -26,7 +26,7 @@ import {
   listAcademicYears,
   getLessonsByAcademicYear,
 } from '../lib/db/queries';
-import { executeGraphQL } from '../lib/db/amplify';
+import { getTeacherGradeIdsWithCache } from '../lib/utils/teacher-grade-cache';
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { getActiveYear } from '../lib/utils/academicYears';
 import * as APITypes from '../API';
@@ -52,42 +52,6 @@ type SerializableAcademicYear = {
   updatedAt: string;
 };
 
-/**
- * Check if Teacher has access to a specific grade
- * @param userId - Teacher's user ID
- * @param gradeId - Grade ID to check
- * @returns true if Teacher has access, false otherwise
- */
-async function checkTeacherGradeAccess(
-  userId: string,
-  gradeId: string
-): Promise<boolean> {
-  try {
-    const queries = await import('../graphql/queries');
-    const query = (queries as Record<string, string>).userGradesByGradeIdAndUserId;
-
-    if (!query) {
-      console.error('Query userGradesByGradeIdAndUserId not found');
-      return false;
-    }
-
-    const result = await executeGraphQL<{
-      userGradesByGradeIdAndUserId?: {
-        items?: Array<{ userId: string; gradeId: string }>;
-      };
-    }>(query, {
-      gradeId,
-      userId: { eq: userId },
-      limit: 1,
-    });
-
-    const items = result.data?.userGradesByGradeIdAndUserId?.items || [];
-    return items.length > 0 && items.some((item) => item.userId === userId);
-  } catch (error) {
-    console.error('Error checking teacher grade access:', error);
-    return false;
-  }
-}
 
 
 /**
@@ -348,7 +312,8 @@ export async function getActiveAcademicYearAction(
 
     // 4. For Teacher, check if they have access to this grade
     if (isTeacher && !isAdmin) {
-      const hasAccess = await checkTeacherGradeAccess(user.id, gradeId);
+      const gradeIds = await getTeacherGradeIdsWithCache(user.id);
+      const hasAccess = gradeIds.includes(gradeId);
       if (!hasAccess) {
         return {
           success: false,
@@ -441,7 +406,8 @@ export async function listAcademicYearsAction(
 
     // 4. For Teacher, check if they have access to this grade
     if (isTeacher && !isAdmin) {
-      const hasAccess = await checkTeacherGradeAccess(user.id, gradeId);
+      const gradeIds = await getTeacherGradeIdsWithCache(user.id);
+      const hasAccess = gradeIds.includes(gradeId);
       if (!hasAccess) {
         return {
           success: false,

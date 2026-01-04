@@ -248,6 +248,7 @@ Phase 13: Управление уроками (Lessons)
 - Компоненты Shadcn UI должны быть из `components/ui/`
 - Календарь должен быть адаптивным для разных экранов
 - Обработка ошибок обязательна
+- Страница должна включать breadcrumb навигацию с использованием компонента `AppBreadcrumb`
 </constraints>
 
 <thinking>
@@ -269,6 +270,7 @@ Phase 13: Управление уроками (Lessons)
 - [ ] Использовать компоненты Shadcn UI
 - [ ] Добавить адаптивность для мобильных устройств
 - [ ] Добавить обработку ошибок и loading states
+- [ ] Добавить breadcrumb навигацию с использованием компонента `AppBreadcrumb` из `components/shared/breadcrumb.tsx`
 
 **Документация:**
 - <CRITICAL>[WIREFRAMES.md](../../../ui_ux/WIREFRAMES.md) - раздел Calendar</CRITICAL>
@@ -276,6 +278,7 @@ Phase 13: Управление уроками (Lessons)
 - <CRITICAL>[TEACHER_FLOWS.md](../../../user_flows/TEACHER_FLOWS.md) - раздел 6.1 Добавление события в расписание</CRITICAL>
 - Context7: Библиотека календаря документация
 - Context7: Next.js 15.5.9 App Router документация
+- [src/components/shared/breadcrumb.tsx](../../../../src/components/shared/breadcrumb.tsx) - компонент AppBreadcrumb для breadcrumb навигации
 
 **Критерии приемки:**
 - Календарь создан

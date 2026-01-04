@@ -197,6 +197,7 @@ Phase 12: Управление учебными годами (Academic Years)
 - Предупреждение о последствиях обязательно
 - Обработка ошибок обязательна
 - Проверка прав доступа обязательна (Admin only)
+- Страница должна включать breadcrumb навигацию с использованием компонента `AppBreadcrumb`
 </constraints>
 
 <thinking>
@@ -218,6 +219,7 @@ Phase 12: Управление учебными годами (Academic Years)
 - [ ] Использовать компоненты Shadcn UI (Card, Button, Alert)
 - [ ] Добавить проверку прав доступа (Admin only)
 - [ ] Добавить обработку ошибок
+- [ ] Добавить breadcrumb навигацию с использованием компонента `AppBreadcrumb` из `components/shared/breadcrumb.tsx`
 
 **Документация:**
 - <CRITICAL>[MVP_SCOPE.md](../../../MVP_SCOPE.md) - раздел 2.12.1 Завершение учебного года</CRITICAL>
@@ -225,6 +227,7 @@ Phase 12: Управление учебными годами (Academic Years)
 - <CRITICAL>[ADMIN_FLOWS.md](../../../user_flows/ADMIN_FLOWS.md) - раздел 6.1 Завершение учебного года</CRITICAL>
 - Context7: Next.js 15.5.9 App Router документация
 - Context7: Shadcn UI компоненты документация
+- [src/components/shared/breadcrumb.tsx](../../../../src/components/shared/breadcrumb.tsx) - компонент AppBreadcrumb для breadcrumb навигации
 
 **Критерии приемки:**
 - UI создан

@@ -159,7 +159,7 @@ export const createLessonSchema = z.object({
     .string()
     .min(1, 'Title is required')
     .max(200, 'Title must be less than 200 characters'),
-  content: z.string().optional(), // Rich text content from BlockNote
+  content: z.string().optional(), // Rich text content from Novel (Tiptap)
   lessonDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (YYYY-MM-DD)'),
   goldenVerseIds: z
     .array(z.string().uuid('Invalid golden verse ID'))

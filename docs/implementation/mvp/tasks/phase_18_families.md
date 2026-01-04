@@ -191,6 +191,7 @@ Phase 16: Управление учениками (Pupils)
 - Фильтрация должна работать по поиску (название семьи)
 - Кнопка создания новой семьи должна быть видна только для Admin
 - Используй компоненты Shadcn UI для отображения
+- Страница должна включать breadcrumb навигацию с использованием компонента `AppBreadcrumb`
 </constraints>
 
 <thinking>
@@ -210,6 +211,7 @@ Phase 16: Управление учениками (Pupils)
 - [ ] Добавить фильтрацию и поиск (по названию семьи)
 - [ ] Добавить кнопку создания новой семьи (Admin only)
 - [ ] Использовать компоненты Shadcn UI (Table, Input, Button)
+- [ ] Добавить breadcrumb навигацию с использованием компонента `AppBreadcrumb` из `components/shared/breadcrumb.tsx`
 
 **Документация:**
 - <CRITICAL>[WIREFRAMES.md](../../../ui_ux/WIREFRAMES.md) - раздел Families List</CRITICAL>
@@ -217,6 +219,7 @@ Phase 16: Управление учениками (Pupils)
 - [ADMIN_FLOWS.md](../../../user_flows/ADMIN_FLOWS.md) - раздел 5.1 Создание новой семьи
 - [Loading Patterns Guidelines](../../../guidelines/nextjs/ai_loading_patterns.md) - guidelines for loading states and skeleton components
 - Context7: Next.js 15.5.9 App Router документация
+- [src/components/shared/breadcrumb.tsx](../../../../src/components/shared/breadcrumb.tsx) - компонент AppBreadcrumb для breadcrumb навигации
 
 **Критерии приемки:**
 - Страница списка создана

@@ -603,7 +603,7 @@ function LessonForm({ academicYearId, goldenVerses }: Props) {
             <FormItem>
               <FormLabel>Описание урока</FormLabel>
               <FormControl>
-                <BlockNoteEditor value={field.value} onChange={field.onChange} />
+                <Editor defaultValue={field.value} onUpdate={field.onChange} />
               </FormControl>
               <FormMessage />
             </FormItem>

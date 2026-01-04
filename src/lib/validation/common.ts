@@ -9,9 +9,18 @@ import { z } from 'zod';
 /**
  * UUID validation schema
  * Validates GraphQL ID type (UUID format)
+ * Uses flexible UUID validation that accepts any UUID-like format (8-4-4-4-12 hex characters)
+ * This is more permissive than strict RFC 4122 validation to support AWS Cognito and other UUID generators
  * @example "123e4567-e89b-12d3-a456-426614174000"
+ * @example "c46814c8-9011-7070-d574-20d53a5d8ff8" (AWS Cognito format)
  */
-export const uuidSchema = z.string().uuid('Неверный формат UUID');
+export const uuidSchema = z
+  .string()
+  .trim()
+  .regex(
+    /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/,
+    'Неверный формат UUID'
+  );
 
 /**
  * Date validation schema (AWSDate)

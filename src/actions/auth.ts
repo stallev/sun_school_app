@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { RoutePath } from '@/lib/routes/RoutePath';
 import { signInSchema } from '@/lib/validation/auth';
+import { getTeacherGradeIdsWithCache, invalidateTeacherGradeCache } from '../lib/utils/teacher-grade-cache';
 
 /**
  * Schema for storing auth tokens
@@ -106,6 +107,28 @@ export async function storeAuthTokens(tokens: unknown): Promise<
         ...cookieOptions,
         maxAge: 60 * 60 * 24 * 30, // 30 days (Refresh token expiration)
       });
+    }
+
+    // 4. If user is TEACHER, cache their grade IDs for access control optimization
+    if (validatedTokens.userRole === 'TEACHER') {
+      try {
+        // Get user ID from idToken payload
+        const payload = JSON.parse(
+          Buffer.from(validatedTokens.idToken.split('.')[1], 'base64').toString()
+        );
+        const userId = payload.sub;
+
+        if (userId) {
+          // Fetch and cache teacher's grade IDs
+          // This will make one GraphQL query and cache result in cookie
+          // Subsequent access checks will use cache instead of making queries
+          await getTeacherGradeIdsWithCache(userId);
+        }
+      } catch (error) {
+        // Don't fail login if caching fails - it's optional optimization
+        // App will work without cache, just slower (will make GraphQL queries)
+        console.error('Error caching teacher grade IDs on login:', error);
+      }
     }
 
     // Determine redirect URL based on user role
@@ -243,6 +266,16 @@ export async function signOut(): Promise<never> {
     cookieStore.set('cognito-access-token', '', clearCookieOptions);
     cookieStore.set('cognito-refresh-token', '', clearCookieOptions);
 
+    // Clear teacher grade IDs cache
+    // This ensures that cached grade IDs are not left in cookies after logout
+    try {
+      await invalidateTeacherGradeCache();
+    } catch (error) {
+      // Don't fail logout if cache clearing fails
+      // Cache clearing is cleanup, not critical for logout
+      console.error('Error clearing teacher grade cache on logout:', error);
+    }
+
     // Redirect to login page
     redirect(RoutePath.auth);
   } catch (error) {
@@ -277,6 +310,13 @@ export async function signOut(): Promise<never> {
       cookieStore.set('cognito-id-token', '', clearCookieOptions);
       cookieStore.set('cognito-access-token', '', clearCookieOptions);
       cookieStore.set('cognito-refresh-token', '', clearCookieOptions);
+      
+      // Clear teacher grade cache in error handler too
+      try {
+        await invalidateTeacherGradeCache();
+      } catch (clearCacheError) {
+        console.error('Error clearing teacher grade cache in error handler:', clearCacheError);
+      }
     } catch (clearError) {
       console.error('Error clearing cookies:', clearError);
     }

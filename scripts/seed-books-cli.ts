@@ -94,7 +94,7 @@ function getDynamoDBClient(): DynamoDBClient {
  */
 async function checkExistingBooks(client: DynamoDBClient): Promise<number> {
   try {
-    const command = new ScanCommand({
+    const command: ScanCommand = new ScanCommand({
       TableName: TABLE_NAME,
       Select: 'COUNT',
     });

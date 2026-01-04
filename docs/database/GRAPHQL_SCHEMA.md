@@ -305,7 +305,19 @@ type Lesson
   gradeId: ID! @index(name: "byGradeId", sortKeyFields: ["lessonDate"]) # Денормализация
   teacherId: ID! @index(name: "byTeacherId", sortKeyFields: ["createdAt"])
   title: String! # Тема урока
-  content: String # JSON от BlockNote редактора
+  content: String # JSON от Novel редактора (Tiptap/ProseMirror)
+  # Novel JSON Format (Tiptap/ProseMirror):
+  # {
+  #   "type": "doc",
+  #   "content": [
+  #     {
+  #       "type": "paragraph",
+  #       "content": [
+  #         {"type": "text", "text": "Описание урока..."}
+  #       ]
+  #     }
+  #   ]
+  # }
   lessonDate: AWSDate! # Дата проведения урока
   order: Int! # Порядковый номер урока в году
   

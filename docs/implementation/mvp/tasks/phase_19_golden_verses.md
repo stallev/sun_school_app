@@ -241,6 +241,7 @@ Phase 13: Управление уроками (Lessons)
 - Используй таблицу или карточки для отображения (согласно дизайну)
 - Пагинация должна быть реализована для больших списков
 - Используй компоненты Shadcn UI для отображения
+- Страница должна включать breadcrumb навигацию с использованием компонента `AppBreadcrumb`
 </constraints>
 
 <thinking>
@@ -260,12 +261,14 @@ Phase 13: Управление уроками (Lessons)
 - [ ] Загружать связанный Book при отображении стиха
 - [ ] Добавить пагинацию для больших списков
 - [ ] Использовать компоненты Shadcn UI (Table, Card, Pagination)
+- [ ] Добавить breadcrumb навигацию с использованием компонента `AppBreadcrumb` из `components/shared/breadcrumb.tsx`
 
 **Документация:**
 - <CRITICAL>[WIREFRAMES.md](../../../ui_ux/WIREFRAMES.md) - раздел Golden Verses List</CRITICAL>
 - [USER_FLOW.md](../../../user_flows/USER_FLOW.md) - раздел Golden Verses
 - [TEACHER_FLOWS.md](../../../user_flows/TEACHER_FLOWS.md) - раздел 8.1 Просмотр библиотеки золотых стихов
 - Context7: Next.js 15.5.9 App Router документация
+- [src/components/shared/breadcrumb.tsx](../../../../src/components/shared/breadcrumb.tsx) - компонент AppBreadcrumb для breadcrumb навигации
 
 **Критерии приемки:**
 - Страница списка создана

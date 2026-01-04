@@ -392,7 +392,7 @@ Access Pattern: "Получить все уроки группы за учебн
 | gradeId | String | ID группы (денормализация) | ✅ |
 | teacherId | String | ID создавшего преподавателя | ✅ |
 | title | String | Тема урока | ✅ |
-| content | String | JSON от BlockNote | ❌ |
+| content | String | JSON от Novel (Tiptap) | ❌ |
 | lessonDate | String (ISO Date) | Дата проведения | ✅ |
 | order | Number | Порядковый номер | ✅ |
 | createdAt | String (ISO 8601) | Дата создания | ✅ |

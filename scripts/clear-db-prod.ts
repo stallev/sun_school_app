@@ -127,7 +127,7 @@ async function scanAllItems(
   let lastEvaluatedKey: Record<string, unknown> | undefined = undefined;
 
   do {
-    const command = new ScanCommand({
+    const command: ScanCommand = new ScanCommand({
       TableName: tableName,
       ExclusiveStartKey: lastEvaluatedKey
         ? marshall(lastEvaluatedKey)

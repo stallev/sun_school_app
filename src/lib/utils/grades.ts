@@ -83,15 +83,35 @@ export type HomeworkCheckStats = {
  * Calculate homework check statistics for a lesson
  * @param homeworkChecks - Array of homework checks for the lesson
  * @param totalPupils - Total number of pupils in the grade
+ * @param activePupilIds - Optional: Set of active pupil IDs to filter checks
  * @returns Statistics object
  */
 export function getHomeworkCheckStats(
   homeworkChecks: APITypes.HomeworkCheck[],
-  totalPupils: number
+  totalPupils: number,
+  activePupilIds?: Set<string>
 ): HomeworkCheckStats {
-  const checked = homeworkChecks.length;
-  const total = Math.max(totalPupils, checked); // At least as many as checked
-  const percentage = total > 0 ? Math.round((checked / total) * 100) : 0;
+  // Filter checks if activePupilIds provided
+  let validChecks = homeworkChecks;
+  if (activePupilIds) {
+    validChecks = homeworkChecks.filter(
+      (hc) => hc.pupilId && activePupilIds.has(hc.pupilId)
+    );
+  }
+
+  // Remove duplicates by pupilId
+  const uniqueCheckedPupilIds = new Set<string>();
+  validChecks.forEach((hc) => {
+    if (hc.pupilId && !uniqueCheckedPupilIds.has(hc.pupilId)) {
+      uniqueCheckedPupilIds.add(hc.pupilId);
+    }
+  });
+
+  const checked = uniqueCheckedPupilIds.size;
+  const total = totalPupils; // Use actual total, don't increase it
+  const percentage = total > 0 
+    ? Math.min(100, Math.round((checked / total) * 100))
+    : 0;
 
   return {
     total,

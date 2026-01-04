@@ -507,11 +507,12 @@ export async function createLesson(input: unknown) {
 
 ---
 
-### 5.3. Sanitization for Rich Text (BlockNote)
+### 5.3. Sanitization for Rich Text (Novel/Tiptap)
 
 **Prevent XSS Attacks:**
 
--   Use a sanitization library like **DOMPurify** to clean user-generated HTML.
+-   Novel использует Tiptap/ProseMirror, который имеет встроенную защиту от XSS. JSON структура данных безопасна для хранения.
+-   Use a sanitization library like **DOMPurify** to clean user-generated HTML (если потребуется рендеринг HTML).
 
 **Example:**
 

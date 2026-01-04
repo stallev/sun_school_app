@@ -155,7 +155,7 @@
 | **Tailwind CSS** | Latest | Utility-first CSS |
 | **Framer Motion** | Latest | Анимации |
 | **Zustand** | Latest | Глобальное состояние (минимально) |
-| **BlockNote** | Latest | Rich text editor для уроков |
+| **Novel** | Latest | WYSIWYG редактор для уроков (на базе Tiptap) |
 
 ### Backend & Infrastructure
 

@@ -11,6 +11,7 @@ import { notFound, redirect } from 'next/navigation';
 import { getAuthenticatedUser, checkRole } from '@/lib/auth/cognito';
 import { getGradeWithFullDataAction } from '@/actions/grades';
 import { RoutePath } from '@/lib/routes/RoutePath';
+import { AppBreadcrumb } from '@/components/shared/breadcrumb';
 import { GradeForm } from '@/components/admin/grades/grade-form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -76,7 +77,14 @@ export default async function EditGradePage({
   // 5. Render form
   return (
     <div className="container p-4 md:p-6 lg:p-8">
-      <div className="mb-6">
+      <AppBreadcrumb
+        items={[
+          { label: 'Группы', href: RoutePath.grades.base },
+          { label: grade.name, href: RoutePath.grades.byId(gradeId) },
+          { label: 'Редактирование' },
+        ]}
+      />
+      <div className="mb-6 mt-4">
         <Button
           asChild
           variant="ghost"

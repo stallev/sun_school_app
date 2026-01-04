@@ -555,6 +555,73 @@ These are custom components built by composing Shadcn UI primitives, specific to
 -   Form with checkbox (completed), input (score), textarea (notes)
 -   Server Action for submission
 
+#### 3.2.4. Novel Rich Text Editor
+
+**Purpose:** WYSIWYG редактор для описания уроков в стиле Notion.
+
+**Location:** `@/components/shared/rich-text-editor.tsx`
+
+**Import:**
+```typescript
+import { LessonEditor } from '@/components/shared/rich-text-editor';
+```
+
+**Features:**
+-   Slash commands (/) для быстрого форматирования
+-   Markdown shortcuts (**, __, ~, etc.)
+-   Встроенная интеграция с Shadcn UI
+-   TypeScript типизация
+-   Responsive дизайн
+
+**Usage Example:**
+```tsx
+import { LessonEditor } from '@/components/shared/rich-text-editor';
+import { Controller } from 'react-hook-form';
+
+export function LessonForm() {
+  const form = useForm({
+    defaultValues: { content: '' }
+  });
+
+  return (
+    <Form {...form}>
+      <FormField
+        control={form.control}
+        name="content"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Описание урока</FormLabel>
+            <FormControl>
+              <LessonEditor
+                value={field.value}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    </Form>
+  );
+}
+```
+
+**Styling:**
+-   Background: `bg-background`
+-   Border: `border border-input`
+-   Border radius: `rounded-md`
+-   Minimum height: `min-h-[300px]`
+
+**Data Format:**
+-   Input: JSON string или undefined
+-   Output: JSON string (ProseMirror document)
+
+**Accessibility:**
+-   Keyboard navigation support
+-   ARIA labels for toolbar buttons
+-   Focus management
+
 ---
 
 ## 4. Layout Patterns

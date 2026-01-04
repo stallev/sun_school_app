@@ -186,6 +186,7 @@ Phase 11: Управление группами (Grades)
 - Все поля должны быть валидированы через Zod схемы
 - Используй компоненты Shadcn UI (Form, Checkbox, Input, Button)
 - Проверка прав доступа должна выполняться на сервере
+- Страница должна включать breadcrumb навигацию с использованием компонента `AppBreadcrumb`
 </constraints>
 
 <thinking>
@@ -208,6 +209,7 @@ Phase 11: Управление группами (Grades)
   - Посещение спевки (включено/выключено)
 - [ ] Интегрировать с React Hook Form и Zod валидацией
 - [ ] Использовать компоненты Shadcn UI (Form, Checkbox, Input, Button)
+- [ ] Добавить breadcrumb навигацию с использованием компонента `AppBreadcrumb` из `components/shared/breadcrumb.tsx`
 
 **Документация:**
 - <CRITICAL>[WIREFRAMES.md](../../../ui_ux/WIREFRAMES.md) - раздел Grade Settings</CRITICAL>
@@ -215,6 +217,7 @@ Phase 11: Управление группами (Grades)
 - [ADMIN_FLOWS.md](../../../user_flows/ADMIN_FLOWS.md) - раздел 3.2 Настройка параметров оценивания группы
 - Context7: React Hook Form документация
 - Context7: Zod документация
+- [src/components/shared/breadcrumb.tsx](../../../../src/components/shared/breadcrumb.tsx) - компонент AppBreadcrumb для breadcrumb навигации
 
 **Критерии приемки:**
 - Форма настроек создана и работает

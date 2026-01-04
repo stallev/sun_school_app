@@ -23,7 +23,7 @@
 
 <context>
 Проект: Sunday School Management System (MVP)
-Технологии: Next.js 15.5.9, AWS Amplify Gen 1, DynamoDB, Cognito, Shadcn UI, BlockNote
+Технологии: Next.js 15.5.9, AWS Amplify Gen 1, DynamoDB, Cognito, Shadcn UI, Novel
 Ограничения: MVP подход (функциональность важнее идеального кода), совместимость с AWS Amplify Hosting критически важна
 Версии: Next.js 15.5.9 (строго), React 19, TypeScript 5.x
 </context>
@@ -172,8 +172,7 @@ TypeScript должен быть настроен с строгой типиза
 </context>
 
 <task>
-Перед установкой BlockNote изучи актуальную документацию интеграции BlockNote с shadcn компонентами по ссылке `https://www.blocknotejs.org/docs/getting-started/shadcn`.
-Установи все основные зависимости проекта: React 19, Zustand, Framer Motion, BlockNote и lucide-react. Проверь совместимость всех пакетов с Next.js 15.5.9 перед установкой.
+Установи все основные зависимости проекта: React 19, Zustand, Framer Motion, Novel и lucide-react. Проверь совместимость всех пакетов с Next.js 15.5.9 перед установкой. Novel построен на Shadcn UI, что обеспечивает нативную интеграцию.
 </task>
 
 <constraints>
@@ -196,7 +195,7 @@ TypeScript должен быть настроен с строгой типиза
 - [x] Установить React 19: `npm install react@^19.0.0 react-dom@^19.0.0`
 - [x] Установить Zustand: `npm install zustand@latest`
 - [x] Установить Framer Motion: `npm install framer-motion@latest`
-- [x] Установить BlockNote: `npm install @blocknote/core @blocknote/react @blocknote/shadcn`
+- [x] Установить Novel: `npm install novel`
 - [x] Установить lucide-react для иконок: `npm install lucide-react`
 - [x] Проверить совместимость всех зависимостей с Next.js 15.5.9
 

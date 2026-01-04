@@ -69,7 +69,7 @@ export const AcademicYearCard = ({
                 variant="default"
                 aria-label="Создать урок"
               >
-                <Link href={RoutePath.grades.lessons.new(gradeId)}>
+                <Link href={`${RoutePath.lessons.new}?gradeId=${gradeId}`}>
                   <Plus className="h-5 w-5" />
                 </Link>
               </Button>

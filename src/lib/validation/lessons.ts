@@ -20,9 +20,13 @@ export const createLessonSchema = z.object({
     .string()
     .min(1, 'Название урока обязательно')
     .max(200, 'Название урока должно быть не более 200 символов'),
-  content: z.string().optional(), // Rich text content from BlockNote
+  content: z.string().optional(), // Rich text content from Novel (Tiptap)
   lessonDate: dateSchema,
   order: z.number().int().min(1, 'Порядковый номер должен быть не менее 1'),
+  goldenVerseIds: z
+    .array(uuidSchema)
+    .min(1, 'Необходимо выбрать минимум 1 золотой стих')
+    .max(5, 'Максимум 5 золотых стихов на урок'),
 });
 
 export type CreateLessonInput = z.infer<typeof createLessonSchema>;
@@ -46,6 +50,11 @@ export const updateLessonSchema = z.object({
   content: z.string().optional(),
   lessonDate: dateSchema.optional(),
   order: z.number().int().min(1, 'Порядковый номер должен быть не менее 1').optional(),
+  goldenVerseIds: z
+    .array(uuidSchema)
+    .min(1, 'Необходимо выбрать минимум 1 золотой стих')
+    .max(5, 'Максимум 5 золотых стихов на урок')
+    .optional(),
 });
 
 export type UpdateLessonInput = z.infer<typeof updateLessonSchema>;

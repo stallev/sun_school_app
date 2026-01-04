@@ -52,6 +52,7 @@
 | **shadcn/ui** | Latest | UI компоненты |
 | **Tailwind CSS** | Latest | Utility-first CSS |
 | **Framer Motion** | Latest | Анимации |
+| **Novel** | Latest | WYSIWYG редактор для уроков |
 
 **Почему shadcn/ui?**
 - ✅ Копирование компонентов в проект (не npm пакет)
@@ -65,6 +66,13 @@
 - ✅ Declarative API
 - ✅ Отличная производительность
 - ✅ Поддержка Layout Animations
+
+**Почему Novel?**
+- ✅ Построен на Shadcn UI (нативная интеграция с проектом)
+- ✅ Tiptap/ProseMirror под капотом (production-ready)
+- ✅ Меньший bundle size чем BlockNote
+- ✅ TypeScript-first
+- ✅ Slash commands и Markdown shortcuts
 
 **Альтернативы UI:**
 - ❌ Material-UI: слишком тяжелый bundle

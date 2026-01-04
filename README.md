@@ -29,7 +29,7 @@ Sunday School App is a modern web application built on AWS serverless architectu
 - **TypeScript** - type safety
 - **Tailwind CSS 4** - utility-first CSS
 - **Shadcn UI** - UI components
-- **BlockNote** - rich text editor for lessons
+- **Novel** - WYSIWYG editor for lessons (built on Tiptap)
 - **Zustand** - state management (minimal usage)
 - **React Hook Form + Zod** - forms and validation
 
@@ -284,7 +284,7 @@ Private project for Baptist church Sunday school.
 - [AWS Amplify Gen 1 Documentation](https://docs.amplify.aws/)
 - [AWS AppSync Documentation](https://docs.aws.amazon.com/appsync/)
 - [Shadcn UI](https://ui.shadcn.com/)
-- [BlockNote Documentation](https://www.blocknotejs.org/)
+- [Novel Documentation](https://github.com/steven-tey/novel)
 
 ---
 

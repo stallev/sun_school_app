@@ -208,7 +208,7 @@ async function getExistingBooks(
 ): Promise<Array<{ id: string; shortName: string }>> {
   try {
     const tableName = await getTableName(client, 'Book');
-    const command = new ScanCommand({
+    const command: ScanCommand = new ScanCommand({
       TableName: tableName,
       Limit: limit,
     });
@@ -1176,7 +1176,7 @@ async function seedBricksIssues(client: DynamoDBClient): Promise<{
   // First, get all HomeworkCheck records to calculate points
   const homeworkCheckTableName = await getTableName(client, 'HomeworkCheck');
   const { ScanCommand } = await import('@aws-sdk/client-dynamodb');
-  const scanCommand = new ScanCommand({ TableName: homeworkCheckTableName });
+  const scanCommand: ScanCommand = new ScanCommand({ TableName: homeworkCheckTableName });
   const scanResult = await client.send(scanCommand);
 
   if (!scanResult.Items || scanResult.Items.length === 0) {

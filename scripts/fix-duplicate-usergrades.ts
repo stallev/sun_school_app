@@ -87,7 +87,7 @@ async function findAndRemoveDuplicates(client: DynamoDBClient): Promise<void> {
   let lastEvaluatedKey: Record<string, unknown> | undefined = undefined;
   
   do {
-    const scanCommand = new ScanCommand({
+    const scanCommand: ScanCommand = new ScanCommand({
       TableName: tableName,
       ExclusiveStartKey: lastEvaluatedKey ? lastEvaluatedKey as never : undefined,
     });

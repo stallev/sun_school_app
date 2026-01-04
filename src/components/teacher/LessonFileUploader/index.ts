@@ -1,2 +1,0 @@
-export { LessonFileUploader } from './LessonFileUploader';
-

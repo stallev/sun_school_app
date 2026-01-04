@@ -16,6 +16,7 @@ import {
   gradeIdSchema,
 } from '../lib/validation/grades';
 import { createGrade, updateGrade, deleteGrade, updatePupil, createUserGrade, deleteUserGrade } from '../lib/db/mutations';
+import { invalidateTeacherGradeCache, getTeacherGradeIdsWithCache } from '../lib/utils/teacher-grade-cache';
 import {
   getGrade,
   listGrades,
@@ -55,74 +56,6 @@ type SerializableGrade = {
   updatedAt: string;
 };
 
-/**
- * Check if Teacher has access to a specific grade
- * @param userId - Teacher's user ID
- * @param gradeId - Grade ID to check
- * @returns true if Teacher has access, false otherwise
- */
-async function checkTeacherGradeAccess(
-  userId: string,
-  gradeId: string
-): Promise<boolean> {
-  try {
-    const queries = await import('../graphql/queries');
-    const query = (queries as Record<string, string>).userGradesByGradeIdAndUserId;
-
-    if (!query) {
-      console.error('Query userGradesByGradeIdAndUserId not found');
-      return false;
-    }
-
-    const result = await executeGraphQL<{
-      userGradesByGradeIdAndUserId?: {
-        items?: Array<{ userId: string; gradeId: string }>;
-      };
-    }>(query, {
-      gradeId,
-      userId: { eq: userId },
-      limit: 1,
-    });
-
-    const items = result.data?.userGradesByGradeIdAndUserId?.items || [];
-    return items.length > 0 && items.some((item) => item.userId === userId);
-  } catch (error) {
-    console.error('Error checking teacher grade access:', error);
-    return false;
-  }
-}
-
-/**
- * Get grades assigned to a Teacher
- * @param userId - Teacher's user ID
- * @returns Array of grade IDs assigned to the teacher
- */
-async function getTeacherGradeIds(userId: string): Promise<string[]> {
-  try {
-    const queries = await import('../graphql/queries');
-    const query = (queries as Record<string, string>).userGradesByUserIdAndGradeId;
-
-    if (!query) {
-      console.error('Query userGradesByUserIdAndGradeId not found');
-      return [];
-    }
-
-    const result = await executeGraphQL<{
-      userGradesByUserIdAndGradeId?: {
-        items?: Array<{ gradeId: string }>;
-      };
-    }>(query, {
-      userId,
-      limit: 100, // Reasonable limit for teacher's grades
-    });
-
-    const items = result.data?.userGradesByUserIdAndGradeId?.items || [];
-    return items.map((item) => item.gradeId).filter(Boolean);
-  } catch (error) {
-    console.error('Error getting teacher grade IDs:', error);
-    return [];
-  }
-}
 
 /**
  * Create a new grade
@@ -449,6 +382,35 @@ export async function updateGradeAction(
             });
           }
         });
+
+        // Invalidate cache for affected teachers
+        // When teacher assignments change, their cached grade IDs become stale
+        try {
+          // Collect all affected teacher IDs (added and removed)
+          const allAffectedTeacherIds = [
+            ...teachersToAdd,
+            ...teachersToRemove.map((ug) => ug.userId),
+          ];
+
+          // Remove duplicates
+          const uniqueTeacherIds = Array.from(new Set(allAffectedTeacherIds));
+
+          if (uniqueTeacherIds.length > 0) {
+            // Invalidate cache for affected teachers
+            // Note: Current implementation clears cache for current request's user
+            // For MVP, we clear all teacher caches (simple and safe approach)
+            // Cache will be automatically refreshed on next access check
+            await invalidateTeacherGradeCache();
+            
+            console.log(
+              `Invalidated teacher grade cache for ${uniqueTeacherIds.length} affected teachers`
+            );
+          }
+        } catch (error) {
+          // Don't fail the operation if cache invalidation fails
+          // Cache invalidation is optimization, not critical functionality
+          console.error('Error invalidating teacher grade cache:', error);
+        }
       } catch (error) {
         console.error('Error updating teacher assignments:', error);
         // Don't fail the entire operation if teacher assignment fails
@@ -596,7 +558,8 @@ export async function getGradeAction(
 
     // 4. For Teacher, check if they have access to this grade
     if (isTeacher && !isAdmin) {
-      const hasAccess = await checkTeacherGradeAccess(user.id, id);
+      const gradeIds = await getTeacherGradeIdsWithCache(user.id);
+      const hasAccess = gradeIds.includes(id);
       if (!hasAccess) {
         return {
           success: false,
@@ -682,7 +645,7 @@ export async function listGradesAction(): Promise<
       };
     } else {
       // Teacher: Get only assigned grades
-      const teacherGradeIds = await getTeacherGradeIds(user.id);
+      const teacherGradeIds = await getTeacherGradeIdsWithCache(user.id);
       if (teacherGradeIds.length === 0) {
         return {
           success: true,
@@ -844,7 +807,8 @@ export async function getGradeWithFullDataAction(
 
     // 4. For Teacher, check if they have access to this grade
     if (isTeacher && !isAdmin) {
-      const hasAccess = await checkTeacherGradeAccess(user.id, id);
+      const gradeIds = await getTeacherGradeIdsWithCache(user.id);
+      const hasAccess = gradeIds.includes(id);
       if (!hasAccess) {
         return {
           success: false,
@@ -922,8 +886,10 @@ export async function getGradeWithFullDataAction(
         index === self.findIndex((t) => t.id === teacher.id)
       );
 
-    // 9. Get total pupils count for statistics
-    const totalPupils = serializedPupils.length;
+    // 9. Get active pupils count and IDs for statistics
+    const activePupils = serializedPupils.filter((p) => p.active);
+    const totalPupils = activePupils.length;
+    const activePupilIds = new Set(activePupils.map((p) => p.id));
 
     // 10. Process academic years with lessons
     const academicYearsWithLessons: AcademicYearWithLessons[] = [];
@@ -984,8 +950,8 @@ export async function getGradeWithFullDataAction(
           pupil: hc.pupil || null, // pupil is already included via @belongsTo
         }));
 
-        // Calculate statistics
-        const homeworkStats = getHomeworkCheckStats(homeworkChecks, totalPupils);
+        // Calculate statistics (only for active pupils)
+        const homeworkStats = getHomeworkCheckStats(homeworkChecks, totalPupils, activePupilIds);
 
         // Extract golden verses from nested data
         const lessonGoldenVersesItems = (lesson.goldenVerses?.items || [])

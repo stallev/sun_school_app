@@ -288,6 +288,7 @@ Phase 14: Проверка домашних заданий (Homework Checks)
 - Интерфейс должен работать в полноэкранном режиме с автоматическим переходом к следующему ученику
 - Интерфейс должен работать без перезагрузки страницы
 - Навигация должна включать кнопки "← Предыдущий" и "Следующий →" вверху и внизу экрана
+- Страница должна включать breadcrumb навигацию с использованием компонента `AppBreadcrumb`
 </constraints>
 
 <thinking>
@@ -329,12 +330,14 @@ Phase 14: Проверка домашних заданий (Homework Checks)
   - Сохраняет информацию о выдаче кирпичиков (количество, дата, ученик, учебный год)
   - Получает историю выдачи кирпичиков для отображения в accordion
 - [ ] Добавить обработку ошибок
+- [ ] Добавить breadcrumb навигацию с использованием компонента `AppBreadcrumb` из `components/shared/breadcrumb.tsx`
 
 **Документация:**
 - <CRITICAL>[app_functionality.md](../../../app_functionality.md) - раздел 4.14 Выдача кирпичиков</CRITICAL>
 - [app_functionality.md](../../../app_functionality.md) - раздел 4.8 Проверка домашних заданий
 - [WIREFRAMES.md](../../../ui_ux/WIREFRAMES.md) - раздел 3.5 Выдача кирпичиков
 - [BRICKS_ISSUE_IMPLEMENTATION_PLAN.md](./BRICKS_ISSUE_IMPLEMENTATION_PLAN.md) - план выполнения GraphQL схемы
+- [src/components/shared/breadcrumb.tsx](../../../../src/components/shared/breadcrumb.tsx) - компонент AppBreadcrumb для breadcrumb навигации
 
 **Критерии приемки:**
 - Интерфейс выдачи кирпичиков создан

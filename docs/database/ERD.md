@@ -431,7 +431,7 @@ erDiagram
 | gradeId | String | ID группы (денормализация) | FK → Grades.id |
 | teacherId | String | ID создавшего преподавателя | FK → Users.id |
 | title | String | Тема урока | NOT NULL, min 3 chars |
-| content | String | Описание урока (JSON от BlockNote) | Nullable |
+| content | String | Описание урока (JSON от Novel/Tiptap) | Nullable |
 | lessonDate | String (ISO 8601 Date) | Дата проведения урока | NOT NULL |
 | order | Number | Порядковый номер урока в году | Auto-generated |
 | createdAt | String (ISO 8601) | Дата создания | Auto-generated |

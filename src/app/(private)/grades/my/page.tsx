@@ -11,6 +11,7 @@ import { redirect } from 'next/navigation';
 import { getAuthenticatedUser, checkRole } from '@/lib/auth/cognito';
 import { listGradesAction } from '@/actions/grades';
 import { RoutePath } from '@/lib/routes/RoutePath';
+import { AppBreadcrumb } from '@/components/shared/breadcrumb';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { GradesList } from '@/components/organisms/grades-list';
 
@@ -56,7 +57,12 @@ export default async function MyGradesPage() {
 
   return (
     <div className="container mx-auto p-4 md:p-6 lg:p-8">
-      <div className="mb-6">
+      <AppBreadcrumb
+        items={[
+          { label: 'Мои группы' },
+        ]}
+      />
+      <div className="mb-6 mt-4">
         <h1 className="text-2xl font-bold tracking-tight md:text-3xl lg:text-4xl">
           Мои группы
         </h1>
